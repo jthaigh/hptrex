@@ -72,8 +72,14 @@ class ND::TTPCOrderedVolGroup : public TObject {
     unsigned int GetFrontID(){ return fFrontHits->GetID(); }
     /// Get ID for the group of hits at the back of this group
     unsigned int GetBackID(){ return fBackHits->GetID(); }
+
     /// Get extended group of hits associated with this path
-    ND::THandle<ND::TTPCVolGroup> GetExtendedHits(){ return fExtendedHits; }
+    //MDH
+    //Changed this to copy fExtendedHits into input object.
+    //Slightly ugly but I think this may be the right way
+    //since we want to manage persistence separately.
+    void GetExtendedHits(ND::TTPCVolGroup& ret){  ret=fExtendedHits; }
+  
     /// Iterator to start of front hits
     std::map<long, ND::TTPCUnitVolume*>::iterator frontHitsBegin(){ return fFrontHits->begin(); }
     /// Iterator to end of front hits

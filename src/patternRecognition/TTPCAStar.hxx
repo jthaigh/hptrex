@@ -57,25 +57,26 @@ namespace ND{
       /// Add hits, saving time by copying from a previous A* container
       void AddHits(ND::TTPCAStar* prevAStar, std::map<long, ND::TTPCUnitVolume*> hitMap);
 
+
       /// Connect a group of vertices to a group of track ends
-      std::vector< ND::THandle<ND::TTPCVolGroup> > ConnectVertexGroups(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > vertices, std::vector< ND::THandle<ND::TTPCVolGroup> > edges, int maxNo=999);
+      //MDH
+      //Not used
+      //std::vector< ND::THandle<ND::TTPCVolGroup> > ConnectVertexGroups(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > vertices, std::vector< ND::THandle<ND::TTPCVolGroup> > edges, int maxNo=999);
+
       /// Connect a group of vertices to a group of track ends, holding on to the order of the hits in the path)
-      std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >  ConnectVertexGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > vertices, std::vector< ND::THandle<ND::TTPCVolGroup> > edges, int maxNo=999);
+    void ND::TTPCAStar::ConnectVertexGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& vertices, std::vector< ND::TTPCVolGroup >& edges, std::vector< ND::TTPCOrderedVolGroup >& connections, int maxNo=999);
 
       /// Connect pairs of groups to each other
-      std::vector< ND::THandle<ND::TTPCVolGroup> > ConnectGroups(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> >, bool allConnections=false, int maxNo=999);
-      /// Connect pairs of groups to each other, holding on to the order of the hits in the path
-      std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > ConnectGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > groups, bool vertices=false, bool allConnections=false, int maxNo=999);
+      //MDH
+      //Not used
+      //std::vector< ND::THandle<ND::TTPCVolGroup> > ConnectGroups(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> >, bool allConnections=false, int maxNo=999);
 
+      /// Connect pairs of groups to each other, holding on to the order of the hits in the path
+    void ND::TTPCAStar::ConnectGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, std::vector< ND::TTPCOrderedVolGroup >& connections, bool vertices, bool allConnections, int maxNo);
+      
       /// Clear any groups that lie too close to paths between other groups
-      std::vector< ND::THandle<ND::TTPCVolGroup> > ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > groups, int maxNo=999);
-      /// Experimental function to clear any groups that lie too close to paths between other groups
-      std::vector< ND::THandle<ND::TTPCVolGroup> > ExperimentalClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > groups, bool forceReconstructable=false, int maxNo=999);
-      /// Experimental function to clear any groups that lie too close to paths between other groups
-      std::vector< ND::THandle<ND::TTPCVolGroup> > ExperimentalClearRedundancies2(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > groups, int maxNo=999);
-      /// Experimental function to clear any vertices that lie too close together
-      std::vector< ND::THandle<ND::TTPCVolGroup> > ExperimentalClearVertexRedundancies(std::vector< ND::THandle<ND::TTPCVolGroup> > groups, int maxNo=999);
-      /// Clear any groups that pass too close to an intermediate vertex
+    void ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, int maxNo=999);
+
       std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > ClearVertexConnectionRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths, std::vector< ND::THandle<ND::TTPCVolGroup> > vertices);
 
       /// Get cost to connect one group to another group

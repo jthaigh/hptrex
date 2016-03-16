@@ -121,8 +121,7 @@ ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GrabADeltaHitGroup(ND::THandl
   return spreadGroup;
 }
 
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCVolGroupMan::GetAllEdgeGroups(){
-  std::vector< ND::THandle<ND::TTPCVolGroup> > output;
+void ND::TTPCVolGroupMan::GetAllEdgeGroups(std::vector< ND::TTPCVolGroup >& output){
   std::vector< ND::THandle<ND::TTPCVolGroup> > allGroups;
   std::vector< ND::THandle<ND::TTPCVolGroup> > deltaGroups = GetConnectedHits(ND::TTPCConnection::path, ND::TTPCHitGroupings::delta);
   std::vector< ND::THandle<ND::TTPCVolGroup> > nonDeltaGroups = GetConnectedHits(ND::TTPCConnection::path, ND::TTPCHitGroupings::nonDelta);
@@ -265,6 +264,7 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCVolGroupMan::GetEdgeGroups(
   };
   return edgeGroups;
 }
+
 void ND::TTPCVolGroupMan::FillWithSplitGroups(std::vector< ND::THandle<ND::TTPCVolGroup> >& container, ND::THandle<ND::TTPCVolGroup> inputHits, ND::TTPCConnection::Type type, int maxFilterX, int maxFilterY, int maxFilterZ){
   std::vector< ND::THandle<ND::TTPCVolGroup> > splitGroups = GetSplitGroups(inputHits, type);
   for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator grp = splitGroups.begin(); grp != splitGroups.end(); ++grp){
@@ -291,14 +291,10 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCVolGroupMan::GetSplitGroups
   return groups;
 }
 
-ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetFocus(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths){
-  // get focus with arbitrary threshold close to unity
-  std::vector< ND::THandle<ND::TTPCVolGroup> > foci = GetFoci(paths, .99);
-  // return first (should be only) element
-  if(foci.size() > 0) return *foci.begin();
-  else return ND::THandle<ND::TTPCVolGroup>(new TTPCVolGroup(fLayout));
-}
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCVolGroupMan::GetFoci(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths, float diffThreshold){
+
+//MDH
+//Just changed sig for now - need to fix internals 
+void ND::TTPCVolGroupMan::GetFoci(std::vector< ND::TTPCOrderedVolGroup > paths, std::vector< ND::TTPCVolGroup > groupsOut, float diffThreshold){
   // select pairs of groups to loop over
   std::vector< std::pair< ND::THandle<ND::TTPCOrderedVolGroup>, ND::THandle<ND::TTPCOrderedVolGroup> > > groupPairs;
   for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator path1It = paths.begin(); path1It != paths.end(); ++path1It){
@@ -632,20 +628,19 @@ ND::TTPCUnitVolume* ND::TTPCVolGroupMan::GetClosestPoint(ND::TTPCPathVolume* beg
   long id = fPrimaryHits->GetNearestHit(ax, ay, az);
   return fPrimaryHits->GetHit(id);
 }
-void ND::TTPCVolGroupMan::CleanUpVertices(std::vector< ND::THandle<ND::TTPCVolGroup> > edgeGroups, std::vector< ND::THandle<ND::TTPCVolGroup> > vertices){
+void ND::TTPCVolGroupMan::CleanUpVertices(std::vector< ND::TTPCVolGroup > edgeGroups, std::vector< ND::TTPCVolGroup > vertices){
   while(vertices.size() > edgeGroups.size()-2){
     // get rid of spurious vertices, one at a time
-    std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator markedIt;
+    std::vector< ND::TTPCVolGroup >::iterator markedIt;
     double minDistance = 99999999.;
 
     // find closest vertex to any edge group and mark it as spurious
-    for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
-      ND::THandle<ND::TTPCVolGroup> vertex = *vertexIt;
+    for(std::vector< ND::TTPCVolGroup >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
+      ND::TTPCVolGroup& vertex = *vertexIt;
 
-      if(vertex)
-      for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator edgeIt = edgeGroups.begin(); edgeIt != edgeGroups.end(); ++edgeIt){
-        ND::THandle<ND::TTPCVolGroup> edge = *edgeIt;
-        TVector3 diff = edge->GetAveragePosXYZ() - vertex->GetAveragePosXYZ(); 
+      for(std::vector< ND::TTPCVolGroup >::iterator edgeIt = edgeGroups.begin(); edgeIt != edgeGroups.end(); ++edgeIt){
+        ND::TTPCVolGroup& edge = *edgeIt;
+        TVector3 diff = edge.GetAveragePosXYZ() - vertex.GetAveragePosXYZ(); 
         double dist = diff.Mag2();
 
         if(dist < minDistance){
@@ -659,22 +654,6 @@ void ND::TTPCVolGroupMan::CleanUpVertices(std::vector< ND::THandle<ND::TTPCVolGr
   };
 }
 
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCVolGroupMan::GetFarHits(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths, bool tryChargeCut){
-  ND::THandle<ND::TTPCVolGroup> inGroup (new ND::TTPCVolGroup(fLayout));
-
-  // add all far hits from all paths to group
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator path = paths.begin(); path != paths.end(); ++path){
-    ND::THandle<ND::TTPCVolGroup> farHitsGroup;
-    farHitsGroup = GetFarHitsPreGroup(*path, tryChargeCut);
-    if(!farHitsGroup->size()){
-      farHitsGroup = GetFarHitsGroup(*path, tryChargeCut);
-    };
-    inGroup->AddHits(farHitsGroup);
-  };
-  std::vector< ND::THandle<ND::TTPCVolGroup> > groups = GetConnectedHits(inGroup, ND::TTPCConnection::vertexMerge);
-
-  return groups;
-}
 ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetFarHitsPreGroup(ND::THandle<ND::TTPCOrderedVolGroup> path, bool tryChargeCut){
   double edgePreDist = fLayout->GetEdgePreDist();
   double edgePreDist2 = edgePreDist*edgePreDist;
@@ -1023,39 +1002,35 @@ void ND::TTPCVolGroupMan::FindDiscontinuity(float& pos, float& step, float size,
   delete fitStep;
 }
 
-std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > ND::TTPCVolGroupMan::BreakPathsAboutKinks(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > inPaths, bool tryChargeCut){
-  std::vector< ND::THandle<ND::TTPCVolGroup> > inVertices = GetJunctionsFromPaths(inPaths);
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > outPaths = std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >();
+void ND::TTPCVolGroupMan::BreakPathsAboutKinks(std::vector< ND::TTPCOrderedVolGroup >& paths, bool tryChargeCut){
+  std::vector< ND::TTPCVolGroup > inVertices = GetJunctionsFromPaths(paths);
+  std::vector< ND::TTPCOrderedVolGroup > outPaths;
 
   // loop over all input paths
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator pathIt = inPaths.begin(); pathIt != inPaths.end(); ++pathIt){
-    ND::THandle<ND::TTPCOrderedVolGroup> path = *pathIt;
+  for(std::vector< ND::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
+    ND::TTPCOrderedVolGroup& path = *pathIt;
 
-    ND::THandle<ND::TTPCOrderedVolGroup> outPath1 = ND::THandle<ND::TTPCOrderedVolGroup> (new ND::TTPCOrderedVolGroup(fLayout));
-    ND::THandle<ND::TTPCOrderedVolGroup> outPath2 = ND::THandle<ND::TTPCOrderedVolGroup> (new ND::TTPCOrderedVolGroup(fLayout));
+    outPaths.emplace_back(fLayout);
+    ND::TTPCOrderedVolGroup& outPath1=outPaths.back();
+    outPaths.emplace_back(fLayout);
+    ND::TTPCOrderedVolGroup& outPath2=outPaths.back();
 
-    ND::THandle<ND::TTPCVolGroup> kinkGroup;
-    if(fLayout->GetUseAltEdgeDetection() && path->GetDeltaCriteriaMet()){
-      // don't try kink finding if path is a delta
-      kinkGroup = ND::THandle<ND::TTPCVolGroup>(new ND::TTPCVolGroup(fLayout));
+    ND::TTPCVolGroup kinkGroup;
+    kinkGroup = GetFarHitsPreGroup(path, tryChargeCut);
+    if(!kinkGroup.size()){
+      kinkGroup = GetFarHitsGroup(path, tryChargeCut);
     }
-    else{
-      kinkGroup = GetFarHitsPreGroup(path, tryChargeCut);
-      if(!kinkGroup->size()){
-        kinkGroup = GetFarHitsGroup(path, tryChargeCut);
-      };
-    };
 
-    TVector3 kinkPosXYZ = kinkGroup->GetAveragePosXYZ();
+    TVector3 kinkPosXYZ = kinkGroup.GetAveragePosXYZ();
 
-    std::vector<ND::TTPCPathVolume*>::iterator path1EndIt = path->end();
+    std::vector<ND::TTPCPathVolume*>::iterator path1EndIt = path.end();
     bool broken = false;
 
-    if(kinkGroup->size()){
+    if(kinkGroup.size()){
       double minDist2=99999999.;
 
       // find closest point to kink to break around
-      for(std::vector<ND::TTPCPathVolume*>::iterator pointIt = path->begin(); pointIt != path->end(); ++pointIt){
+      for(std::vector<ND::TTPCPathVolume*>::iterator pointIt = path.begin(); pointIt != path.end(); ++pointIt){
         ND::TTPCPathVolume* point = *pointIt;
 
         TVector3 diff = point->GetPosXYZ() - kinkPosXYZ;
@@ -1064,91 +1039,69 @@ std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > ND::TTPCVolGroupMan::BreakPa
           minDist2 = diffDist2;
           path1EndIt = pointIt;
           broken = true;
-        };
-      };
-    };
+        }
+      }
+    }
 
     // build copy of old hits so the code doesn't get confused when separating them
-    ND::THandle<ND::TTPCVolGroup> newExtHits1 (new ND::TTPCVolGroup(fLayout));
-    ND::THandle<ND::TTPCVolGroup> newExtHits2 (new ND::TTPCVolGroup(fLayout));
-    newExtHits1->AddHits(path->GetExtendedHits());
-    newExtHits2->AddHits(path->GetExtendedHits());
+    ND::TTPCVolGroup newExtHits1(fLayout);
+    ND::TTPCVolGroup newExtHits2(fLayout);
+    newExtHits1.AddHits(path.GetExtendedHits());
+    newExtHits2.AddHits(path.GetExtendedHits());
 
-    outPath1->AddExtendedHits(newExtHits1);
-    outPath1->AddBackHits(path->GetBackHits());
-    outPath1->SetBackIsVertex(path->GetBackIsVertex());
+    outPath1.AddExtendedHits(newExtHits1);
+    outPath1.AddBackHits(path.GetBackHits());
+    outPath1.SetBackIsVertex(path.GetBackIsVertex());
 
     // if broken, tie up this path and start another
     if(broken){
-      outPath1->AddFrontHits(kinkGroup);
-      outPath1->SetFrontIsVertex(true);
+      outPath1.AddFrontHits(kinkGroup);
+      outPath1.SetFrontIsVertex(true);
 
-      outPath2->AddExtendedHits(newExtHits2);
-      outPath2->AddBackHits(kinkGroup);
-      outPath2->SetBackIsVertex(true);
+      outPath2.AddExtendedHits(newExtHits2);
+      outPath2.AddBackHits(kinkGroup);
+      outPath2.SetBackIsVertex(true);
 
-      outPath2->AddFrontHits(path->GetFrontHits());
-      outPath2->SetFrontIsVertex(path->GetFrontIsVertex());
+      outPath2.AddFrontHits(path->GetFrontHits());
+      outPath2.SetFrontIsVertex(path->GetFrontIsVertex());
     }
     else{
-      outPath1->AddFrontHits(path->GetFrontHits());
-      outPath1->SetFrontIsVertex(path->GetFrontIsVertex());
+      outPath1.AddFrontHits(path->GetFrontHits());
+      outPath1.SetFrontIsVertex(path->GetFrontIsVertex());
     };
 
     // add hits to first path up to its end
-    for(std::vector<ND::TTPCPathVolume*>::iterator pointIt = path->begin(); pointIt != path1EndIt; ++pointIt){
+    for(std::vector<ND::TTPCPathVolume*>::iterator pointIt = path.begin(); pointIt != path1EndIt; ++pointIt){
       ND::TTPCPathVolume* point = *pointIt;
-      outPath1->AddCell(point->GetUnitVolume());
+      outPath1.AddCell(point->GetUnitVolume());
     };
 
     // add hits to first/same path up to its end
-    if(path1EndIt != path->end())
+    if(path1EndIt != path.end())
     for(std::vector<ND::TTPCPathVolume*>::iterator pointIt = path1EndIt+1; pointIt != path->end(); ++pointIt){
       ND::TTPCPathVolume* point = *pointIt;
-      outPath2->AddCell(point->GetUnitVolume());
+      outPath2.AddCell(point->GetUnitVolume());
     };
 
-    outPaths.push_back(outPath1);
-    if(outPath2->size()){
-      outPaths.push_back(outPath2);
+    if(outPath2.size()){
 
       // paths broken, so re-do hit finding
-      std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > brokenPaths = std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >();
+      std::vector< ND::TTPCOrderedVolGroup > brokenPaths;
 
       brokenPaths.push_back(outPath1);
       brokenPaths.push_back(outPath2);
 
+      I want this to crash - I need to find a way of passing the paths in by reference when they are contained in outPaths.
+      I could overlay the objects into a fresh vector pointing to the data but that would be naughty.
+
       SeparateHits(brokenPaths);
-    };
-  };
-  std::vector< ND::THandle<ND::TTPCVolGroup> > outVertices = GetJunctionsFromPaths(outPaths);
+    }
+    else{
+      outpaths.pop_back();
+    }
+  }
 
-  return outPaths;
-}
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCVolGroupMan::GetFilteredPaths(std::vector< ND::THandle<ND::TTPCVolGroup> > inPaths){
-  // paths to return
-  std::vector< ND::THandle<ND::TTPCVolGroup> > mergedPaths = std::vector< ND::THandle<ND::TTPCVolGroup> >();
-
-  // add old paths to merged paths
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator inPath = inPaths.begin(); inPath != inPaths.end(); ++inPath){
-    ND::THandle<ND::TTPCVolGroup> newGroup(new ND::TTPCVolGroup(fLayout));
-    newGroup->AddHits(*inPath);
-    mergedPaths.push_back(newGroup);
-  };
-
-  if(mergedPaths.size() < 1) return mergedPaths;
-  // remove overlapping paths from merged paths
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator mergedPath1 = mergedPaths.begin(); mergedPath1 != mergedPaths.end(); ++mergedPath1)
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator mergedPath2 = mergedPath1+1; mergedPath2 != mergedPaths.end(); ++mergedPath2){
-    // loop over all pairs of hits to determine if they are identical
-    int nOverlaps=0;
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator pt1 = (*mergedPath1)->begin(); pt1 != (*mergedPath1)->end(); ++pt1)
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator pt2 = (*mergedPath2)->begin(); pt2 != (*mergedPath2)->end(); ++pt2){
-      if(pt1->first == pt2->first) nOverlaps++;
-    };
-  };
-
-  return mergedPaths;
+  paths=std::move(outPaths);
 }
 
 bool ND::TTPCVolGroupMan::GetPathVolOverlap(ND::THandle<ND::TTPCOrderedVolGroup> path, ND::TTPCUnitVolume* vol, ND::TTPCConnection::Type type){
@@ -1224,35 +1177,31 @@ ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::MergeGroups(ND::THandle<ND::T
 
   return newGroup;
 }
-ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::ExperimentalMergeGroups(ND::THandle<ND::TTPCVolGroup> group1, ND::THandle<ND::TTPCVolGroup> group2){
-  ND::THandle<ND::TTPCVolGroup> newGroup = MergeGroups(group1, group2);
-  BulkGroup(newGroup);
 
-  return newGroup;
-}
-void ND::TTPCVolGroupMan::BulkGroup(ND::THandle<ND::TTPCVolGroup> group){
-  int xMin = group->GetXMin();
-  int xMax = group->GetXMax();
-  int yMin = group->GetYMin();
-  int yMax = group->GetYMax();
-  int zMin = group->GetZMin();
-  int zMax = group->GetZMax();
+void ND::TTPCVolGroupMan::BulkGroup(ND::TTPCVolGroup& group){
+  int xMin = group.GetXMin();
+  int xMax = group.GetXMax();
+  int yMin = group.GetYMin();
+  int yMax = group.GetYMax();
+  int zMin = group.GetZMin();
+  int zMax = group.GetZMax();
 
   // TODO: either add directly or by lookup; whichever is faster
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator hitEl = fPrimaryHits->begin(); hitEl != fPrimaryHits->end(); ++hitEl){
+  for(std::map<long, ND::TTPCUnitVolume*>::iterator hitEl = fPrimaryHits.begin(); hitEl != fPrimaryHits.end(); ++hitEl){
     ND::TTPCUnitVolume* vol = hitEl->second;
 
     if(vol->GetX() >= xMin && vol->GetX() <= xMax){
       if(vol->GetY() >= yMin && vol->GetY() <= yMax){
         if(vol->GetZ() >= zMin && vol->GetZ() <= zMax){
-          group->AddHit(vol);
-        };
-      };
-    };
-  };
+          group.AddHit(vol);
+        }
+      }
+    }
+  }
 }
-void ND::TTPCVolGroupMan::BulkGroups(std::vector< ND::THandle<ND::TTPCVolGroup> > groups){
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator groupIt = groups.begin(); groupIt != groups.end(); ++groupIt){
+
+void ND::TTPCVolGroupMan::BulkGroups(std::vector< ND::TTPCVolGroup > groups){
+  for(std::vector< ND::TTPCVolGroup >::iterator groupIt = groups.begin(); groupIt != groups.end(); ++groupIt){
     BulkGroup(*groupIt);
   };
 }
@@ -1266,16 +1215,10 @@ ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetUnorderedGroup(ND::THandle
 
   return group;
 }
-ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetExtendedUnorderedGroup(ND::THandle<ND::TTPCOrderedVolGroup> in){
-  // check if group has extended hits and produce them if not
-  if(!in->GetHasExtendedHits()){
-    BuildGroupFriends(in);
-  };
 
-  // return extended hits
-  return in->GetExtendedHits();
-}
-void ND::TTPCVolGroupMan::BuildGroupFriends(ND::THandle<ND::TTPCOrderedVolGroup> in, ND::TTPCConnection::Type type){
+//MDH
+//Changed sig, need to alter function still...
+void ND::TTPCVolGroupMan::BuildGroupFriends(ND::TTPCOrderedVolGroup& in, ND::TTPCConnection::Type type){
   // max distance from path
   int typeX;
   int typeY;
@@ -1330,10 +1273,10 @@ void ND::TTPCVolGroupMan::BuildGroupFriends(ND::THandle<ND::TTPCOrderedVolGroup>
   // add associated hits to the group
   in->AddExtendedHits(group);
 }
-void ND::TTPCVolGroupMan::ClusterGroupFriends(ND::THandle<ND::TTPCOrderedVolGroup> in, bool doClustering, bool checkX, bool partial){
+void ND::TTPCVolGroupMan::ClusterGroupFriends(ND::TTPCOrderedVolGroup& in, bool doClustering, bool checkX, bool partial){
   // note - path may be empty after this
   // check if group has extended hits and produce them if not
-  if(!in->GetHasExtendedHits()){
+  if(!in.GetHasExtendedHits()){
     BuildGroupFriends(in);
   };
   // stop here if 'do clustering' is off
@@ -1341,13 +1284,14 @@ void ND::TTPCVolGroupMan::ClusterGroupFriends(ND::THandle<ND::TTPCOrderedVolGrou
   // if needed, check whether path is an x-path before going further
   if(checkX){
     if(IsXPathCandidate(in)){
-      in->SetIsXPath(true);
+      in.SetIsXPath(true);
     };
   };
 
   // connect all assocaited hits
-  in->DoClustering(partial);
+  in.DoClustering(partial);
 }
+
 std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >  ND::TTPCVolGroupMan::ClearEmptyPaths(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >& paths){
   std::vector< ND::THandle<ND::TTPCOrderedVolGroup > >::iterator pathDel = paths.begin();
   while(pathDel != paths.end()){
@@ -1356,27 +1300,34 @@ std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >  ND::TTPCVolGroupMan::ClearE
   };
   return paths;
 }
-void ND::TTPCVolGroupMan::BuildAllFriends(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths){
+void ND::TTPCVolGroupMan::BuildAllFriends(std::vector< ND::TTPCOrderedVolGroup >& paths){
   // build friends for paths
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt) BuildGroupFriends(*pathIt);
-
+  for(std::vector< ND::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
+    BuildGroupFriends(*pathIt);
+  }
   // ensure that none share hits
   SeparateHits(paths);
 }
-void ND::TTPCVolGroupMan::SeparateHits(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths){
+
+//MDH
+//Made some changes here but probably made a pig's ear of it.
+//Come back later...
+void ND::TTPCVolGroupMan::SeparateHits(std::vector< ND::TTPCOrderedVolGroup >& paths){
   // loop over all pairs of groups
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator path1It = paths.begin(); path1It != paths.end(); ++path1It)
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator path2It = path1It+1; path2It != paths.end(); ++path2It){
-    ND::THandle<ND::TTPCOrderedVolGroup> path1 = *path1It;
-    ND::THandle<ND::TTPCOrderedVolGroup> path2 = *path2It;
+  for(std::vector< ND::TTPCOrderedVolGroup >::iterator path1It = paths.begin(); path1It != paths.end(); ++path1It)
+  for(std::vector< ND::TTPCOrderedVolGroup >::iterator path2It = path1It+1; path2It != paths.end(); ++path2It){
+    ND::TTPCOrderedVolGroup& path1 = *path1It;
+    ND::TTPCOrderedVolGroup& path2 = *path2It;
 
     // take associated hits
-    ND::THandle<ND::TTPCVolGroup> extendedHits1 = path1->GetExtendedHits();
-    ND::THandle<ND::TTPCVolGroup> extendedHits2 = path2->GetExtendedHits();
+    ND::TTPCVolGroup extendedHits1(fLayout);
+    ND::TTPCVolGroup extendedHits2(fLayout);
+    path1->GetExtendedHits(extendedHits1);
+    path2->GetExtendedHits(extendedHits2);
 
     // loop over path associated hits
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator extHit1El = extendedHits1->begin(); extHit1El != extendedHits1->end(); ++extHit1El)
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator extHit2El = extendedHits2->begin(); extHit2El != extendedHits2->end(); ++extHit2El){
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator extHit1El = extendedHits1.begin(); extHit1El != extendedHits1.end(); ++extHit1El)
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator extHit2El = extendedHits2.begin(); extHit2El != extendedHits2.end(); ++extHit2El){
       // shared hit - break tie in favour of closest path
       if(extHit1El->first == extHit2El->first){
         // ignore if already marked for clearing
@@ -1404,6 +1355,7 @@ void ND::TTPCVolGroupMan::SeparateHits(std::vector< ND::THandle<ND::TTPCOrderedV
     path2->AddExtendedHits(extendedHits2);
   };
 }
+
 void ND::TTPCVolGroupMan::SeparateXPathHits(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >& paths){
   // loop over all paths
   for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
@@ -2096,21 +2048,21 @@ bool ND::TTPCVolGroupMan::GetOverlaps(ND::THandle<ND::TTPCVolGroup> group1, ND::
   return false;
 }
 
-void ND::TTPCVolGroupMan::ResetVertexStatuses(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths, bool partial){
+void ND::TTPCVolGroupMan::ResetVertexStatuses(std::vector< ND::TTPCOrderedVolGroup >& paths, bool partial){
   // first build list of potential vertices (path groups tagged as vertices)
-  std::vector< ND::THandle<ND::TTPCVolGroup> > vertices = GetJunctionsFromPaths(paths);
+  std::vector< ND::TTPCVolGroup > vertices = GetJunctionsFromPaths(paths);
 
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
-    ND::THandle<ND::TTPCVolGroup> vertex = *vertexIt;
+  for(std::vector< ND::TTPCVolGroup >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
+    ND::TTPCVolGroup& vertex = *vertexIt;
     int connectedPaths = 0;
 
     // count connected paths
-    for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
-      ND::THandle<ND::TTPCOrderedVolGroup> path = *pathIt;
+    for(std::vector< ND::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
+      ND::TTPCOrderedVolGroup& path = *pathIt;
 
       // overlap with front hits
-      bool frontOverlaps = path->GetFrontID() == vertex->GetID();
-      bool backOverlaps = path->GetBackID() == vertex->GetID();
+      bool frontOverlaps = path.GetFrontID() == vertex.GetID();
+      bool backOverlaps = path.GetBackID() == vertex.GetID();
 
       // increment connected paths
       if(frontOverlaps) connectedPaths++;
@@ -2121,259 +2073,83 @@ void ND::TTPCVolGroupMan::ResetVertexStatuses(std::vector< ND::THandle<ND::TTPCO
     bool isVertex = connectedPaths>1;
 
     // replace any overlapping path beginning or end with this
-    for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
-      ND::THandle<ND::TTPCOrderedVolGroup> path = *pathIt;
+    for(std::vector< ND::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
+      ND::TTPCOrderedVolGroup& path = *pathIt;
 
       // overlap with front hits
-      bool frontOverlaps = path->GetFrontID() == vertex->GetID();
-      bool backOverlaps = path->GetBackID() == vertex->GetID();
+      bool frontOverlaps = path.GetFrontID() == vertex.GetID();
+      bool backOverlaps = path.GetBackID() == vertex.GetID();
 
 
       // set new status as vertex, adding hits if the status has changed
       bool redoClustering = false;
       if(frontOverlaps){
-        if(path->GetFrontIsVertex() != isVertex){
+        if(path.GetFrontIsVertex() != isVertex){
           redoClustering = true;
         };
-        path->SetFrontIsVertex(isVertex);
+        path.SetFrontIsVertex(isVertex);
       }
       else if(backOverlaps){
-        if(path->GetBackIsVertex() != isVertex){
+        if(path.GetBackIsVertex() != isVertex){
           redoClustering = true;
         };
-        path->SetBackIsVertex(isVertex);
+        path.SetBackIsVertex(isVertex);
       };
 
       // do NOT allow hits the same vertex to be duplicated
-      if(path->GetFrontID() == path->GetBackID()){
-        if(path->GetFrontIsVertex() && path->GetBackIsVertex()){
-          path->SetBackIsVertex(false);
+      if(path.GetFrontID() == path.GetBackID()){
+        if(path.GetFrontIsVertex() && path.GetBackIsVertex()){
+          path.SetBackIsVertex(false);
         };
       }
       else if(redoClustering){
-        path->GetExtendedHits()->AddHits(vertex);
-        path->DoClustering(partial);
-      };
-    };
-  };
+        path.GetExtendedHits()->AddHits(vertex);
+        path.DoClustering(partial);
+      }
+    }
+  }
 }
 
-ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetGapFillHits(ND::THandle<ND::TTPCVolGroup> in){
-  ND::THandle<ND::TTPCVolGroup> gapFillHits(new ND::TTPCVolGroup(fLayout));
-
-  // identify hits at upper and lower edges of MM volumes in x, y and z
-  ND::THandle<ND::TTPCVolGroup> hitsUX(new ND::TTPCVolGroup(fLayout));
-  ND::THandle<ND::TTPCVolGroup> hitsUY(new ND::TTPCVolGroup(fLayout));
-  ND::THandle<ND::TTPCVolGroup> hitsUZ(new ND::TTPCVolGroup(fLayout));
-  ND::THandle<ND::TTPCVolGroup> hitsDX(new ND::TTPCVolGroup(fLayout));
-  ND::THandle<ND::TTPCVolGroup> hitsDY(new ND::TTPCVolGroup(fLayout));
-  ND::THandle<ND::TTPCVolGroup> hitsDZ(new ND::TTPCVolGroup(fLayout));
-
-  // fill edge groups with found hits
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator it = in->begin(); it != in->end(); ++it){
-    if (it->second->GetEdgeX() == 1) hitsUX->AddHit(it->second);
-    if (it->second->GetEdgeY() == 1) hitsUY->AddHit(it->second);
-    if (it->second->GetEdgeZ() == 1) hitsUZ->AddHit(it->second);
-    if (it->second->GetEdgeX() == -1) hitsDX->AddHit(it->second);
-    if (it->second->GetEdgeY() == -1) hitsDY->AddHit(it->second);
-    if (it->second->GetEdgeZ() == -1) hitsDZ->AddHit(it->second);
-  };
-
-  // get extrapolations over the gap from those groups
-  ND::THandle<ND::TTPCVolGroup> projectionsUX = GetGapProjections(hitsUX, 1, 0, 0, in->GetHitMap());
-  ND::THandle<ND::TTPCVolGroup> projectionsUY = GetGapProjections(hitsUY, 0, 1, 0, in->GetHitMap());
-  ND::THandle<ND::TTPCVolGroup> projectionsUZ = GetGapProjections(hitsUZ, 0, 0, 1, in->GetHitMap());
-  ND::THandle<ND::TTPCVolGroup> projectionsDX = GetGapProjections(hitsDX, -1, 0, 0, in->GetHitMap());
-  ND::THandle<ND::TTPCVolGroup> projectionsDY = GetGapProjections(hitsDY, 0, -1, 0, in->GetHitMap());
-  ND::THandle<ND::TTPCVolGroup> projectionsDZ = GetGapProjections(hitsDZ, 0, 0, -1, in->GetHitMap());
-
-  // add extrapolations to the main group as pseudo-hits
-  gapFillHits->MergeHits(projectionsUX);
-  gapFillHits->MergeHits(projectionsUY);
-  gapFillHits->MergeHits(projectionsUZ);
-  gapFillHits->MergeHits(projectionsDX);
-  gapFillHits->MergeHits(projectionsDY);
-  gapFillHits->MergeHits(projectionsDZ);
-
-  return gapFillHits;
-}
-ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetGapProjections(ND::THandle<ND::TTPCVolGroup> in, int dirX, int dirY, int dirZ, std::map<long, ND::TTPCUnitVolume*> refHits){
-  ND::THandle<ND::TTPCVolGroup> projGroup(new ND::TTPCVolGroup(fLayout));
-
-  if(in->size() < 1) return projGroup;
-  // break this group into connected sub-groups
-  std::vector< ND::THandle<ND::TTPCVolGroup> > groups;
-  for(int i=0; i<9999; i++){
-    if(in->size() < 1) break;
-
-    std::map<long, ND::TTPCUnitVolume*>::iterator el = in->begin();
-
-    ND::THandle<ND::TTPCVolGroup> newGroup(new ND::TTPCVolGroup(fLayout));
-    // build connected hits from hits in this group recursively
-    RecursiveFriendBuild(el->first, newGroup, in, ND::TTPCConnection::path);
-
-    // add to list of unique groups
-    groups.push_back(newGroup);
-  };
-
-  // process each unique group individually
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator grp = groups.begin(); grp != groups.end(); ++grp){
-    // work out parameters for extrapolation
-    float q = (*grp)->GetCharge() / 2;
-    q = 1000.;
-    ND::TTPCCellInfo3D cell = (*grp)->GetAveragePad();
-    int x = cell.x; 
-    int y = cell.y;
-    int z = cell.z;
-    float sigmaX = (*grp)->GetSigmaPadX();
-    float sigmaY = (*grp)->GetSigmaPadY();
-    float sigmaZ = (*grp)->GetSigmaPadZ();
-
-    ND::THandle<ND::TTPCVolGroup> refGroup(new TTPCVolGroup(fLayout));
-    refGroup->AddHits(refHits);
-
-    ND::THandle<ND::TTPCVolGroup> nearGroup;
-
-    // find nearest group of cells in given direction to work out direction to project over
-    if (dirX == 1 || dirX == -1) nearGroup = GetNearestGroup(refGroup, x + dirX*(fLayout->GetGapOffsetX() + 1), y, z, 1);
-    else if (dirY == 1 || dirY == -1) nearGroup = GetNearestGroup(refGroup, x, y + dirY*(fLayout->GetGapOffsetY() + 1), z, 2);
-    else if (dirZ == 1 || dirZ == -1) nearGroup = GetNearestGroup(refGroup, x, y, z + dirZ*(fLayout->GetGapOffsetZ() + 1), 3);
-    else nearGroup = ND::THandle<ND::TTPCVolGroup>(new ND::TTPCVolGroup(fLayout));
-
-    if(nearGroup->size() < 1) continue;
-
-    // work out direction to project into as difference between this group of cells and the nearest group
-    TVector3 offset = nearGroup->GetAveragePosition() - (*grp)->GetAveragePosition();
-    float diffX = offset.X() / fLayout->GetXCellSize();
-    float diffY = offset.Y() / fLayout->GetPadPitchY();
-    float diffZ = offset.Z() / fLayout->GetPadPitchZ();
-
-    // extend across gap as a series of 2D gaussian distributions of charge in either zy, zx or yx planes
-    if (dirX==-1 || dirX==1){
-      float dY_dX = diffY / diffX;
-      float dZ_dX = diffZ / diffX;
-      for(int i=1; i<=fLayout->GetGapOffsetX(); i++){
-        int i2 = dirX*i;
-        int x2 = x + i2;
-        int y2 = y + int(dY_dX*i2);
-        int z2 = z + int(dZ_dX*i2);
-        projGroup->AddNewPseudoGauss(x2, y2, z2, q, 1, sigmaX, sigmaY, sigmaZ);
-      };
-    };
-    if (dirY==-1 || dirY==1){
-      float dZ_dY = diffZ / diffY;
-      float dX_dY = diffX / diffY;
-      for(int j=1; j<=fLayout->GetGapOffsetY(); j++){
-        int j2 = dirY*j;
-        int x2 = x + int(dX_dY*j2);
-        int y2 = y + j2;
-        int z2 = z + int(dZ_dY*j2);
-        projGroup->AddNewPseudoGauss(x2, y2, z2, q, 2, sigmaX, sigmaY, sigmaZ);
-      };
-    };
-    if (dirZ==-1 || dirZ==1){
-      float dX_dZ = diffX / diffZ;
-      float dY_dZ = diffY / diffZ;
-      for(int k=1; k<=fLayout->GetGapOffsetZ(); k++){
-        int k2 = dirZ*k;
-        int x2 = x + int(dX_dZ*k2);
-        int y2 = y + int(dY_dZ*k2);
-        int z2 = z + k2;
-        projGroup->AddNewPseudoGauss(x2, y2, z2, q, 3, sigmaX, sigmaY, sigmaZ);
-      };
-    };
-  };
-
-  // return extrapolated charge
-  return projGroup;
-}
-ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetNearestGroup(ND::THandle<ND::TTPCVolGroup> in, int x, int y, int z, int axis, int maxDist){
-  ND::THandle<ND::TTPCVolGroup> newGroup(new ND::TTPCVolGroup(fLayout));
-
-  // create group of cells in the next plane back
-  ND::THandle<ND::TTPCVolGroup> planeHits(new ND::TTPCVolGroup(fLayout));
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator it = in->begin(); it != in->end(); ++it){
-    if(axis == 1 && it->second->GetX() == x) planeHits->AddHit(it->second);
-    if(axis == 2 && it->second->GetY() == y) planeHits->AddHit(it->second);
-    if(axis == 3 && it->second->GetZ() == z) planeHits->AddHit(it->second);
-  };
-
-  long startID = -1;
-  // find nearest hit in plane group
-  if(planeHits->size() > 0) startID = planeHits->GetNearestHit(x, y, z, maxDist);
-  // build whole group recursively from that
-  if(startID >= 0) RecursiveFriendBuild(startID, newGroup, planeHits, ND::TTPCConnection::path);
-
-  return newGroup;
-}
-ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetNearestHitGroup(ND::THandle<ND::TTPCVolGroup> in, int x, int y, int z, int maxDist){
-  ND::THandle<ND::TTPCVolGroup> grp(new ND::TTPCVolGroup(fLayout));
-  // find nearest hit
-  long id = in->GetNearestHit(x, y, z, maxDist);
-  // add it to empty group
-  grp->AddHit(in->GetHit(id));
-  return grp; 
+void ND::TTPCVolGroupMan::GetConnectedHits(std::vector<ND::TTPCVolGroup>& out, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter, bool usabilityCheck){
+  return GetConnectedHits(fPrimaryHits, out, type, typeFilter, usabilityCheck);
 }
 
-ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetOverlap(ND::THandle<ND::TTPCVolGroup> grp1, ND::THandle<ND::TTPCVolGroup> grp2, bool swap){
-  ND::THandle<ND::TTPCVolGroup> grp(new ND::TTPCVolGroup(fLayout));
-
-  // determine cells which appear in both grp1 and grp2 (or one and not the other, if swap=true)
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator it = grp1->begin(); it != grp1->end(); ++it){
-    if((swap)^(grp2->Contains(it->first))){
-      grp->AddHit(it->second);
-    };
-  };
-
-  return grp;
-}
-
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCVolGroupMan::GetConnectedHits(ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter, bool usabilityCheck){
-  return GetConnectedHits(fPrimaryHits, type, typeFilter, usabilityCheck);
-}
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCVolGroupMan::GetConnectedHits(ND::THandle<ND::TTPCVolGroup> in, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter, bool usabilityCheck){
-  // make vector of exclusive, connected groups
-  std::vector< ND::THandle<ND::TTPCVolGroup> > conGroups;
+void ND::TTPCVolGroupMan::GetConnectedHits(ND::TTPCVolGroup& in, std::vector<ND::TTPCVolGroup>& out, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter, bool usabilityCheck){
 
   // make dummy group of all cells
-  ND::THandle<ND::TTPCVolGroup> conHits(new ND::TTPCVolGroup(fLayout));
+  ND::TTPCVolGroup conHits(fLayout);
   if(typeFilter == ND::TTPCHitGroupings::delta){
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator hitEl = in->begin(); hitEl != in->end(); ++hitEl){
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator hitEl = in.begin(); hitEl != in.end(); ++hitEl){
       if(hitEl->second->GetDeltaTagged()) conHits->AddHit(hitEl->second);
     };
   }
   else if(typeFilter == ND::TTPCHitGroupings::nonDelta){
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator hitEl = in->begin(); hitEl != in->end(); ++hitEl){
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator hitEl = in.begin(); hitEl != in.end(); ++hitEl){
       if(!hitEl->second->GetDeltaTagged()) conHits->AddHit(hitEl->second);
     };
   }
   else{
-    conHits->AddHitMap(in->GetHitMap());
+    conHits.AddHitMap(in.GetHitMap());
   };
 
   for(int i=0; i<9999; i++){
     // break out of loop if dummy becomes empty
     if(conHits->size() < 1) break;
     // start at first element in dummy
-    std::map<long, ND::TTPCUnitVolume*>::iterator el = conHits->begin();
+    std::map<long, ND::TTPCUnitVolume*>::iterator el = conHits.begin();
 
     // define new group
-    ND::THandle<ND::TTPCVolGroup> newGroup(new ND::TTPCVolGroup(fLayout));
+    out.emplace_back(fLayout);
     // recursively build set of connected cells, which are removed from the dummy and added to the new group
-    RecursiveFriendBuild(el->first, newGroup, conHits, type, typeFilter);
+    RecursiveFriendBuild(el->first, out.back(), conHits, type, typeFilter);
 
     // check to make sure this group is useful
     if(usabilityCheck){
-      if(CheckUsability(newGroup)){
-        conGroups.push_back(newGroup);
-      };
+      if(!CheckUsability(out.back())){
+        out.pop_back();
+      }
     }
-    else{
-      conGroups.push_back(newGroup);
-    };
-  };
-
-  return conGroups;
+  }
 }
 
 bool ND::TTPCVolGroupMan::CheckUsability(ND::THandle<ND::TTPCVolGroup> inGroup){
@@ -2526,6 +2302,7 @@ ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetNearHits(ND::THandle<ND::T
   };
   return nearHits;
 }
+
 std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCVolGroupMan::GetJunctionsFromPaths(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths){
   // count vertices in input
   std::vector< ND::THandle<ND::TTPCVolGroup> > tempVertices;
@@ -2556,91 +2333,520 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCVolGroupMan::GetJunctionsFr
   };
   return vertices;
 }
-ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetUnusedHits(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths){
-  std::vector< ND::THandle<ND::TTPCVolGroup> > junctions = GetJunctionsFromPaths(paths);
+
+void ND::TTPCVolGroupMan::GetUnusedHits(std::vector< ND::TTPCOrderedVolGroup >& paths, TTPCVolGroup& unusedHits){
+  
+  std::vector< ND::TTPCVolGroup > junctions = GetJunctionsFromPaths(paths);
 
   // start full
-  ND::THandle<ND::TTPCVolGroup> unusedHits (new ND::TTPCVolGroup(fLayout));
-  unusedHits->AddHits(fPrimaryHits);
+
+  unusedHits.AddHits(fPrimaryHits);
 
   // remove path hits
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
-    ND::THandle<ND::TTPCOrderedVolGroup> path = *pathIt;
-    for(std::vector<ND::TTPCPathVolume*>::iterator clusterIt = path->begin(); clusterIt != path->end(); ++clusterIt){
+  for(std::vector< ND::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
+    ND::TTPCOrderedVolGroup& path = *pathIt;
+    for(std::vector<ND::TTPCPathVolume*>::iterator clusterIt = path.begin(); clusterIt != path.end(); ++clusterIt){
       ND::TTPCPathVolume* cluster = *clusterIt;
       for(std::vector<ND::TTPCUnitVolume*>::iterator volIt = cluster->GetFriendsBegin(); volIt != cluster->GetFriendsEnd(); ++volIt){
         ND::TTPCUnitVolume* vol = *volIt;
 
-        unusedHits->RemoveHit(vol->GetID());
-      };
-    };
-  };
+        unusedHits.RemoveHit(vol->GetID());
+      }
+    }
+  }
   // remove junction hits
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
+  for(std::vector< ND::TTPCVolGroup >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
     ND::THandle<ND::TTPCVolGroup> junction = *junctionIt;
     for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = junction->begin(); volEl != junction->end(); ++volEl){
-      unusedHits->RemoveHit(volEl->first);
-    };
-  };
-
-  return unusedHits;
-}
-void ND::TTPCVolGroupMan::GetDeltaNonDelta(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >& nonDelta, std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >& delta, ND::THandle<ND::TTPCOrderedVolGroup> input){
+      unusedHits.RemoveHit(volEl->first);
+    }
+  }
 }
 
-void ND::TTPCVolGroupMan::AssociateUnusedWithJunctions(ND::THandle<ND::TTPCVolGroup> unused, std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths){
-  std::vector< ND::THandle<ND::TTPCVolGroup> > junctions = GetJunctionsFromPaths(paths);
+void ND::TTPCVolGroupMan::AssociateUnusedWithJunctions(ND::TTPCVolGroup& unused, std::vector< ND::TTPCOrderedVolGroup >& paths){
+  std::vector< ND::TTPCVolGroup > junctions = GetJunctionsFromPaths(paths);
   if(!junctions.size()) return;
 
   // add all junction hits to unused
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
-    ND::THandle<ND::TTPCVolGroup> junction = *junctionIt;
-    if(!junction->size()) continue;
+  for(std::vector< ND::TTPCVolGroup >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
+    ND::TTPCVolGroup& junction = *junctionIt;
+    if(!junction.size()) continue;
 
-    unused->AddHits(junction);
+    unused.AddHits(junction);
   };
 
   // new junctions to add to paths
-  std::vector< ND::THandle<ND::TTPCVolGroup> > newJunctions;
+  std::vector< ND::TTPCVolGroup > newJunctions;
 
   // try and associate each junction with new hits
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
-    ND::THandle<ND::TTPCVolGroup> junction = *junctionIt;
+  for(std::vector< ND::TTPCVolGroup >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
+    ND::TTPCVolGroup& junction = *junctionIt;
 
     // break out of loop if unused becomes empty, otherwise try to add hits starting from anywhere in junction
-    if(unused->size() < 1) break;
+    if(unused.size() < 1) break;
 
     // new junction to hold hits
-    ND::THandle<ND::TTPCVolGroup> newJunction(new ND::TTPCVolGroup(fLayout, ND::TTPCVolGroup::GetFreeID()));
+    newJunctions.emplace_back((fLayout, ND::TTPCVolGroup::GetFreeID()));
 
     // seed from every element in old junction so nothing is missed
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator seedEl = junction->begin(); seedEl != junction->end(); ++seedEl){
-      RecursiveFriendBuild(seedEl->first, newJunction, unused);
-    };
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator seedEl = junction.begin(); seedEl != junction.end(); ++seedEl){
+      RecursiveFriendBuild(seedEl->first, newJunctions.back(), unused);
+    }
 
-    if(!newJunction->size()) continue;
-
-    // add to list of junctions
-    newJunctions.push_back(newJunction);
-  };
+    if(!newJunction->size()){
+      newJunctions.pop_back();
+    }
+  }
 
   // now add expanded junctions to paths
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator newJunctionIt = newJunctions.begin(); newJunctionIt != newJunctions.end(); ++newJunctionIt){
-    ND::THandle<ND::TTPCVolGroup> newJunction = *newJunctionIt;
-    if(!newJunction->size()) continue;
+  for(std::vector< ND::TTPCVolGroup >::iterator newJunctionIt = newJunctions.begin(); newJunctionIt != newJunctions.end(); ++newJunctionIt){
+    ND::TTPCVolGroup& newJunction = *newJunctionIt;
+    if(!newJunction.size()) continue;
 
-    for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
-      ND::THandle<ND::TTPCOrderedVolGroup> path = *pathIt;
+    for(std::vector< ND::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
+      ND::TTPCOrderedVolGroup& path = *pathIt;
 
-      bool frontOverlaps = GetOverlaps(newJunction, path->GetFrontHits());
-      bool backOverlaps = GetOverlaps(newJunction, path->GetBackHits());
+      bool frontOverlaps = GetOverlaps(newJunction, path.GetFrontHits());
+      bool backOverlaps = GetOverlaps(newJunction, path.GetBackHits());
 
-      if(frontOverlaps) path->AddFrontHits(newJunction);
-      if(backOverlaps) path->AddBackHits(newJunction);
+      if(frontOverlaps) path.AddFrontHits(newJunction);
+      if(backOverlaps) path.AddBackHits(newJunction);
+    }
+  }
+}
+
+void ND::TTPCVolGroupMan::SanityFilter(std::vector< ND::TTPCOrderedVolGroup >& input){
+  std::vector< ND::TTPCOrderedVolGroup > output;
+
+  for(std::vector< ND::TTPCOrderedVolGroup >::iterator pathIt = input.begin(); pathIt != input.end(); ++pathIt){
+    ND::TTPCOrderedVolGroup& path = *pathIt;
+
+    // ensure that path contains no empty clusters
+    std::vector<ND::TTPCPathVolume*>::iterator reaper = path.begin();
+    while(reaper != path.end()){
+      if(!(*reaper)->GetClusterSize()){
+        path.erase(reaper);
+      }
+      else{
+        ++reaper;
+      };
     };
+
+    // ensure path contains above threshold of clusters
+    if(path.size() < fLayout->GetMinPathClusters()) continue;
+    output.push_back(path);
+  };
+
+  input=std::move(output);
+}
+
+void ND::TTPCVolGroupMan::RecursiveFriendBuild(long startID, ND::THandle<ND::TTPCVolGroup> target, ND::THandle<ND::TTPCVolGroup> source, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter){
+  // initialise start cell by provided id
+  ND::TTPCUnitVolume* startCell = fHitMap[startID];
+  // check if cell exists in source
+  if(!source->Contains(startID)) return;
+  // attempt to remove start cell from the group being drained
+  if(!source->RemoveHit(startID)) return;
+  // attempt to add start cell to the group being filled
+  if(!target->AddHit(startCell)) return;
+
+  // get near hits from the group being drained and attempt to add all of them
+  ND::THandle<ND::TTPCVolGroup> nearHits = GetNearHits(source, startCell, type, false,false,-1., typeFilter);
+  for(std::map<long, ND::TTPCUnitVolume*>::iterator vol = nearHits->begin(); vol != nearHits->end(); ++vol){
+    // repeat the process on every near hit found
+    RecursiveFriendBuild(vol->first, target, source, type, typeFilter);
   };
 }
 
+void ND::TTPCVolGroupMan::RecursiveFriendSeek(ND::THandle<ND::TTPCOrderedVolGroup> inList, ND::THandle<ND::TTPCVolGroup> target, float dist, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter){
+  RecursiveFriendSeek(GetUnorderedGroup(inList), target, dist, type, typeFilter);
+}
+void ND::TTPCVolGroupMan::RecursiveFriendSeek(ND::THandle<ND::TTPCVolGroup> inList, ND::THandle<ND::TTPCVolGroup> target, float dist, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter){
+  for(std::map<long, ND::TTPCUnitVolume*>::iterator pnt = fPrimaryHits->begin(); pnt != fPrimaryHits->end(); ++pnt){
+    pnt->second->SetFriendDist(9999);
+  };
+  for(std::map<long, ND::TTPCUnitVolume*>::iterator pnt = inList->begin(); pnt != inList->end(); ++pnt){
+    pnt->second->SetFriendDist(0);
+    RecursiveFriendListSeek(pnt->first, fPrimaryHits, 0, dist, type, typeFilter);
+  };
+
+  for(std::map<long, ND::TTPCUnitVolume*>::iterator pnt = fPrimaryHits->begin(); pnt != fPrimaryHits->end(); ++pnt){
+    if(pnt->second->GetFriendDist() < 9998){
+      target->AddHit(pnt->second);
+    };
+  };
+}
+void ND::TTPCVolGroupMan::RecursiveFriendListSeek(long startID, ND::THandle<ND::TTPCVolGroup> source, float curDist, float dist, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter){
+  // break if over or at max distance
+  if (curDist > dist) return;
+
+  // set current cell's distance based on current input distance
+  ND::TTPCUnitVolume* startCell = fHitMap[startID];
+  startCell->SetFriendDist(curDist);
+
+  // get near hits from the group being drained and attempt to add all of them
+  ND::THandle<ND::TTPCVolGroup> nearHits = GetNearHits(source, startCell, type, false, false, dist, typeFilter);
+  for(std::map<long, ND::TTPCUnitVolume*>::iterator vol = nearHits->begin(); vol != nearHits->end(); ++vol){
+    // repeat the process on every near hit found
+    RecursiveFriendListSeek(vol->first, source, curDist+1., dist, type, typeFilter);
+  };
+}
+
+TVector3 ND::TTPCVolGroupMan::GetAvgPosRep(ND::TTPCPathVolume* vol){
+  double avgTime = vol->GetAverageTime();
+  TVector3 avgPos = vol->GetAveragePos();
+  return TVector3(avgTime*fLayout->GetDriftSpeed(), avgPos.Y(), avgPos.Z());
+}
+TVector3 ND::TTPCVolGroupMan::GetAvgPosRep(ND::TTPCUnitVolume* vol, int sign){
+  double avgTime;
+  if(sign < 0){
+    avgTime = vol->GetTimeMin();
+  }
+  else if(sign > 0){
+    avgTime = vol->GetTimeMax();
+  }
+  else{
+    avgTime = vol->GetTime();
+  };
+  TVector3 avgPos = vol->GetPos();
+
+  return TVector3(avgTime*fLayout->GetDriftSpeed(), avgPos.Y(), avgPos.Z());
+}
+
+bool ND::TTPCVolGroupMan::IsInRange(ND::TTPCPathVolume* point1, ND::TTPCPathVolume* point2, int sizeX, int sizeY, int sizeZ){
+  float dx = (float)(point1->GetX() - point2->GetX()) / float(sizeX);
+  float dy = (float)(point1->GetY() - point2->GetY()) / float(sizeY);
+  float dz = (float)(point1->GetZ() - point2->GetZ()) / float(sizeZ);
+
+  return (dx*dx + dy*dy + dz*dz) < 1.;
+  /*if( abs(point1->GetX() - point2->GetX()) > sizeX) return false;
+  if( abs(point1->GetY() - point2->GetY()) > sizeY) return false;
+  if( abs(point1->GetZ() - point2->GetZ()) > sizeZ) return false;
+  return true;*/
+}
+bool ND::TTPCVolGroupMan::IsXPathCandidate(ND::THandle<ND::TTPCOrderedVolGroup> inPath){
+  // get status as x cluster
+  // first check; is cluster too small in y or z?
+  int minClusters = fLayout->GetMinPathClusters();
+  int ySize = (inPath->GetYMax() - inPath->GetYMin()) + 1;
+  int zSize = (inPath->GetZMax() - inPath->GetZMin()) + 1;
+  bool sizeCheck1 = (ySize < minClusters) && (zSize < minClusters);
+
+  if(sizeCheck1) return true;
+
+  int maxCheckClusters = fLayout->GetXPathMaxPads();
+  double minEndRatio = fLayout->GetXPathMinEndRatio();
+
+  bool sizeCheck2 = (ySize < maxCheckClusters) && (zSize < maxCheckClusters);
+
+  ND::TTPCPathVolume* beginVol = *(inPath->begin());
+  ND::TTPCPathVolume* endVol = *(inPath->rbegin());
+
+  double xDiff = endVol->GetX() - beginVol->GetX();
+  double yDiff = endVol->GetY() - beginVol->GetY();
+  double zDiff = endVol->GetZ() - beginVol->GetZ();
+
+  double  ratio2 = (xDiff*xDiff) / ( (yDiff*yDiff) + (zDiff*zDiff) );
+
+  bool ratioCheck = ratio2 > (minEndRatio*minEndRatio);
+
+  if(sizeCheck2 && ratioCheck) return true;
+
+  return false;
+}
+
+
+ND::THandle<ND::THitSelection> ND::TTPCVolGroupMan::GetHits(){
+  return fPrimaryHits->GetHits();
+}
+
+bool ND::TTPCVolGroupMan::HitTest(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVolume* vol2, ND::TTPCConnection::Type type){
+  int distX;
+  int distY;
+  int distZ;
+  fLayout->GetTypeDistances(distX, distY, distZ, type);
+
+  return HitTest(vol1, vol2, distX, distY, distZ);
+}
+bool ND::TTPCVolGroupMan::HitTest(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVolume* vol2, int xDist, int yDist, int zDist){
+  float fx = (float)(vol2->GetX() - vol1->GetX())/(float)xDist;
+  float fy = (float)(vol2->GetY() - vol1->GetY())/(float)yDist;
+  float fz = (float)(vol2->GetZ() - vol1->GetZ())/(float)zDist;
+
+  return (fx*fx + fy*fy + fz*fz <= 1.);
+}
+
+//MDH
+//Not used
+/*
+ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetFocus(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths){
+  // get focus with arbitrary threshold close to unity
+  std::vector< ND::THandle<ND::TTPCVolGroup> > foci = GetFoci(paths, .99);
+  // return first (should be only) element
+  if(foci.size() > 0) return *foci.begin();
+  else return ND::THandle<ND::TTPCVolGroup>(new TTPCVolGroup(fLayout));
+  }*/
+
+
+//MDH
+//Not used
+/*
+std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCVolGroupMan::GetFarHits(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths, bool tryChargeCut){
+  ND::THandle<ND::TTPCVolGroup> inGroup (new ND::TTPCVolGroup(fLayout));
+
+  // add all far hits from all paths to group
+  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator path = paths.begin(); path != paths.end(); ++path){
+    ND::THandle<ND::TTPCVolGroup> farHitsGroup;
+    farHitsGroup = GetFarHitsPreGroup(*path, tryChargeCut);
+    if(!farHitsGroup->size()){
+      farHitsGroup = GetFarHitsGroup(*path, tryChargeCut);
+    };
+    inGroup->AddHits(farHitsGroup);
+  };
+  std::vector< ND::THandle<ND::TTPCVolGroup> > groups = GetConnectedHits(inGroup, ND::TTPCConnection::vertexMerge);
+
+  return groups;
+}
+*/
+
+
+//MDH
+//Not used
+/*
+std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCVolGroupMan::GetFilteredPaths(std::vector< ND::THandle<ND::TTPCVolGroup> > inPaths){
+  // paths to return
+  std::vector< ND::THandle<ND::TTPCVolGroup> > mergedPaths = std::vector< ND::THandle<ND::TTPCVolGroup> >();
+
+  // add old paths to merged paths
+  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator inPath = inPaths.begin(); inPath != inPaths.end(); ++inPath){
+    ND::THandle<ND::TTPCVolGroup> newGroup(new ND::TTPCVolGroup(fLayout));
+    newGroup->AddHits(*inPath);
+    mergedPaths.push_back(newGroup);
+  };
+
+  if(mergedPaths.size() < 1) return mergedPaths;
+  // remove overlapping paths from merged paths
+  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator mergedPath1 = mergedPaths.begin(); mergedPath1 != mergedPaths.end(); ++mergedPath1)
+  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator mergedPath2 = mergedPath1+1; mergedPath2 != mergedPaths.end(); ++mergedPath2){
+    // loop over all pairs of hits to determine if they are identical
+    int nOverlaps=0;
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator pt1 = (*mergedPath1)->begin(); pt1 != (*mergedPath1)->end(); ++pt1)
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator pt2 = (*mergedPath2)->begin(); pt2 != (*mergedPath2)->end(); ++pt2){
+      if(pt1->first == pt2->first) nOverlaps++;
+    };
+  };
+
+  return mergedPaths;
+}
+*/
+
+
+//MDH
+//Not used
+/*
+ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetExtendedUnorderedGroup(ND::THandle<ND::TTPCOrderedVolGroup> in){
+  // check if group has extended hits and produce them if not
+  if(!in->GetHasExtendedHits()){
+    BuildGroupFriends(in);
+  };
+
+  // return extended hits
+  return in->GetExtendedHits();
+}
+*/
+
+
+//MDH
+//Not used
+/*
+ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetGapFillHits(ND::THandle<ND::TTPCVolGroup> in){
+  ND::THandle<ND::TTPCVolGroup> gapFillHits(new ND::TTPCVolGroup(fLayout));
+
+  // identify hits at upper and lower edges of MM volumes in x, y and z
+  ND::THandle<ND::TTPCVolGroup> hitsUX(new ND::TTPCVolGroup(fLayout));
+  ND::THandle<ND::TTPCVolGroup> hitsUY(new ND::TTPCVolGroup(fLayout));
+  ND::THandle<ND::TTPCVolGroup> hitsUZ(new ND::TTPCVolGroup(fLayout));
+  ND::THandle<ND::TTPCVolGroup> hitsDX(new ND::TTPCVolGroup(fLayout));
+  ND::THandle<ND::TTPCVolGroup> hitsDY(new ND::TTPCVolGroup(fLayout));
+  ND::THandle<ND::TTPCVolGroup> hitsDZ(new ND::TTPCVolGroup(fLayout));
+
+  // fill edge groups with found hits
+  for(std::map<long, ND::TTPCUnitVolume*>::iterator it = in->begin(); it != in->end(); ++it){
+    if (it->second->GetEdgeX() == 1) hitsUX->AddHit(it->second);
+    if (it->second->GetEdgeY() == 1) hitsUY->AddHit(it->second);
+    if (it->second->GetEdgeZ() == 1) hitsUZ->AddHit(it->second);
+    if (it->second->GetEdgeX() == -1) hitsDX->AddHit(it->second);
+    if (it->second->GetEdgeY() == -1) hitsDY->AddHit(it->second);
+    if (it->second->GetEdgeZ() == -1) hitsDZ->AddHit(it->second);
+  };
+
+  // get extrapolations over the gap from those groups
+  ND::THandle<ND::TTPCVolGroup> projectionsUX = GetGapProjections(hitsUX, 1, 0, 0, in->GetHitMap());
+  ND::THandle<ND::TTPCVolGroup> projectionsUY = GetGapProjections(hitsUY, 0, 1, 0, in->GetHitMap());
+  ND::THandle<ND::TTPCVolGroup> projectionsUZ = GetGapProjections(hitsUZ, 0, 0, 1, in->GetHitMap());
+  ND::THandle<ND::TTPCVolGroup> projectionsDX = GetGapProjections(hitsDX, -1, 0, 0, in->GetHitMap());
+  ND::THandle<ND::TTPCVolGroup> projectionsDY = GetGapProjections(hitsDY, 0, -1, 0, in->GetHitMap());
+  ND::THandle<ND::TTPCVolGroup> projectionsDZ = GetGapProjections(hitsDZ, 0, 0, -1, in->GetHitMap());
+
+  // add extrapolations to the main group as pseudo-hits
+  gapFillHits->MergeHits(projectionsUX);
+  gapFillHits->MergeHits(projectionsUY);
+  gapFillHits->MergeHits(projectionsUZ);
+  gapFillHits->MergeHits(projectionsDX);
+  gapFillHits->MergeHits(projectionsDY);
+  gapFillHits->MergeHits(projectionsDZ);
+
+  return gapFillHits;
+}
+
+
+ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetGapProjections(ND::THandle<ND::TTPCVolGroup> in, int dirX, int dirY, int dirZ, std::map<long, ND::TTPCUnitVolume*> refHits){
+  ND::THandle<ND::TTPCVolGroup> projGroup(new ND::TTPCVolGroup(fLayout));
+
+  if(in->size() < 1) return projGroup;
+  // break this group into connected sub-groups
+  std::vector< ND::THandle<ND::TTPCVolGroup> > groups;
+  for(int i=0; i<9999; i++){
+    if(in->size() < 1) break;
+
+    std::map<long, ND::TTPCUnitVolume*>::iterator el = in->begin();
+
+    ND::THandle<ND::TTPCVolGroup> newGroup(new ND::TTPCVolGroup(fLayout));
+    // build connected hits from hits in this group recursively
+    RecursiveFriendBuild(el->first, newGroup, in, ND::TTPCConnection::path);
+
+    // add to list of unique groups
+    groups.push_back(newGroup);
+  };
+
+  // process each unique group individually
+  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator grp = groups.begin(); grp != groups.end(); ++grp){
+    // work out parameters for extrapolation
+    float q = (*grp)->GetCharge() / 2;
+    q = 1000.;
+    ND::TTPCCellInfo3D cell = (*grp)->GetAveragePad();
+    int x = cell.x; 
+    int y = cell.y;
+    int z = cell.z;
+    float sigmaX = (*grp)->GetSigmaPadX();
+    float sigmaY = (*grp)->GetSigmaPadY();
+    float sigmaZ = (*grp)->GetSigmaPadZ();
+
+    ND::THandle<ND::TTPCVolGroup> refGroup(new TTPCVolGroup(fLayout));
+    refGroup->AddHits(refHits);
+
+    ND::THandle<ND::TTPCVolGroup> nearGroup;
+
+    // find nearest group of cells in given direction to work out direction to project over
+    if (dirX == 1 || dirX == -1) nearGroup = GetNearestGroup(refGroup, x + dirX*(fLayout->GetGapOffsetX() + 1), y, z, 1);
+    else if (dirY == 1 || dirY == -1) nearGroup = GetNearestGroup(refGroup, x, y + dirY*(fLayout->GetGapOffsetY() + 1), z, 2);
+    else if (dirZ == 1 || dirZ == -1) nearGroup = GetNearestGroup(refGroup, x, y, z + dirZ*(fLayout->GetGapOffsetZ() + 1), 3);
+    else nearGroup = ND::THandle<ND::TTPCVolGroup>(new ND::TTPCVolGroup(fLayout));
+
+    if(nearGroup->size() < 1) continue;
+
+    // work out direction to project into as difference between this group of cells and the nearest group
+    TVector3 offset = nearGroup->GetAveragePosition() - (*grp)->GetAveragePosition();
+    float diffX = offset.X() / fLayout->GetXCellSize();
+    float diffY = offset.Y() / fLayout->GetPadPitchY();
+    float diffZ = offset.Z() / fLayout->GetPadPitchZ();
+
+    // extend across gap as a series of 2D gaussian distributions of charge in either zy, zx or yx planes
+    if (dirX==-1 || dirX==1){
+      float dY_dX = diffY / diffX;
+      float dZ_dX = diffZ / diffX;
+      for(int i=1; i<=fLayout->GetGapOffsetX(); i++){
+        int i2 = dirX*i;
+        int x2 = x + i2;
+        int y2 = y + int(dY_dX*i2);
+        int z2 = z + int(dZ_dX*i2);
+        projGroup->AddNewPseudoGauss(x2, y2, z2, q, 1, sigmaX, sigmaY, sigmaZ);
+      };
+    };
+    if (dirY==-1 || dirY==1){
+      float dZ_dY = diffZ / diffY;
+      float dX_dY = diffX / diffY;
+      for(int j=1; j<=fLayout->GetGapOffsetY(); j++){
+        int j2 = dirY*j;
+        int x2 = x + int(dX_dY*j2);
+        int y2 = y + j2;
+        int z2 = z + int(dZ_dY*j2);
+        projGroup->AddNewPseudoGauss(x2, y2, z2, q, 2, sigmaX, sigmaY, sigmaZ);
+      };
+    };
+    if (dirZ==-1 || dirZ==1){
+      float dX_dZ = diffX / diffZ;
+      float dY_dZ = diffY / diffZ;
+      for(int k=1; k<=fLayout->GetGapOffsetZ(); k++){
+        int k2 = dirZ*k;
+        int x2 = x + int(dX_dZ*k2);
+        int y2 = y + int(dY_dZ*k2);
+        int z2 = z + k2;
+        projGroup->AddNewPseudoGauss(x2, y2, z2, q, 3, sigmaX, sigmaY, sigmaZ);
+      };
+    };
+  };
+
+  // return extrapolated charge
+  return projGroup;
+}
+
+
+ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetNearestGroup(ND::THandle<ND::TTPCVolGroup> in, int x, int y, int z, int axis, int maxDist){
+  ND::THandle<ND::TTPCVolGroup> newGroup(new ND::TTPCVolGroup(fLayout));
+
+  // create group of cells in the next plane back
+  ND::THandle<ND::TTPCVolGroup> planeHits(new ND::TTPCVolGroup(fLayout));
+  for(std::map<long, ND::TTPCUnitVolume*>::iterator it = in->begin(); it != in->end(); ++it){
+    if(axis == 1 && it->second->GetX() == x) planeHits->AddHit(it->second);
+    if(axis == 2 && it->second->GetY() == y) planeHits->AddHit(it->second);
+    if(axis == 3 && it->second->GetZ() == z) planeHits->AddHit(it->second);
+  };
+
+  long startID = -1;
+  // find nearest hit in plane group
+  if(planeHits->size() > 0) startID = planeHits->GetNearestHit(x, y, z, maxDist);
+  // build whole group recursively from that
+  if(startID >= 0) RecursiveFriendBuild(startID, newGroup, planeHits, ND::TTPCConnection::path);
+
+  return newGroup;
+}
+
+ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetNearestHitGroup(ND::THandle<ND::TTPCVolGroup> in, int x, int y, int z, int maxDist){
+  ND::THandle<ND::TTPCVolGroup> grp(new ND::TTPCVolGroup(fLayout));
+  // find nearest hit
+  long id = in->GetNearestHit(x, y, z, maxDist);
+  // add it to empty group
+  grp->AddHit(in->GetHit(id));
+  return grp; 
+}
+
+
+ND::THandle<ND::TTPCVolGroup> ND::TTPCVolGroupMan::GetOverlap(ND::THandle<ND::TTPCVolGroup> grp1, ND::THandle<ND::TTPCVolGroup> grp2, bool swap){
+  ND::THandle<ND::TTPCVolGroup> grp(new ND::TTPCVolGroup(fLayout));
+
+  // determine cells which appear in both grp1 and grp2 (or one and not the other, if swap=true)
+  for(std::map<long, ND::TTPCUnitVolume*>::iterator it = grp1->begin(); it != grp1->end(); ++it){
+    if((swap)^(grp2->Contains(it->first))){
+      grp->AddHit(it->second);
+    };
+  };
+
+  return grp;
+}
+*/
+
+
+//MDH
+//Not used
+/*
+void ND::TTPCVolGroupMan::GetDeltaNonDelta(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >& nonDelta, std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >& delta, ND::THandle<ND::TTPCOrderedVolGroup> input){
+}*/
+
+
+//MDH
+//Not used
+/*
 void ND::TTPCVolGroupMan::BreakLongJunctions(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >& paths){
   std::vector< ND::THandle<ND::TTPCVolGroup> > junctions = GetJunctionsFromPaths(paths);
 
@@ -2926,7 +3132,7 @@ void ND::TTPCVolGroupMan::BreakLongJunctions(std::vector< ND::THandle<ND::TTPCOr
       };
     };
   };
-}
+  }
 
 std::pair<std::pair<int, int>, std::pair<int, int> > ND::TTPCVolGroupMan::CountDuplicates(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths){
   std::vector< ND::THandle<ND::TTPCVolGroup> > junctions = GetJunctionsFromPaths(paths);
@@ -2979,51 +3185,13 @@ std::pair<std::pair<int, int>, std::pair<int, int> > ND::TTPCVolGroupMan::CountD
 
   return std::make_pair(std::make_pair(nPathHDupes, nPathVDupes), std::make_pair(nJunctionJunctionDupes, nJunctionPathDupes));
 }
+*/
 
-std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > ND::TTPCVolGroupMan::SanityFilter(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > input){
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > output = std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >();
 
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator pathIt = input.begin(); pathIt != input.end(); ++pathIt){
-    ND::THandle<ND::TTPCOrderedVolGroup> path = *pathIt;
-
-    // ensure that path contains no empty clusters
-    std::vector<ND::TTPCPathVolume*>::iterator reaper = path->begin();
-    while(reaper != path->end()){
-      if(!(*reaper)->GetClusterSize()){
-        path->erase(reaper);
-      }
-      else{
-        ++reaper;
-      };
-    };
-
-    // ensure path contains above threshold of clusters
-    if(path->size() < fLayout->GetMinPathClusters()) continue;
-    output.push_back(path);
-  };
-
-  return output;
-}
-
-void ND::TTPCVolGroupMan::RecursiveFriendBuild(long startID, ND::THandle<ND::TTPCVolGroup> target, ND::THandle<ND::TTPCVolGroup> source, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter){
-  // initialise start cell by provided id
-  ND::TTPCUnitVolume* startCell = fHitMap[startID];
-  // check if cell exists in source
-  if(!source->Contains(startID)) return;
-  // attempt to remove start cell from the group being drained
-  if(!source->RemoveHit(startID)) return;
-  // attempt to add start cell to the group being filled
-  if(!target->AddHit(startCell)) return;
-
-  // get near hits from the group being drained and attempt to add all of them
-  ND::THandle<ND::TTPCVolGroup> nearHits = GetNearHits(source, startCell, type, false,false,-1., typeFilter);
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator vol = nearHits->begin(); vol != nearHits->end(); ++vol){
-    // repeat the process on every near hit found
-    RecursiveFriendBuild(vol->first, target, source, type, typeFilter);
-  };
-}
-void ND::TTPCVolGroupMan::FriendConnect(ND::THandle<ND::TTPCOrderedVolGroup> inList, ND::THandle<ND::TTPCVolGroup> inField){
-  /*// find parents for all field points
+//MDH
+//Not used
+/*void ND::TTPCVolGroupMan::FriendConnect(ND::THandle<ND::TTPCOrderedVolGroup> inList, ND::THandle<ND::TTPCVolGroup> inField){
+  // find parents for all field points
   for(std::map<long, ND::TTPCUnitVolume*>::iterator fieldPnt = inField->begin(); fieldPnt != inField->end(); ++fieldPnt){
     if(fieldPnt->second->GetIsFocus()) continue;
     if(fieldPnt->second->GetFriendDist() < 9999.){
@@ -3047,42 +3215,13 @@ void ND::TTPCVolGroupMan::FriendConnect(ND::THandle<ND::TTPCOrderedVolGroup> inL
       if(!focusParent) continue;
       focusParent->AddFocusFriend(fieldPnt->second);
     };
-  };*/
-}
-void ND::TTPCVolGroupMan::RecursiveFriendSeek(ND::THandle<ND::TTPCOrderedVolGroup> inList, ND::THandle<ND::TTPCVolGroup> target, float dist, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter){
-  RecursiveFriendSeek(GetUnorderedGroup(inList), target, dist, type, typeFilter);
-}
-void ND::TTPCVolGroupMan::RecursiveFriendSeek(ND::THandle<ND::TTPCVolGroup> inList, ND::THandle<ND::TTPCVolGroup> target, float dist, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter){
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator pnt = fPrimaryHits->begin(); pnt != fPrimaryHits->end(); ++pnt){
-    pnt->second->SetFriendDist(9999);
   };
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator pnt = inList->begin(); pnt != inList->end(); ++pnt){
-    pnt->second->SetFriendDist(0);
-    RecursiveFriendListSeek(pnt->first, fPrimaryHits, 0, dist, type, typeFilter);
-  };
+  }*/
 
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator pnt = fPrimaryHits->begin(); pnt != fPrimaryHits->end(); ++pnt){
-    if(pnt->second->GetFriendDist() < 9998){
-      target->AddHit(pnt->second);
-    };
-  };
-}
-void ND::TTPCVolGroupMan::RecursiveFriendListSeek(long startID, ND::THandle<ND::TTPCVolGroup> source, float curDist, float dist, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter){
-  // break if over or at max distance
-  if (curDist > dist) return;
 
-  // set current cell's distance based on current input distance
-  ND::TTPCUnitVolume* startCell = fHitMap[startID];
-  startCell->SetFriendDist(curDist);
-
-  // get near hits from the group being drained and attempt to add all of them
-  ND::THandle<ND::TTPCVolGroup> nearHits = GetNearHits(source, startCell, type, false, false, dist, typeFilter);
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator vol = nearHits->begin(); vol != nearHits->end(); ++vol){
-    // repeat the process on every near hit found
-    RecursiveFriendListSeek(vol->first, source, curDist+1., dist, type, typeFilter);
-  };
-}
-
+//MDH
+//Not used
+/*
 std::vector<long> ND::TTPCVolGroupMan::SpheroidIterable(ND::TTPCCell3D cell, ND::TTPCConnection::Type type){
   int sizeX;
   int sizeY;
@@ -3107,75 +3246,12 @@ std::vector<long> ND::TTPCVolGroupMan::SpheroidIterable(ND::TTPCCell3D cell, int
     };
   };
   return spheroid;
-}
-TVector3 ND::TTPCVolGroupMan::GetAvgPosRep(ND::TTPCPathVolume* vol){
-  double avgTime = vol->GetAverageTime();
-  TVector3 avgPos = vol->GetAveragePos();
-  return TVector3(avgTime*fLayout->GetDriftSpeed(), avgPos.Y(), avgPos.Z());
-}
-TVector3 ND::TTPCVolGroupMan::GetAvgPosRep(ND::TTPCUnitVolume* vol, int sign){
-  double avgTime;
-  if(sign < 0){
-    avgTime = vol->GetTimeMin();
-  }
-  else if(sign > 0){
-    avgTime = vol->GetTimeMax();
-  }
-  else{
-    avgTime = vol->GetTime();
-  };
-  TVector3 avgPos = vol->GetPos();
-
-  return TVector3(avgTime*fLayout->GetDriftSpeed(), avgPos.Y(), avgPos.Z());
-}
-
-bool ND::TTPCVolGroupMan::IsInRange(ND::TTPCPathVolume* point1, ND::TTPCPathVolume* point2, int sizeX, int sizeY, int sizeZ){
-  float dx = (float)(point1->GetX() - point2->GetX()) / float(sizeX);
-  float dy = (float)(point1->GetY() - point2->GetY()) / float(sizeY);
-  float dz = (float)(point1->GetZ() - point2->GetZ()) / float(sizeZ);
-
-  return (dx*dx + dy*dy + dz*dz) < 1.;
-  /*if( abs(point1->GetX() - point2->GetX()) > sizeX) return false;
-  if( abs(point1->GetY() - point2->GetY()) > sizeY) return false;
-  if( abs(point1->GetZ() - point2->GetZ()) > sizeZ) return false;
-  return true;*/
-}
-bool ND::TTPCVolGroupMan::IsXPathCandidate(ND::THandle<ND::TTPCOrderedVolGroup> inPath){
-  // get status as x cluster
-  // first check; is cluster too small in y or z?
-  int minClusters = fLayout->GetMinPathClusters();
-  int ySize = (inPath->GetYMax() - inPath->GetYMin()) + 1;
-  int zSize = (inPath->GetZMax() - inPath->GetZMin()) + 1;
-  bool sizeCheck1 = (ySize < minClusters) && (zSize < minClusters);
-
-  if(sizeCheck1) return true;
-
-  int maxCheckClusters = fLayout->GetXPathMaxPads();
-  double minEndRatio = fLayout->GetXPathMinEndRatio();
-
-  bool sizeCheck2 = (ySize < maxCheckClusters) && (zSize < maxCheckClusters);
-
-  ND::TTPCPathVolume* beginVol = *(inPath->begin());
-  ND::TTPCPathVolume* endVol = *(inPath->rbegin());
-
-  double xDiff = endVol->GetX() - beginVol->GetX();
-  double yDiff = endVol->GetY() - beginVol->GetY();
-  double zDiff = endVol->GetZ() - beginVol->GetZ();
-
-  double  ratio2 = (xDiff*xDiff) / ( (yDiff*yDiff) + (zDiff*zDiff) );
-
-  bool ratioCheck = ratio2 > (minEndRatio*minEndRatio);
-
-  if(sizeCheck2 && ratioCheck) return true;
-
-  return false;
-}
+  }*/
 
 
-ND::THandle<ND::THitSelection> ND::TTPCVolGroupMan::GetHits(){
-  return fPrimaryHits->GetHits();
-}
-
+//MDH
+//Not used
+/*
 void ND::TTPCVolGroupMan::CheckExtendedHitOverlap(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths){
   for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator path1It = paths.begin(); path1It != paths.end(); ++path1It)
   for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator path2It = path1It+1; path2It != paths.end(); ++path2It){
@@ -3189,20 +3265,4 @@ void ND::TTPCVolGroupMan::CheckExtendedHitOverlap(std::vector< ND::THandle<ND::T
       };
     };
   };
-};
-
-bool ND::TTPCVolGroupMan::HitTest(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVolume* vol2, ND::TTPCConnection::Type type){
-  int distX;
-  int distY;
-  int distZ;
-  fLayout->GetTypeDistances(distX, distY, distZ, type);
-
-  return HitTest(vol1, vol2, distX, distY, distZ);
-}
-bool ND::TTPCVolGroupMan::HitTest(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVolume* vol2, int xDist, int yDist, int zDist){
-  float fx = (float)(vol2->GetX() - vol1->GetX())/(float)xDist;
-  float fy = (float)(vol2->GetY() - vol1->GetY())/(float)yDist;
-  float fz = (float)(vol2->GetZ() - vol1->GetZ())/(float)zDist;
-
-  return (fx*fx + fy*fy + fz*fz <= 1.);
-}
+  };*/

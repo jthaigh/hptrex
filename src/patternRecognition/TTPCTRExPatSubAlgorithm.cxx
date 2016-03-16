@@ -9,60 +9,41 @@ ND::TTPCTRExPatSubAlgorithm::TTPCTRExPatSubAlgorithm(ND::TTPCLayout* layout) {
   fPrimary = false;
   fTPC = 0;
 
-  // initialise empty vectors
-  fPOIs = std::vector<TVector3>();
-  fGOIs = std::vector< ND::THandle<ND::TTPCVolGroup> >();
-  fTracks = std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >();
+  fTracks = std::vector< ND::TTPCOrderedVolGroup >;
 
   // set up objects for layout, hit group manager, feature finder and path finder
   fLayout = layout;
 
   fVolGroupMan = new ND::TTPCVolGroupMan(fLayout);
-  fVolGroupManHigh = new ND::TTPCVolGroupMan(fLayout);
-  fAStar = new ND::TTPCAStar(fLayout);
-  fAStarHigh = new ND::TTPCAStar(fLayout);
-
-  fPattern = ND::THandle< ND::TTPCPattern >(); //0;
+  fAStar = new ND::TTPCAStar(fLayout);  
+  fPattern = new ND::TTPCPattern;
 }
 ND::TTPCTRExPatSubAlgorithm::~TTPCTRExPatSubAlgorithm(){
   // delete groups of hits and path finders
   delete fVolGroupMan;
-  delete fVolGroupManHigh;
   delete fAStar;
-  delete fAStarHigh;
+
+  //MDH
+  //Nobody had better use the pattern after we destroy the subalgorithm...
+  //This is an output object that needs to be thoroughly re-engineered anyway
+  delete fPattern;
 }
 
-void ND::TTPCTRExPatSubAlgorithm::SetUpHits(std::map<long, ND::TTPCUnitVolume*> map, ND::TTPCAStar* aStarCopy){
+void ND::TTPCTRExPatSubAlgorithm::SetUpHits(const std::map<long, ND::TTPCUnitVolume*>& map){
   // add new pattern recognition cells if the charge cut is met
-  fHitMap = std::map<long, ND::TTPCUnitVolume*>(map);
+  fHitMap=map;
+  
   fHasHits = fHitMap.size() > 0;
-
   // add map of hits to group manager object
   fVolGroupMan->AddPrimaryHits(fHitMap);
   // add map of hits to path finder
-  aStarCopy = 0;
-  if(aStarCopy){
-    fAStar->AddHits(aStarCopy, fHitMap);
-  }
-  else{
-    fAStar->AddHits(fVolGroupMan, fHitMap);
-  };
+  fAStar->AddHits(fVolGroupMan, fHitMap);
 }
-void ND::TTPCTRExPatSubAlgorithm::SetUpHitsHigh(std::map<long, ND::TTPCUnitVolume*> map, ND::TTPCAStar* aStarCopy){
-  // add new pattern recognition cells if the charge cut is met
-  fHitMapHigh = std::map<long, ND::TTPCUnitVolume*>(map);
 
-  // add map of high charge hits to group manager object
-  fVolGroupManHigh->AddPrimaryHits(fHitMapHigh);
-  // add map of high charge hits to path finder
-  aStarCopy = 0;
-  if(aStarCopy){
-    fAStarHigh->AddHits(aStarCopy, fHitMapHigh);
-  }
-  else{
-    fAStarHigh->AddHits(fVolGroupManHigh, fHitMapHigh);
-  };
-}
+//MDH
+//Appears not to be used anywhere and is problematic since it
+//creates/deletes TTPCUnitVolumes
+/*
 void ND::TTPCTRExPatSubAlgorithm::AbsorbCell(long id, ND::TTPCUnitVolume* cell){
   // if cell doesn't already exist in map, create it; if it does, increment its charge by cell's charge
   std::map<long, ND::TTPCUnitVolume*>::iterator el = fHitMap.find(id);
@@ -75,12 +56,15 @@ void ND::TTPCTRExPatSubAlgorithm::AbsorbCell(long id, ND::TTPCUnitVolume* cell){
     delete cell;
   };
 }
-void ND::TTPCTRExPatSubAlgorithm::AppendHits(ND::THandle<ND::TTPCVolGroup> hits){
+
+void ND::TTPCTRExPatSubAlgorithm::AppendHits(ND::TTPCVolGroup& hits){
   // loop over all cells in hit group and absorb each one into this
   for(std::map<long, ND::TTPCUnitVolume*>::iterator it = hits->begin(); it != hits->end(); ++it){
     AbsorbCell(it->first, it->second);
   };
 }
+*/
+
 void ND::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   // ignore if hits don't already exist
   if(!fHasHits) return;
@@ -88,73 +72,29 @@ void ND::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   // start out having no valid paths by default
   fHasValidPaths = false;
 
-  // show regions of pathological behaviour for debugging
-  /*ND::THandle<ND::TTPCVolGroup> pathologicalGroup (new ND::TTPCVolGroup(fLayout));
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator el = fHitMap.begin(); el != fHitMap.end(); ++el){
-    if(el->second->GetPathology()){
-    //if(el->second->GetSatASICTagged()){
-    //if(el->second->GetFullASICTagged()){
-    //if(el->second->GetLowChargeTagged()){
-    //if(el->second->GetLateNegativeTagged() || el->second->GetEarlyNegativeTagged()){
-      pathologicalGroup->AddHit(el->second);
-    };
-  };
-  fGOIs.push_back(pathologicalGroup);*/
-
-  // find effective edge detection vol group and path finder based on charge cut
-  // use hybridVolGroupMan/hybridAStar for edge detection
-  ND::TTPCVolGroupMan* hybridVolGroupMan;
-  ND::TTPCAStar* hybridAStar;
-  if(fLayout->GetUsePatRecPathologyCut() > 0){
-    hybridVolGroupMan = fVolGroupManHigh;
-    hybridAStar = fAStarHigh;
-  }
-  else{
-    hybridVolGroupMan = fVolGroupMan;
-    hybridAStar = fAStar;
-  };
-  // find effective path finding vol group and path finder based on charge cut
-  // use effVolGroupMan/effAStar for path finding and fVolGroupMan/fAStar for hit association
-  ND::TTPCVolGroupMan* effVolGroupMan;
-  ND::TTPCAStar* effAStar;
-  if(fLayout->GetUsePatRecPathologyCut() == 1){
-    effVolGroupMan = fVolGroupManHigh;
-    effAStar = fAStarHigh;
-  }
-  else{
-    effVolGroupMan = fVolGroupMan;
-    effAStar = fAStar;
-  };
-
   // find list of hit groups on edge of paths
-  std::vector< ND::THandle<ND::TTPCVolGroup> > edgeGroupsUnfiltered;
-  if(fLayout->GetUseAltEdgeDetection()) edgeGroupsUnfiltered = hybridVolGroupMan->GetAllEdgeGroups();
-  else edgeGroupsUnfiltered = hybridVolGroupMan->GetEdgeGroups();
+  std::vector< ND::TTPCVolGroup > edgeGroups;
+  fVolGroupMan->GetEdgeGroups(edgeGroups);
 
   // clear redundant edge groups (i.e. ones which are actually just half way points along existing paths)
-  std::vector< ND::THandle<ND::TTPCVolGroup> > edgeGroupsSemiFiltered;
-  if(fLayout->GetUsePatRecPathologyCut() > 1) edgeGroupsSemiFiltered = effAStar->ExperimentalClearRedundancies2(effVolGroupMan, edgeGroupsUnfiltered, true);
-  else edgeGroupsSemiFiltered = effAStar->ClearRedundancies(effVolGroupMan, edgeGroupsUnfiltered);
+  fAStar->ClearRedundancies(fVolGroupMan, edgeGroups);
 
   // connect pairs of edge groups to find missing hits
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > edgePathsSemiFiltered = effAStar->ConnectGroupsOrdered(effVolGroupMan, edgeGroupsSemiFiltered, false, false);
+  std::vector< ND::TTPCOrderedVolGroup > edgePaths;
+  fAStar->ConnectGroupsOrdered(fVolGroupMan, edgeGroups, edgePaths, false, false);
 
   // find unmatched hits
   std::map<long, ND::TTPCUnitVolume*> unmatchedVolumes;
-  if(fLayout->GetUsePatRecPathologyCut() > 0){
-    unmatchedVolumes= std::map<long, ND::TTPCUnitVolume*>(fHitMapHigh);
-  }
-  else{
-    unmatchedVolumes = std::map<long, ND::TTPCUnitVolume*>(fHitMap);
-  };
-  if(fLayout->GetUseAltHitAssociation() > 0) effAStar->AssociateBestHits(effVolGroupMan, edgePathsSemiFiltered, fLayout->GetAltExtraHitConnectDist());
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator edgePathIt = edgePathsSemiFiltered.begin(); edgePathIt != edgePathsSemiFiltered.end(); ++edgePathIt){
-    ND::THandle<ND::TTPCOrderedVolGroup> edgePath = *edgePathIt;
+  unmatchedVolumes = fHitMap;
+  
+  for(std::vector< ND::TTPCOrderedVolGroup>::iterator edgePathIt = edgePaths.begin(); edgePathIt != edgePaths.end(); ++edgePathIt){
+    ND::TTPCOrderedVolGroup& edgePath = *edgePathIt;
 
-    if(fLayout->GetUseAltHitAssociation() == 0) hybridVolGroupMan->BuildGroupFriends(edgePath, ND::TTPCConnection::extraHits);
-    ND::THandle<ND::TTPCVolGroup> pathHits = edgePath->GetExtendedHits();
+    fVolGroupMan->BuildGroupFriends(edgePath, ND::TTPCConnection::extraHits);
+    ND::TTPCVolGroup pathHits;
+    edgePath->GetExtendedHits(pathHits);
 
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator foundVolIt = pathHits->begin(); foundVolIt != pathHits->end(); ++foundVolIt){
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator foundVolIt = pathHits.begin(); foundVolIt != pathHits.end(); ++foundVolIt){
       long id = foundVolIt->first;
       std::map<long, ND::TTPCUnitVolume*>::iterator foundIdLoc = unmatchedVolumes.find(id);
       if(foundIdLoc != unmatchedVolumes.end()) unmatchedVolumes.erase(foundIdLoc);
@@ -162,80 +102,63 @@ void ND::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   };
 
   // split and group unmatched hits
-  ND::TTPCVolGroupMan* secondPassVolume = new ND::TTPCVolGroupMan(fLayout);
-  secondPassVolume->AddPrimaryHits(unmatchedVolumes);
+  ND::TTPCVolGroupMan secondPassVolume = new ND::TTPCVolGroupMan(fLayout);
+  secondPassVolume.AddPrimaryHits(unmatchedVolumes);
+  std::vector< ND::TTPCVolGroup > extraSubVolumes;
+  secondPassVolume->GetConnectedHits(extraSubVolumes,ND::TTPCConnection::path, ND::TTPCHitGroupings::all, true);
 
-  std::vector< ND::THandle<ND::TTPCVolGroup> > extraSubVolumes = secondPassVolume->GetConnectedHits(ND::TTPCConnection::path, ND::TTPCHitGroupings::all, true);
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator extraSubVolumeIt = extraSubVolumes.begin(); extraSubVolumeIt != extraSubVolumes.end(); ++extraSubVolumeIt){
-    ND::THandle<ND::TTPCVolGroup> extraSubVolume = *extraSubVolumeIt;
+  for(std::vector< ND::TTPCVolGroup >::iterator extraSubVolumeIt = extraSubVolumes.begin(); extraSubVolumeIt != extraSubVolumes.end(); ++extraSubVolumeIt){
+    ND::TTPCVolGroup& extraSubVolume = *extraSubVolumeIt;
 
-    ND::TTPCVolGroupMan* subVolumeMan = new ND::TTPCVolGroupMan(fLayout);
-    std::map<long, ND::TTPCUnitVolume*> subVolumeHits = std::map<long, ND::TTPCUnitVolume*>();
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator volIt = extraSubVolume->begin(); volIt != extraSubVolume->end(); ++volIt) subVolumeHits[volIt->first] = volIt->second;
+    ND::TTPCVolGroupMan subVolumeMan(fLayout);
+
+    //MDH
+    //Hmm, bit clumsy. Add a getter for the TTPCVolGroup hit map?
+    std::map<long, ND::TTPCUnitVolume*> subVolumeHits;
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator volIt = extraSubVolume.begin(); volIt != extraSubVolume.end(); ++volIt){
+      subVolumeHits[volIt->first] = volIt->second;
+    }
 
     subVolumeMan->AddPrimaryHits(subVolumeHits);
-    std::vector< ND::THandle<ND::TTPCVolGroup> > extraEdgeGroupsSemiFiltered = subVolumeMan->GetEdgeGroups();
+    std::vector<ND::TTPCVolGroup> extraEdgeGroups;
+    subVolumeMan->GetEdgeGroups(extraEdgeGroups);
     // add unmatched edges to main group
-    for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator extraEdgeGroupIt = extraEdgeGroupsSemiFiltered.begin(); extraEdgeGroupIt != extraEdgeGroupsSemiFiltered.end(); ++extraEdgeGroupIt){
-      edgeGroupsSemiFiltered.push_back(*extraEdgeGroupIt);
-    };
-
-    delete subVolumeMan;
-  };
-  delete secondPassVolume;
+    for(std::vector< ND::TTPCVolGroup >::iterator extraEdgeGroupIt = extraEdgeGroups.begin(); extraEdgeGroupIt != extraEdgeGroups.end(); ++extraEdgeGroupIt){
+      edgeGroups.emplace_back(std::move(*extraEdgeGroupIt));
+    }
+  }
 
   // clear redundant edge groups (i.e. ones which are actually just half way points along existing paths)
-  std::vector< ND::THandle<ND::TTPCVolGroup> > edgeGroups;
-  if(fLayout->GetUsePatRecPathologyCut() > 1) edgeGroups = effAStar->ExperimentalClearRedundancies2(effVolGroupMan, edgeGroupsSemiFiltered, true);
-  else edgeGroups = effAStar->ClearRedundancies(effVolGroupMan, edgeGroupsSemiFiltered);
+  fAStar->ClearRedundancies(fVolGroupMan, edgeGroups);
 
-  // add to points of interest for debugging
-  //for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator edgeGroup = edgeGroupsUnfiltered.begin(); edgeGroup != edgeGroupsUnfiltered.end(); ++edgeGroup){
-  //for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator edgeGroup = edgeGroupsSemiFiltered.begin(); edgeGroup != edgeGroupsSemiFiltered.end(); ++edgeGroup){
-  //for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator edgeGroup = edgeGroups.begin(); edgeGroup != edgeGroups.end(); ++edgeGroup){
-  //  fPOIs.push_back((*edgeGroup)->GetAveragePosXYZ());
-  //  fGOIs.push_back(*edgeGroup);
-  //};
 
   // connect pairs of edge groups
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > edgePaths = effAStar->ConnectGroupsOrdered(effVolGroupMan, edgeGroups);
 
   // define container for true paths before corner detection
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > truePaths = std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >();
+  std::vector< ND::TTPCOrderedVolGroup > truePaths;
 
   // define vertices for later use
-  std::vector< ND::THandle<ND::TTPCVolGroup> > vertices = std::vector< ND::THandle<ND::TTPCVolGroup> >();
+  std::vector< ND::TTPCVolGroup > vertices;
 
   // if there are at least three edge groups, look for vertices to connect to them
   if(edgeGroups.size() > 2){
+
+    edgePaths.clear();
+
     // connect pairs of edge groups
-    std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > edgePaths = effAStar->ConnectGroupsOrdered(effVolGroupMan, edgeGroups, false, true);
-
+    fAStar->ConnectGroupsOrdered(fVolGroupMan, edgeGroups, edgePaths, false, true);
     // look for vertices from edge group pairs
-    if(fLayout->GetUsePatRecPathologyCut() > 1){
-      std::vector< ND::THandle<ND::TTPCVolGroup> > verticesUnfiltered = effVolGroupMan->GetFoci(edgePaths, .1);
-      // clean up vertices near to each other
-      vertices = effAStar->ExperimentalClearVertexRedundancies(verticesUnfiltered);
-    }
-    else{
-      vertices = effVolGroupMan->GetFoci(edgePaths, .1);
-    };
-
+    fVolGroupMan->GetFoci(edgePaths, vertices ,.1);
     // make sure number of vertices is two less than number of track ends
-    effVolGroupMan->CleanUpVertices(edgeGroups, vertices);
+    fVolGroupMan->CleanUpVertices(edgeGroups, vertices);
     // make sure vertices contain all the right hits
     fVolGroupMan->BulkGroups(vertices);
 
-    //for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator vertex = vertices.begin(); vertex != vertices.end(); ++vertex){
-    //  fPOIs.push_back((*vertex)->GetAveragePosXYZ());
-    //  fGOIs.push_back(*vertex);
-    //};
-
     if(vertices.size() > 0){
       // connect vertices to path ends to get paths
-      std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > truePathsUnfiltered = effAStar->ConnectVertexGroupsOrdered(effVolGroupMan, vertices, edgeGroups);
+      fAStar->ConnectVertexGroupsOrdered(fVolGroupMan, vertices, edgeGroups,truePaths);
       // clear redundant paths
-      truePaths = effAStar->ClearVertexConnectionRedundancies(effVolGroupMan, truePathsUnfiltered, vertices);
+      fAStar->ClearVertexConnectionRedundancies(fVolGroupMan, truePaths, vertices);
     }
     // otherwise, return empty handed
     else{
@@ -244,7 +167,7 @@ void ND::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   }
   // if there are two, connect the two edge groups
   else if (edgeGroups.size() > 1){
-    truePaths = edgePaths;
+    fAStar->ConnectGroupsOrdered(fVolGroupMan, edgeGroups, truePaths);
   }
   // otherwise, return empty handed
   else{
@@ -252,102 +175,66 @@ void ND::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   };
 
   // ensure that paths don't share hits with each other
-  if(fLayout->GetUseAltHitAssociation() >= 1) hybridAStar->AssociateBestHits(fVolGroupMan, truePaths, fLayout->GetAltPathHitConnectDist());
-  else fVolGroupMan->BuildAllFriends(truePaths);
+  fVolGroupMan->BuildAllFriends(truePaths);
 
   // extend and cluster paths
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator truePathIt = truePaths.begin(); truePathIt != truePaths.end(); ++truePathIt){
+  for(std::vector< ND::TTPCOrderedVolGroup >::iterator truePathIt = truePaths.begin(); truePathIt != truePaths.end(); ++truePathIt){
     fVolGroupMan->ClusterGroupFriends(*truePathIt, false, true);
   };
   // clear empties
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup > >::iterator pathDel = truePaths.begin();
+  std::vector< ND::TTPCOrderedVolGroup >::iterator pathDel = truePaths.begin();
   while(pathDel != truePaths.end()){
-    if(!(*pathDel)->size()) truePaths.erase(pathDel);
+    if(!pathDel->size()) truePaths.erase(pathDel);
     else pathDel ++;
-  };
+  }
 
   // look for kinks in paths
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > brokenPaths = hybridVolGroupMan->BreakPathsAboutKinks(truePaths, true);
-  if(fLayout->GetUseAltHitAssociation() >= 1) hybridAStar->AssociateBestHits(effVolGroupMan, brokenPaths, fLayout->GetAltPathHitConnectDist());
+  fVolGroupMan->BreakPathsAboutKinks(truePaths, true);
+  
 
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > brokenClusteredPaths;
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator brokenPathIt = brokenPaths.begin(); brokenPathIt != brokenPaths.end(); ++brokenPathIt){
-    ND::THandle<ND::TTPCOrderedVolGroup> brokenPath = *brokenPathIt;
-
-    effVolGroupMan->ClusterGroupFriends(brokenPath, true, true);
-    brokenClusteredPaths.push_back(brokenPath);
-  };
-
-  // create list of final paths
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > finalPaths;
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator pathIt = brokenClusteredPaths.begin(); pathIt != brokenClusteredPaths.end(); ++pathIt){
-    finalPaths.push_back(*pathIt);
+  for(std::vector< ND::TTPCOrderedVolGroup >::iterator brokenPathIt = truePaths.begin(); brokenPathIt != truePaths.end(); ++brokenPathIt){
+    fVolGroupMan->ClusterGroupFriends(*brokenPathIt, true, true);
   };
 
   // temporarily merge x-paths into junctions to make the next two steps easier
-  effVolGroupMan->SeparateXPathHits(finalPaths);
+  fVolGroupMan->SeparateXPathHits(truePaths);
 
   // clean up any and all instances of hits beiing placed in the wrong object
-  effVolGroupMan->SeparateEmptyClusters(finalPaths);
-  effVolGroupMan->SeparateClusterHits(finalPaths);
-  effVolGroupMan->SeparateAnomHits(finalPaths);
-  effVolGroupMan->SeparateJunctionHits(finalPaths);
+  fVolGroupMan->SeparateEmptyClusters(truePaths);
+  fVolGroupMan->SeparateClusterHits(truePaths);
+  fVolGroupMan->SeparateAnomHits(truePaths);
+  fVolGroupMan->SeparateJunctionHits(truePaths);
 
   // enforce path ordering
-  effVolGroupMan->EnforceOrdering(finalPaths);
+  fVolGroupMan->EnforceOrdering(truePaths);
 
   // add all paths that make sense and store if none are found
-  fTracks = effVolGroupMan->SanityFilter(finalPaths);
+  fVolGroupMan->SanityFilter(truePaths);
 
   // associate any remaining unused hits to junctions where possible
-  ND::THandle<ND::TTPCVolGroup> unusedHits = effVolGroupMan->GetUnusedHits(fTracks);
-  effVolGroupMan->AssociateUnusedWithJunctions(unusedHits, fTracks);
-
-  // break junctions with a large extent in x
-  if(!fLayout->GetUseAltEdgeDetection()) effVolGroupMan->BreakLongJunctions(fTracks);
+  ND::TTPCVolGroup unusedHits(fLayout);
+  fVolGroupMan->GetUnusedHits(truePaths,unusedHits);
+  fVolGroupMan->AssociateUnusedWithJunctions(unusedHits, truePaths);
 
   // reset vertex status based on how many paths a junction is connected to
-  effVolGroupMan->ResetVertexStatuses(fTracks);
+  fVolGroupMan->ResetVertexStatuses(truePaths);
 
-  // if using a charge cut, associate low charge hits with paths and junctions as a final step
-  if(fLayout->GetUsePatRecPathologyCut() > 0){
-    if(fLayout->GetUseAltHitAssociation() >= 1){
-      fAStar->AssociateBestHits(fVolGroupMan, fTracks, fLayout->GetAltPathHitConnectDist());
-    }
-    else{
-      fVolGroupMan->BuildAllFriends(fTracks);
-    };
-
-    for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator trackIt = fTracks.begin(); trackIt != fTracks.end(); ++trackIt){
-      ND::THandle<ND::TTPCOrderedVolGroup> track = *trackIt;
-      fVolGroupMan->ClusterGroupFriends(track, true, true, true);
-    };
-
-    effVolGroupMan->AssociateUnusedWithJunctions(unusedHits, fTracks);
-  };
-
-  // get junctions from paths for diagnostics
-  //std::vector< ND::THandle<ND::TTPCVolGroup> > pathVertices = fVolGroupMan->GetJunctionsFromPaths(fTracks);
-  //for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator pathVertexIt = pathVertices.begin(); pathVertexIt != pathVertices.end(); ++pathVertexIt){
-  //  ND::THandle<ND::TTPCVolGroup> pathVertex = *pathVertexIt;
-  //  fPOIs.push_back(pathVertex->GetAveragePosXYZ());
-  //  fGOIs.push_back(pathVertex);
-  //};
-
+  fTracks=std::move(truePaths);
   fHasValidPaths = fTracks.size() > 0;
 }
 
-ND::THandle<ND::TTPCPattern> ND::TTPCTRExPatSubAlgorithm::GetPattern(){
+ND::TTPCPattern* ND::TTPCTRExPatSubAlgorithm::GetPattern(){
   if(!fPattern){
-    ND280Warn("Pattern not set for TTPCTRExPatSubAlgorithm");
-    //TF: an empty handle on the pattern, don't know whether this is the best idea
-    return ND::THandle< ND::TTPCPattern >(); //0;
+    return 0;
   };
   return fPattern;
 }
+
+//MDH
+//Get rid of this for now since it needs to be rewritten for new output objects
+/*
 void ND::TTPCTRExPatSubAlgorithm::ProducePattern(ND::THitSelection* used){
   if(fPattern){
-    ND280Warn("Trying to create same pattern twice for TTPCTRExPatSubAlgorithm");
     return;
   };
 
@@ -473,28 +360,29 @@ void ND::TTPCTRExPatSubAlgorithm::ProducePattern(ND::THitSelection* used){
     fPattern->SetId(ND::tpcCalibration().GetPatternId());
     fPattern->InitialSetup();
   }
-}
+  }*/
 
-ND::THandle<ND::THitSelection> ND::TTPCTRExPatSubAlgorithm::GetHits(){
+std::vector<ND::TTPCHitPad*>& ND::TTPCTRExPatSubAlgorithm::GetHits(){
   return fVolGroupMan->GetHits();
 }
-ND::THandle<ND::THitSelection> ND::TTPCTRExPatSubAlgorithm::GetHits(ND::THandle<ND::TTPCOrderedVolGroup> path){
-  return path->GetClusters();
+std::vector<ND::TTPCHitPad*>& ND::TTPCTRExPatSubAlgorithm::GetHits(ND::TTPCOrderedVolGroup& path){
+  return path.GetClusters();
 }
 
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCTRExPatSubAlgorithm::GetRegions(){
-  if(!fHasHits) return std::vector< ND::THandle<ND::TTPCVolGroup> >();
+void ND::TTPCTRExPatSubAlgorithm::GetRegions(std::vector< ND::TTPCVolGroup >& regions){
+
+  if(!fHasHits){
+    regions.clear();
+    return;
+  }
   // get list of hit groups for sub-events
-  std::vector< ND::THandle<ND::TTPCVolGroup> > connectedHits = fVolGroupMan->GetConnectedHits(ND::TTPCConnection::path);
-
-  // for debugging, set as this group's group of interest list
-  //fGOIs = connectedHits;
-
-  // return it
-  return connectedHits;
+  fVolGroupMan->GetConnectedHits(regions,ND::TTPCConnection::path);
 }
 
-void ND::TTPCTRExPatSubAlgorithm::FillUsedHits(ND::THitSelection* used){
+//MDH
+//Not currently used. May be used later if we resurrect ProducePattern.
+/*
+void ND::TTPCTRExPatSubAlgorithm::FillUsedHits(std::vector<ND::TTPCHitPad*>& used){
   // if pattern hasn't been correctly built, hits can't possibly be used
   if(!fPattern) return;
 
@@ -539,14 +427,12 @@ void ND::TTPCTRExPatSubAlgorithm::FillUsedHits(ND::THitSelection* used){
     };
   };
 }
+*/
+std::vector<ND::TTPCVolGroup > ND::TTPCTRExPatSubAlgorithm::GetTrackExtendedHits(std::vector<ND::TTPCVolGroup>& extHits){
 
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCTRExPatSubAlgorithm::GetTrackExtendedHits(){
-  std::vector< ND::THandle<ND::TTPCVolGroup> > outGroups;
-
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator trackIt = fTracks.begin(); trackIt != fTracks.end(); ++trackIt){
-    ND::THandle<ND::TTPCOrderedVolGroup> track = *trackIt;
-    outGroups.push_back(track->GetExtendedHits());
-  };
-
-  return outGroups;
+  for(std::vector< ND::TTPCOrderedVolGroup >::iterator trackIt = fTracks.begin(); trackIt != fTracks.end(); ++trackIt){
+    ND::TTPCOrderedVolGroup& track = *trackIt;
+    extHits.push_back(track->GetExtendedHits());
+  }
+  
 }

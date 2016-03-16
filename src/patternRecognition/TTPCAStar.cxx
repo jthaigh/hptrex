@@ -105,6 +105,9 @@ void ND::TTPCAStar::AddHits(ND::TTPCAStar* prevAStar, std::map<long, ND::TTPCUni
   };
 }
 
+//MDH
+//Not used
+/*
 std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ConnectVertexGroups(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > vertices, std::vector< ND::THandle<ND::TTPCVolGroup> > edges, int maxNo){
   std::vector< ND::THandle<ND::TTPCVolGroup> > connections;
   // find ordered sets of connections between the groups
@@ -121,17 +124,18 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ConnectVertexGroups(
 
   return connections;
 }
-std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > ND::TTPCAStar::ConnectVertexGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > vertices, std::vector< ND::THandle<ND::TTPCVolGroup> > edges, int maxNo){
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > connections;
+*/
+
+void ND::TTPCAStar::ConnectVertexGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& vertices, std::vector< ND::TTPCVolGroup >& edges, std::vector< ND::TTPCOrderedVolGroup >& connections, int maxNo){
 
   // keep track of number of iterations to break when exceeded
   int i=0;
   // loop over each vertex and each edge
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator ver = vertices.begin(); ver != vertices.end(); ++ver){
-    for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator grp = edges.begin(); grp != edges.end(); ++grp){
+  for(std::vector< ND::TTPCVolGroup >::iterator ver = vertices.begin(); ver != vertices.end(); ++ver){
+    for(std::vector< ND::TTPCVolGroup >::iterator grp = edges.begin(); grp != edges.end(); ++grp){
       // add connection between the groups to set of connections
-      ND::THandle<ND::TTPCOrderedVolGroup> connection = ConnectGroupPair(*ver,*grp, true,false);
-      if(!connection->empty()) connections.push_back(connection);
+      connections.emplace_back(ConnectGroupPair(*ver,*grp, true,false));
+      if(connections.back().empty()) connections.pop_back();
       // break out if the number of iterations is too high
       i++;
       if(i>=maxNo) break;
@@ -140,15 +144,18 @@ std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > ND::TTPCAStar::ConnectVertex
   };
 
   // connect vertices to each other as well
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > vertexConnections = ConnectGroupsOrdered(volGroupMan, vertices, true, maxNo);
+  std::vector< ND::TTPCOrderedVolGroup > vertexConnections;
+  ConnectGroupsOrdered(volGroupMan, vertices, vertexConnections, true, maxNo);
   // add inter-vertex connections to group
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator it = vertexConnections.begin(); it != vertexConnections.end(); ++it){
+  for(std::vector< ND::TTPCOrderedVolGroup >::iterator it = vertexConnections.begin(); it != vertexConnections.end(); ++it){
     connections.push_back(*it);
   };
 
-  return connections;
 }
 
+//MDH
+//Not used
+/*
 std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ConnectGroups(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > groups, bool allConnections, int maxNo){
   std::vector< ND::THandle<ND::TTPCVolGroup> > connections;
   // find ordered sets of connections between the groups
@@ -165,8 +172,11 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ConnectGroups(ND::TT
 
   return connections;
 }
-std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > ND::TTPCAStar::ConnectGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > groups, bool vertices, bool allConnections, int maxNo){
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > connections;
+*/
+
+//MDH
+//just changed sig for now. Still needs going through
+void ND::TTPCAStar::ConnectGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, std::vector< ND::TTPCOrderedVolGroup >& connections, bool vertices, bool allConnections, int maxNo){
 
   // keep track of number of iterations to break when exceeded
   int i=0;
@@ -188,7 +198,10 @@ std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > ND::TTPCAStar::ConnectGroups
 
   return connections;
 }
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > groups, int maxNo){
+
+//Ok this needs a bit of work. For now only changed the signature
+//so that this will be an in-place cleanup
+void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, int maxNo){
   // the next block of code is pretty ugly but needed to remove bugs in some very specific topologies
   // first, merge groups which are too close together
   std::vector< ND::THandle<ND::TTPCVolGroup> > inGroups = groups;
@@ -294,7 +307,7 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ClearRedundancies(ND
   };
 
   // build surviving groups
-  std::vector< ND::THandle<ND::TTPCVolGroup> > survivors = std::vector< ND::THandle<ND::TTPCVolGroup> >();
+  std::vector< ND::TTPCVolGroup > survivors;
 
   // first, add all totally safe groups
   for(int i=0; i<nGroups; ++i){
@@ -355,543 +368,29 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ClearRedundancies(ND
     };
   };
 
-  return survivors;
-}
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ExperimentalClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > groups, bool forceReconstructable, int maxNo){
-  // the next block of code is pretty ugly but needed to remove bugs in some very specific topologies
-  // merge groups which are too close together
-  int edgeClearDist = fLayout->GetAltEdgeHitConnectDist();
-
-  // parallel arrays for groups and list of groups they overlap
-  std::vector< ND::THandle<ND::TTPCVolGroup> > mergedGroups = MergeGroupsAStar(groups, edgeClearDist);
-  //std::vector< ND::THandle<ND::TTPCVolGroup> > mergedGroups = groups;
-  std::vector< std::vector<int> > connectedGroups;
-
-  // if forcing a reconstructable output, require at least two ends
-  if(forceReconstructable){
-    if(mergedGroups.size() < 2){
-      std::vector< ND::THandle<ND::TTPCVolGroup> > survivors;
-
-      // add most separated pair
-      float maxSep = -1.;
-      ND::THandle<ND::TTPCVolGroup> grp1;
-      ND::THandle<ND::TTPCVolGroup> grp2;
-
-      if(groups.size() > 1){
-        // loop over each pair of groups once
-        for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator grp1It = groups.begin(); grp1It != groups.end(); ++grp1It){
-          ND::THandle<ND::TTPCVolGroup> tempGrp1 = *grp1It;
-          if(!tempGrp1) continue;
-
-          for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator grp2It = grp1It+1; grp2It != groups.end(); ++grp2It){
-            ND::THandle<ND::TTPCVolGroup> tempGrp2 = *grp2It;
-            if(!tempGrp2) continue;
-
-            float sep = FindConnectionCost(tempGrp1, tempGrp2, true, true, true);
-            if(sep > maxSep){
-              sep = maxSep;
-              grp1 = tempGrp1;
-              grp2 = tempGrp2;
-            };
-          };
-        };
-      };
-
-      // add most separated
-      if(maxSep >= 0.){
-        survivors.push_back(grp1);
-        survivors.push_back(grp2);
-      };
-
-      return survivors;
-    };
-  };
-
-  for(std::vector<ND::THandle<ND::TTPCVolGroup> >::iterator grpIt = mergedGroups.begin(); grpIt != mergedGroups.end(); ++grpIt) connectedGroups.push_back(std::vector<int>());
-  std::vector<bool> groupsMaySurvive (mergedGroups.size(), true);
-
-  // keep track of number of iterations to break when exceeded
-  int nGroups = (int)mergedGroups.size();
-  int count=0;
-
-  // loop over each pair of groups once
-  for(int i=0; i<nGroups; ++i){
-    for(int j=i+1; j<nGroups; ++j){
-      ND::THandle<ND::TTPCVolGroup> grp1 = mergedGroups[i];
-      ND::THandle<ND::TTPCVolGroup> grp2 = mergedGroups[j];
-      // add connection between the groups to set of connections
-      ND::THandle<ND::TTPCOrderedVolGroup> path = ConnectGroupPair(grp1, grp2);
-      // kill any groups associated with this path other than its direct ends
-      for(int k=0; k<nGroups; ++k){
-        if(k == i) continue;
-        if(k == j) continue;
-        ND::THandle<ND::TTPCVolGroup> grp3 = mergedGroups[k];
-        bool found = false;
-
-        for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = path->begin(); pathVolIt != path->end(); ++pathVolIt){
-          ND::TTPCPathVolume* pathVol = *pathVolIt;
-          ND::TTPCUnitVolume* vol = pathVol->GetUnitVolume();
-
-          if(FindConnectionCost(grp3, vol, true, true, true) <= edgeClearDist){
-            found = true;
-            break;
-          };
-        };
-        if(found){
-          if(std::find(connectedGroups[i].begin(), connectedGroups[i].end(), k) == connectedGroups[i].end()) connectedGroups[i].push_back(k);
-          if(std::find(connectedGroups[j].begin(), connectedGroups[j].end(), k) == connectedGroups[j].end()) connectedGroups[j].push_back(k);
-        };
-      };
-      // break out if the number of iterations is too high
-      count++;
-      if(count>=maxNo) break;
-    };
-    if(count>=maxNo) break;
-  };
-
-  // build surviving groups
-  std::vector< ND::THandle<ND::TTPCVolGroup> > survivors = std::vector< ND::THandle<ND::TTPCVolGroup> >();
-
-  // first, add all totally safe groups
-  for(int i=0; i<nGroups; ++i){
-    bool madeRedundant = false;
-
-    // is this group marked for death?
-    if(!groupsMaySurvive[i]){
-      madeRedundant = true;
-    }
-    else{
-      // is this group made redundant by any other?
-      for(int j=0; j<nGroups; ++j){
-        if(j==i) continue;
-
-        int connectionSize = (int)connectedGroups[j].size();
-        for(int k=0; k<connectionSize; ++k){
-          if(i==connectedGroups[j][k]) madeRedundant = true;
-          if(madeRedundant) break;
-        if(madeRedundant) break;
-        };
-      };
-    };
-
-    if(!madeRedundant){
-      survivors.push_back(mergedGroups[i]);
-
-      // mark everything this group overlapped with for death
-      int connection2Size = connectedGroups[i].size();
-      for(int conn=0; conn<connection2Size; ++conn) groupsMaySurvive[ connectedGroups[i][conn] ] = false;
-      connectedGroups[i] = std::vector<int>();
-    };
-  };
-
-  // look for loops and merge them
-  for(int i=0; i<nGroups; ++i){
-    // only include if isolated
-    if(!groupsMaySurvive[i]) continue;
-
-    int connectionSize = connectedGroups[i].size();
-    for(int j=0; j<connectionSize; j++){
-      int merge1 = i;
-      int merge2 = connectedGroups[i][j];
-      // only include if isolated
-      if(!groupsMaySurvive[merge2]) continue;
-
-      // avoid duplication
-      if(merge2 > merge1){
-        int connectionMergeSize = (int)connectedGroups[merge2].size();
-        for(int k=0; k<connectionMergeSize; k++){
-          if(connectedGroups[merge2][k] == merge1){
-            // first, check if either is made redundant
-            ND::THandle<ND::TTPCVolGroup> grp = volGroupMan->MergeGroups(mergedGroups[merge1], mergedGroups[merge2]);
-            survivors.push_back(grp);
-          };
-          break;
-        };
-      };
-    };
-  };
-
-  return survivors;
-}
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ExperimentalClearRedundancies2(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > groups, int maxNo){
-  // don't check if there are only two
-  if(groups.size() < 3){
-    return groups;
-  };
-
-  // merge groups which are too close together
-  int edgeClearDist = fLayout->GetAltEdgeHitConnectDist();
-
-  std::vector< ND::THandle<ND::TTPCVolGroup> > outGroups;
-
-  // make list of all cross redundancies, and summed redundancy for each group
-  int nGroups = (int)groups.size();
-  std::map< std::pair<int, int>, std::vector<int> > crossRedundancies;
-  /*std::vector< std::vector<int> > conservativeCrossRedundancies;
-  for(int i=0; i<nGroups; ++i){
-    conservativeCrossRedundancies.push_back( std::vector<int>() );
-  };*/
-
-  for(int i=0; i<nGroups; ++i){
-    ND::THandle<ND::TTPCVolGroup> group1 = groups.at(i);
-    for(int j=i+1; j<nGroups; ++j){
-      ND::THandle<ND::TTPCVolGroup> group2 = groups.at(j);
-
-      ND::THandle<ND::TTPCOrderedVolGroup> path = ConnectGroupPair(group1, group2);
-      // make key, and vector of all redundancies from this pair
-      std::pair<int, int> key = std::make_pair(i, j);
-      std::vector<int> redundancies;
-
-      // kill any groups associated with this path other than its direct ends
-      for(int k=0; k<nGroups; ++k){
-        if(k == i) continue;
-        if(k == j) continue;
-        ND::THandle<ND::TTPCVolGroup> group3 = groups.at(k);
-
-        float minCost = 9999.;
-
-        //bool conI = false;
-        //bool conJ = false;
-        for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = path->begin(); pathVolIt != path->end(); ++pathVolIt){
-          ND::TTPCPathVolume* pathVol = *pathVolIt;
-          ND::TTPCUnitVolume* vol = pathVol->GetUnitVolume();
-
-          float curCost = FindConnectionCost(group3, vol, true, true, true, edgeClearDist);
-          minCost = std::min(minCost, curCost);
-          /*if(curCost < edgeClearDist){
-            // also check for CONSERVATIVE redundancies, to take precedence over non-conservative ones
-            if(!conI){
-              if(FindConnectionCost(group1, vol, true, true, true, edgeClearDist) >= edgeClearDist){
-                conI = true;
-              };
-            };
-            if(!conJ){
-              if(FindConnectionCost(group2, vol, true, true, true, edgeClearDist) >= edgeClearDist){
-                conJ = true;
-              };
-            };
-          };*/
-        };
-        // if found, increment cost of group and add it to redundancy lists of connecting groups
-        if(minCost < edgeClearDist){
-          redundancies.push_back(k);
-
-          /*if(conI && conJ){
-            conservativeCrossRedundancies.at(i).push_back(k);
-            conservativeCrossRedundancies.at(j).push_back(k);
-          };*/
-        };
-      };
-      // add list to map
-      crossRedundancies[key] = redundancies;
-    };
-  };
-  /*
-  {
-    std::cout << "\033[1;34m# " << "cross redundancies:  " << "\033[0;m" << std::endl;
-    int i=0;
-    for(std::map< std::pair<int, int>, std::vector<int> >::iterator circularEl = crossRedundancies.begin(); circularEl != crossRedundancies.end(); ++circularEl){
-      std::vector<int> circular = circularEl->second;
-
-      std::cout << "\033[1;35m# " << " " << circularEl->first.first << "-" << circularEl->first.second << ":  ( ";
-      ++i;
-      // remove all redundant elements not contained in the group
-      for(std::vector<int>::iterator iIt = circular.begin(); iIt != circular.end(); ++iIt){
-        std::cout << *iIt << " ";
-      };
-      std::cout << ")\033[0;m" << std::endl;
-    };
-  };*/
-
-  // first add any and all circular redundancies; start by adding all groups
-  std::vector< std::vector<int> > circularGroups;
-  for(int i=0; i<nGroups; ++i){
-    circularGroups.push_back( std::vector<int>(1, i) );
-  };
-  // now the fiddly bit - merge overlapping redundancies (ones on each others lists) until no more are to be merged
-  bool maybeRedundant = true;
-  while(maybeRedundant){
-    maybeRedundant = false;
-
-    for(std::vector< std::vector<int> >::iterator circular1It = circularGroups.begin(); circular1It != circularGroups.end(); ++circular1It){
-      std::vector<int> circular1 = *circular1It;
-      for(std::vector< std::vector<int> >::iterator circular2It = circular1It+1; circular2It != circularGroups.end(); ++circular2It){
-        std::vector<int> circular2 = *circular2It;
-
-        for(std::vector<int>::iterator iIt = circular1.begin(); iIt != circular1.end(); ++iIt){
-          int i = *iIt;
-          for(std::vector<int>::iterator jIt = circular2.begin(); jIt != circular2.end(); ++jIt){
-            int j = *jIt;
-
-            // vector of connections where i makees j redundant and vice versa
-            std::vector<int> iInJTargets;
-            std::vector<int> jInITargets;
-            // look for i in any list spawned from j, or j in any from i
-            for(std::map< std::pair<int, int>, std::vector<int> >::iterator crossRedundanciesEl = crossRedundancies.begin(); crossRedundanciesEl != crossRedundancies.end(); ++crossRedundanciesEl){
-              std::pair<int, int> key = crossRedundanciesEl->first;
-              std::vector<int> redundancies = crossRedundanciesEl->second;
-
-
-              if((key.first == i) ^ (key.second == i)){
-                if(std::find(redundancies.begin(), redundancies.end(), j) != redundancies.end()){
-                  if(key.first == i) iInJTargets.push_back(key.second);
-                  if(key.second == i) iInJTargets.push_back(key.first);
-                };
-              };
-              if((key.first == j) ^ (key.second == j)){
-                if(std::find(redundancies.begin(), redundancies.end(), i) != redundancies.end()){
-                  if(key.first == j) jInITargets.push_back(key.second);
-                  if(key.second == j) jInITargets.push_back(key.first);
-                };
-              };
-            };
-            bool redundant = false;
-            // the two make each other redundant iff they make each other redundant with the same target
-            for(std::vector<int>::iterator iInJTargetIt = iInJTargets.begin(); iInJTargetIt != iInJTargets.end(); ++iInJTargetIt)
-            for(std::vector<int>::iterator jInITargetIt = jInITargets.begin(); jInITargetIt != jInITargets.end(); ++jInITargetIt){
-              if(*iInJTargetIt == *jInITargetIt){
-                redundant = true;
-              };
-            };
-
-            // if they're on each others groups, merge the two
-            if(redundant){
-              for(std::vector<int>::iterator j2It = circular2.begin(); j2It != circular2.end(); ++j2It){
-                int j2 = *j2It;
-
-                if(std::find(circular1.begin(), circular1.end(), j2) == circular1.end()){
-                  circular1It->push_back(j2);
-                };
-              };
-              circularGroups.erase(circular2It);
-              maybeRedundant = true;
-              break;
-            };
-            if(maybeRedundant) break;
-          };
-          if(maybeRedundant) break;
-        };
-        if(maybeRedundant) break;
-      };
-      if(maybeRedundant) break;
-    };
-  };
-  /*std::cout << "\033[1;34m# " << "circular groups:  " << "\033[0;m" << std::endl;
-  for(std::vector< std::vector<int> >::iterator circularIt = circularGroups.begin(); circularIt != circularGroups.end(); ++circularIt){
-    std::vector<int> circular = *circularIt;
-
-    std::cout << "\033[1;35m# " << "  ( ";
-    // remove all redundant elements not contained in the group
-    for(std::vector<int>::iterator iIt = circular.begin(); iIt != circular.end(); ++iIt){
-      std::cout << *iIt << " ";
-    };
-    std::cout << ")\033[0;m" << std::endl;
-  };*/
-
-  // now, make list of all free groups, initially containing everything
-  std::vector<int> freeGroups;
-  for(int i=0; i<nGroups; ++i){
-    freeGroups.push_back(i);
-  };
-  // erase anything that's made redundant by elements of two circular groups not containing itself
-  for(std::vector< std::vector<int> >::iterator circular1It = circularGroups.begin(); circular1It != circularGroups.end(); ++circular1It)
-  for(std::vector< std::vector<int> >::iterator circular2It = circular1It; circular2It != circularGroups.end(); ++circular2It){
-    std::vector<int> circular1 = *circular1It;
-    std::vector<int> circular2 = *circular2It;
-
-    for(std::vector<int>::iterator iIt = circular1.begin(); iIt != circular1.end(); ++iIt)
-    for(std::vector<int>::iterator jIt = circular2.begin(); jIt != circular2.end(); ++jIt){
-      int i = *iIt;
-      int j = *jIt;
-      std::pair<int, int> key;
-      if(i < j){
-        key = std::make_pair(i, j);
-      }
-      else if(i > j){
-        key = std::make_pair(j, i);
-      }
-      else{
-        continue;
-      };
-      std::vector<int> redundancies = crossRedundancies.at(key);
-
-      for(std::vector<int>::iterator kIt = redundancies.begin(); kIt != redundancies.end(); ++kIt){
-        int k = *kIt;
-
-        // make sure it isn't in the circulars themselves
-        if(std::find(circular1.begin(), circular1.end(), k) == circular1.end())
-        if(std::find(circular2.begin(), circular2.end(), k) == circular2.end()){
-          std::vector<int>::iterator findK = std::find(freeGroups.begin(), freeGroups.end(), k);
-          if(findK != freeGroups.end()){
-            // make sure it isn't in the two groups using for this check
-            freeGroups.erase(findK);
-          };
-        };
-      };
-    };
-  }
-  // remove all elements not in the free list
-  for(std::vector< std::vector<int> >::iterator circularIt = circularGroups.begin(); circularIt != circularGroups.end(); ++circularIt){
-    std::vector<int> circular = *circularIt;
-    std::vector<int>::iterator iIt = circular.begin();
-    while(iIt != circular.end()){
-      int i = *iIt;
-      if(std::find(freeGroups.begin(), freeGroups.end(), i) == freeGroups.end()){
-        iIt = circular.erase(iIt);
-      }
-      else{
-        ++iIt;
-      };
-    };
-  };
-  // erase everything that's in a circular group and NOT the highest charge member
-  for(std::vector< std::vector<int> >::iterator circularIt = circularGroups.begin(); circularIt != circularGroups.end(); ++circularIt){
-    std::vector<int> circular = *circularIt;
-
-    // remove all elements except one, by the following:
-    //  a) <COMMENTED OUT> remove everything killed by the conservative redundancies list, unless that would be the whole group
-    //  b) remove everything remaining but highest charge group
-
-    // add everything in a non-shared conservative list
-    /*
-    std::vector<int> conservativeRedundancies;
-    for(std::vector<int>::iterator iIt = circular.begin(); iIt != circular.end(); ++iIt)
-    for(std::vector<int>::iterator jIt = iIt+1; jIt != circular.end(); ++jIt){
-      int i = *iIt;
-      int j = *jIt;
-
-      std::vector<int> conI = conservativeCrossRedundancies.at(i);
-      std::vector<int> conJ = conservativeCrossRedundancies.at(j);
-      bool iInJ = (std::find(conI.begin(), conI.end(), j) != conI.end());
-      bool jInI = (std::find(conJ.begin(), conJ.end(), i) != conJ.end());
-
-      if(iInJ && !jInI){
-        conservativeRedundancies.push_back(i);
-      }
-      else if(jInI && !iInJ){
-        conservativeRedundancies.push_back(j);
-      };
-    };
-    if(conservativeRedundancies.size() < circular.size()){
-      // remove all elements found this way
-      std::vector<int>::iterator kIt = circular.begin();
-      while(kIt != circular.end()){
-        int k = *kIt;
-        std::vector<int>::iterator findK = std::find(freeGroups.begin(), freeGroups.end(), k);
-        if(findK != freeGroups.end()){
-          freeGroups.erase(findK);
-        };
-        if(std::find(conservativeRedundancies.begin(), conservativeRedundancies.end(), k) != conservativeRedundancies.end()){
-          kIt = circular.erase(kIt);
-        }
-        else{
-          ++kIt;
-        };
-      };
-    };*/
-
-    // now remove all but the highest charge element
-    int leastRedundantID = -1;
-    int leastRedundantCost = -9999.;
-    for(std::vector<int>::iterator iIt = circular.begin(); iIt != circular.end(); ++iIt){
-      int i = *iIt;
-      float cost = groups.at(i)->GetAverageCharge();
-
-      if(cost > leastRedundantCost){
-        leastRedundantCost = cost;
-        leastRedundantID = i;
-      };
-    };
-
-    for(std::vector<int>::iterator iIt = circular.begin(); iIt != circular.end(); ++iIt){
-      int i = *iIt;
-
-      if(i != leastRedundantID){
-        std::vector<int>::iterator findI = std::find(freeGroups.begin(), freeGroups.end(), i);
-        if(findI != freeGroups.end()){
-          freeGroups.erase(findI);
-        };
-      };
-    };
-  };
-  // after all of this, if fewer than two ends remain try and add the most separated ones
-  if(freeGroups.size() < 1){
-    int maxI = -1;
-    int maxJ = -1;
-    float maxCost = -9999.;
-    for(int i=0; i<nGroups; ++i){
-      ND::THandle<ND::TTPCVolGroup> group1 = groups.at(i);
-      for(int j=i+1; j<nGroups; ++j){
-        ND::THandle<ND::TTPCVolGroup> group2 = groups.at(j);
-
-        float cost = FindConnectionCost(group1, group2, true, true, true);
-        if(cost > maxCost){
-          maxCost = cost;
-          maxI = i;
-          maxJ = j;
-        };
-      };
-    };
-    if(maxI >= 0) freeGroups.push_back(maxI);
-    if(maxJ >= 0) freeGroups.push_back(maxJ);
-  }
-  else if(freeGroups.size() < 2){
-    int maxI = freeGroups.at(0);
-    int maxJ = -1;
-    float maxCost = -9999.;
-    ND::THandle<ND::TTPCVolGroup> group1 = groups.at(maxI);
-    for(int j=0; j<nGroups; ++j){
-      if(j != maxI){
-        ND::THandle<ND::TTPCVolGroup> group2 = groups.at(j);
-
-        float cost = FindConnectionCost(group1, group2, true, true, true);
-        if(cost > maxCost){
-          maxCost = cost;
-          maxJ = j;
-        };
-      };
-    };
-    if(maxJ >= 0) freeGroups.push_back(maxJ);
-  };
-
-  // and finally, add all free groups to out groups
-  for(std::vector<int>::iterator iIt = freeGroups.begin(); iIt != freeGroups.end(); ++iIt){
-    int i = *iIt;
-    outGroups.push_back(groups.at(i));
-  };
-
-  return outGroups;
-}
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ExperimentalClearVertexRedundancies(std::vector< ND::THandle<ND::TTPCVolGroup> > groups, int maxNo){
-  // merge together vertices
-  int vertexClearDist = fLayout->GetAltVertexHitConnectDist();
-  std::vector< ND::THandle<ND::TTPCVolGroup> > mergedGroups = MergeGroupsAStar(groups, vertexClearDist);
-
-  return mergedGroups;
+  groups=std::move(survivors);
 }
 
-std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > ND::TTPCAStar::ClearVertexConnectionRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths, std::vector< ND::THandle<ND::TTPCVolGroup> > vertices){
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > survivors;
+ND::TTPCAStar::ClearVertexConnectionRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCOrderedVolGroup >& paths, std::vector< ND::TTPCVolGroup >& vertices){
+  std::vector< ND::TTPCOrderedVolGroup > outPaths;
 
-  // start with all groups as survivors
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator path = paths.begin(); path != paths.end(); ++path) survivors.push_back(*path);
-
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator path = paths.begin(); path != paths.end(); ++path){
-    for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator vert = vertices.begin(); vert != vertices.end(); ++vert){
-      bool redundancy = volGroupMan->GetPathVolOverlap(*path, (*vert)->GetAverageVol(), ND::TTPCConnection::vertexPath);
-      if(redundancy){
-        for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator it = survivors.begin(); it != survivors.end(); ++it)
-          if(*it == *path){
-            survivors.erase(it);
-            break;
-          };
+  for(std::vector< ND::TTPCOrderedVolGroup >::iterator path = paths.begin(); path != paths.end(); ++path){
+    bool redundancy = false;
+    for(std::vector< ND::TTPCVolGroup >::iterator vert = vertices.begin(); vert != vertices.end(); ++vert){
+      if(volGroupMan->GetPathVolOverlap(*path, (*vert)->GetAverageVol(), ND::TTPCConnection::vertexPath)){
+	redundancy=true;
         break;
-      };
-    };
-  };
+      }
+    }
+    if(!redundancy){
+      outpaths.push_back(*path);
+    }
+  }
 
-  return survivors;
+  paths=std::move(outpaths);
+  
 }
+
 ND::THandle<ND::TTPCOrderedVolGroup> ND::TTPCAStar::ConnectGroupPair(ND::THandle<ND::TTPCVolGroup> group1, ND::THandle<ND::TTPCVolGroup> group2, bool vertexGroup1, bool vertexGroup2, bool fullASICPenalty, bool extendMode){
   ND::THandle<ND::TTPCOrderedVolGroup> connection(new ND::TTPCOrderedVolGroup(fLayout));
   // get unique ids and A* indices

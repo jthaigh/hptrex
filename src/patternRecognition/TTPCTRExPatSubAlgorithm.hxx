@@ -47,37 +47,46 @@ namespace ND{
 
       /// Set up pattern recognition algorithm cells from an iterable map of previously defined ones
       void SetUpHits(std::map<long, ND::TTPCUnitVolume*> map, ND::TTPCAStar* aStarCopy=0);
-      /// Set up high charge cut version of pattern recognition algorithm cells from an iterable map of previously defined ones
-      void SetUpHitsHigh(std::map<long, ND::TTPCUnitVolume*> map, ND::TTPCAStar* aStarCopy=0);
+
+    //MDH
+    //never used.
+    /*
       /// Add a new cell to current map, either by creating a new one or incrementing the charge of an existing one depending on wheter position is already occupied
       void AbsorbCell(long id, ND::TTPCUnitVolume* cell);
       /// Add a list of new cells to current map, through a series of AbsorbCell calls on each element of the group
       void AppendHits(ND::THandle<ND::TTPCVolGroup> hits);
+    */
       /// Fill containers in this sub-object
       void ProduceContainers();
       /// Endure that none of the containers in this sub-object are empty
       void CleanContainers();
-      /// Produce pattern so it can be returned
-      void ProducePattern(ND::THitSelection* used);
+      
+    //MDH
+    //Needs completely rewriting for new output objects
+    /// Produce pattern so it can be returned
+      //void ProducePattern(std::vector<ND::TTPCHitPad*>& used);
 
       /// Return and this object's pattern
-      ND::THandle<ND::TTPCPattern> GetPattern();
+      ND::TTPCPattern* GetPattern();
 
       /// Get hits from internal group
-      ND::THandle<ND::THitSelection> GetHits();
+    std::vector<ND::TTPCHitPad*>& GetHits();
+
       /// Get hits from algorithm's hit map corresponding to provided path
-      ND::THandle<ND::THitSelection> GetHits(ND::THandle<ND::TTPCOrderedVolGroup> path);
+    std::vector<ND::TTPCHitPad*>& GetHits(ND::TTPCOrderedVolGroup& path);
 
       /// Get groups of connected cells for defining sub-events
-      std::vector< ND::THandle<ND::TTPCVolGroup> > GetRegions();
+    void GetRegions(std::vector< ND::TTPCVolGroup >& regions);
 
+    //MDH
+    //Not currently used
       /// Fill used hits from this sub algorithm
-      void FillUsedHits(ND::THitSelection* used);
+    //      void FillUsedHits(ND::THitSelection* used);
 
       /// Get iterator for first element in vector of all paths
-      std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator GetPathsBegin(){ return fTracks.begin(); }
+      std::vector< ND::TTPCOrderedVolGroup >::iterator GetPathsBegin(){ return fTracks.begin(); }
       /// Get iterator for last element in  vector of all paths
-      std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator GetPathsEnd(){ return fTracks.end(); }
+      std::vector< ND::TTPCOrderedVolGroup >::iterator GetPathsEnd(){ return fTracks.end(); }
 
       /// Get iterator for first element of hit map
       std::map<long, ND::TTPCUnitVolume*>::iterator GetHitMapBegin(){ return fHitMap.begin(); }
@@ -96,14 +105,10 @@ namespace ND{
       ND::TTPCLayout* GetLayout(){ return fLayout; }
       /// Get map of cells contained by this object
       std::map<long, ND::TTPCUnitVolume*> GetHitMap(){ return fHitMap; }
-      /// Get points of interest contained by this object
-      std::vector<TVector3> GetPOIs(){ return fPOIs; }
-      /// Get groups of interest contained by this object
-      std::vector< ND::THandle<ND::TTPCVolGroup> > GetGOIs(){ return fGOIs; }
       /// Get found paths contained by this object
-      std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >GetTracks(){ return fTracks; }
+      std::vector< ND::TTPCOrderedVolGroup >& GetTracks(){ return fTracks; }
       /// Get found paths contained by this object as unordered groups
-      std::vector< ND::THandle<ND::TTPCVolGroup> >GetTrackExtendedHits();
+    std::vector<ND::TTPCVolGroup> GetTrackExtendedHits(std::vector<ND::TTPCVolGroup>& extHits);
 
       /// Get whether this is the primary sub group
       bool GetPrimary(){ return fPrimary; }
@@ -114,27 +119,16 @@ namespace ND{
     private:
       /// Map of all cells and their unique IDs
       std::map<long, ND::TTPCUnitVolume*> fHitMap;
-      /// Map of all cells passing a charge cut and their unique IDs
-      std::map<long, ND::TTPCUnitVolume*> fHitMapHigh;
       /// Manager for handling all vol groups
       ND::TTPCVolGroupMan* fVolGroupMan;
-      /// Manager for handling all vol groups that pass a charge threshold cut
-      ND::TTPCVolGroupMan* fVolGroupManHigh;
       /// Path finder object for connecting points of interest
       ND::TTPCAStar* fAStar;
-      /// Path finder object for connecting points of interest through hits passing a charge threshold cut
-      ND::TTPCAStar* fAStarHigh;
 
       /// Overall pattern produced
-      ND::THandle<ND::TTPCPattern> fPattern;
+      ND::TTPCPattern* fPattern;
 
       /// Vector of all paths
-      std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > fTracks;
-      /// Vector of all points of interest
-      std::vector<TVector3> fPOIs;
-      /// Vector of all groups of interest
-      std::vector< ND::THandle<ND::TTPCVolGroup> > fGOIs;
-
+      std::vector< ND::TTPCOrderedVolGroup > fTracks;
       /// Set maximum, minimum and range of cells in x, y and z
       void SetRanges(int rangeX,int minX,int maxX, int rangeY,int minY,int maxY, int rangeZ,int minZ,int maxZ);
 
