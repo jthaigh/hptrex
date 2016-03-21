@@ -32,7 +32,6 @@ ND::TTPCUnitVolume::TTPCUnitVolume(){
   fFullASICTagged = false;
   fSatASICTagged = false;
 
-  fPos = TVector3();
   fTime = 0.;
   fTimeNom = 0.;
   fTimeMin = +99999999.;
@@ -40,8 +39,8 @@ ND::TTPCUnitVolume::TTPCUnitVolume(){
   fHasPos = false;
   fFriendDist = 9999;
 
-  fHits = std::vector< ND::THandle<ND::TTPCHitPad> >();
 }
+
 ND::TTPCUnitVolume::~TTPCUnitVolume(){
 }
 
@@ -59,12 +58,14 @@ void ND::TTPCUnitVolume::SetCell(int x, int y, int z, int edgeX, int edgeY, int 
   // set cell unique id
   fID = id;
 }
+
 void ND::TTPCUnitVolume::SetAux(int segX, int segY, int segZ){
   // set cell x, y and z id
   fSegX = segX;
   fSegY = segY;
   fSegZ = segZ;
 }
+
 void ND::TTPCUnitVolume::SetRegion(int asicRegionY, int asicRegionZ){
   fASICRegionY = asicRegionY;
   fASICRegionZ = asicRegionZ;
@@ -75,24 +76,19 @@ void ND::TTPCUnitVolume::AddCharge(double q){
   fQ += q;
   fQMax = std::max(fQMax, q);
 }
-void ND::TTPCUnitVolume::AddHit(ND::THandle<ND::TTPCHitPad> hit){
+
+void ND::TTPCUnitVolume::AddHit(ND::TTPCHitPad* hit){
   // add to list of hits
   fHits.push_back(hit);
 }
-void ND::TTPCUnitVolume::AddHits(std::vector< ND::THandle<ND::TTPCHitPad> > hits){
+
+void ND::TTPCUnitVolume::AddHits(std::vector< ND::TTPCHitPad* > hits){
   // associate multiple hits with this event
-  for(std::vector< ND::THandle<ND::TTPCHitPad> >::iterator hit = hits.begin(); hit != hits.end(); ++hit)
+  for(std::vector< ND::TTPCHitPad* >::iterator hit = hits.begin(); hit != hits.end(); ++hit)
     AddHit(*hit);
 }
-void ND::TTPCUnitVolume::AddHits(ND::THandle<ND::TComboHit> hits){
-  // associate multiple hits with this event
-  for(ND::THitSelection::const_iterator hit = hits->GetHits().begin(); hit != hits->GetHits().end(); ++hit){
-    ND::THandle<ND::TTPCHitPad> phit = *hit;
-    if(!phit) continue;
-    AddHit(phit);
-  };
-}
-void ND::TTPCUnitVolume::AddEvent(ND::THandle<ND::TTPCHitPad> hit){
+
+void ND::TTPCUnitVolume::AddEvent(ND::TTPCHitPad* hit){
   // position, charge and time
   TVector3 pos = hit->GetPosition();
   double q = hit->GetCharge();
@@ -151,12 +147,14 @@ void ND::TTPCUnitVolume::AddEvent(ND::THandle<ND::TTPCHitPad> hit){
   // indicate that cell now has a position
   fHasPos = true;
 }
+
 void ND::TTPCUnitVolume::GetEdges(int& edgeX, int& edgeY, int& edgeZ){
   // return cell x, y and z edge status
   edgeX = fEdgeX;
   edgeY = fEdgeY;
   edgeZ = fEdgeZ;
 }
+
 ND::TTPCCellInfo3D ND::TTPCUnitVolume::GetCellInfo3D(){
   ND::TTPCCellInfo3D padInfo;
   padInfo.x = fX;
@@ -171,32 +169,32 @@ ND::TTPCCellInfo3D ND::TTPCUnitVolume::GetCellInfo3D(){
 
 int ND::TTPCUnitVolume::GetNPeaksSum(){
   unsigned int peaksSum=0;
-  for(std::vector< ND::THandle<ND::TTPCHitPad> >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    ND::THandle<ND::TTPCHitPad> hitPad = *hitIt;
+  for(std::vector< ND::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
+    ND::TTPCHitPad* hitPad = *hitIt;
     peaksSum += hitPad->GetNumberPeaks();
-  };
+  }
   return (int)peaksSum;
 }
 int ND::TTPCUnitVolume::GetNPeaksMax(){
   unsigned int peaksSum=0;
-  for(std::vector< ND::THandle<ND::TTPCHitPad> >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    ND::THandle<ND::TTPCHitPad> hitPad = *hitIt;
+  for(std::vector< ND::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
+    ND::TTPCHitPad* hitPad = *hitIt;
     peaksSum = std::max(peaksSum, hitPad->GetNumberPeaks());
-  };
+  }
   return (int)peaksSum;
 }
 int ND::TTPCUnitVolume::GetNSaturated(){
   int nSat=0;
-  for(std::vector< ND::THandle<ND::TTPCHitPad> >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    ND::THandle<ND::TTPCHitPad> hitPad = *hitIt;
+  for(std::vector< ND::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
+    ND::TTPCHitPad* hitPad = *hitIt;
     nSat += (int)(hitPad->Saturation() > 1);
   };
   return nSat;
 }
 int ND::TTPCUnitVolume::GetSaturation(){
   int satSum=0;
-  for(std::vector< ND::THandle<ND::TTPCHitPad> >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    ND::THandle<ND::TTPCHitPad> hitPad = *hitIt;
+  for(std::vector< ND::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
+    ND::TTPCHitPad* hitPad = *hitIt;
     satSum += hitPad->Saturation();
   };
   return satSum;

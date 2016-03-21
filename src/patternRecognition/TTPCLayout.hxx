@@ -104,8 +104,6 @@ namespace ND{
       /// Get 2D cell ranges in x view, y view or z view, at axis of 1, 2 or 3 respectively
       void GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int axis=1);
 
-      /// Get cell id in x, y and z based on a hit position
-      ND::TTPCCellInfo3D GetPadPosID(ND::THandle<ND::THit> hit, int tpcMask=-1);
       /// Get cell id in x, y and z based on a 3D position
       ND::TTPCCellInfo3D GetPadPosID(TVector3 pos, double time, int tpcMask=-1);
 
@@ -123,14 +121,6 @@ namespace ND{
 
       /// Find appropriate distances for a given type of connection
       void GetTypeDistances(int& distX, int& distY, int& distZ, ND::TTPCConnection::Type type);
-
-      // getters
-      /// Get use of experimental edge detection for helping with deltas
-      bool GetUseAltEdgeDetection(){ return fUseAltEdgeDetection; }
-      /// Get use of experimental hit association to help grab unused hits
-      int GetUseAltHitAssociation(){ return fUseAltHitAssociation; }
-      /// Get use of charge cut for path finding
-      int GetUsePatRecPathologyCut(){ return fUsePatRecPathologyCut; }
 
       /// Get absolute cut for minimum charge on cells going into pattern recognition
       double GetChargeCut(){ return fChargeCut; }
@@ -383,12 +373,6 @@ namespace ND{
       int GetNonDelta(){ return fNonDelta; }
 
     private:
-      /// Use experimental edge detection for helping with deltas 
-      bool fUseAltEdgeDetection;
-      /// Use experimental hit association to help grab unused hits
-      int fUseAltHitAssociation;
-      /// Use charge cut for path finding
-      int fUsePatRecPathologyCut;
 
       /// Absolute cut for minimum charge on cells going into pattern recognition
       double fChargeCut;

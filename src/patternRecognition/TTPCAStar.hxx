@@ -58,18 +58,9 @@ namespace ND{
       void AddHits(ND::TTPCAStar* prevAStar, std::map<long, ND::TTPCUnitVolume*> hitMap);
 
 
-      /// Connect a group of vertices to a group of track ends
-      //MDH
-      //Not used
-      //std::vector< ND::THandle<ND::TTPCVolGroup> > ConnectVertexGroups(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > vertices, std::vector< ND::THandle<ND::TTPCVolGroup> > edges, int maxNo=999);
 
       /// Connect a group of vertices to a group of track ends, holding on to the order of the hits in the path)
     void ND::TTPCAStar::ConnectVertexGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& vertices, std::vector< ND::TTPCVolGroup >& edges, std::vector< ND::TTPCOrderedVolGroup >& connections, int maxNo=999);
-
-      /// Connect pairs of groups to each other
-      //MDH
-      //Not used
-      //std::vector< ND::THandle<ND::TTPCVolGroup> > ConnectGroups(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> >, bool allConnections=false, int maxNo=999);
 
       /// Connect pairs of groups to each other, holding on to the order of the hits in the path
     void ND::TTPCAStar::ConnectGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, std::vector< ND::TTPCOrderedVolGroup >& connections, bool vertices, bool allConnections, int maxNo);
@@ -77,25 +68,29 @@ namespace ND{
       /// Clear any groups that lie too close to paths between other groups
     void ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, int maxNo=999);
 
-      std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > ClearVertexConnectionRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths, std::vector< ND::THandle<ND::TTPCVolGroup> > vertices);
+    void ClearVertexConnectionRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCOrderedVolGroup >& paths, std::vector< ND::TTPCVolGroup >& vertices);
 
       /// Get cost to connect one group to another group
-      float FindConnectionCost(ND::THandle<ND::TTPCVolGroup> group1, ND::THandle<ND::TTPCVolGroup> group2, bool fullASICPenalty=false, bool extendMode=false, bool reduced=false, float maxCost=-1.);
+      float FindConnectionCost(ND::TTPCVolGroup& group1, ND::TTPCVolGroup& group2, bool fullASICPenalty=false, bool extendMode=false, bool reduced=false, float maxCost=-1.);
       /// Get cost to connect one group to a volume
-      float FindConnectionCost(ND::THandle<ND::TTPCVolGroup> group, ND::TTPCUnitVolume* vol, bool fullASICPenalty=false, bool extendMode=false, bool reduced=false, float maxCost=-1.);
+      float FindConnectionCost(ND::TTPCVolGroup& group, ND::TTPCUnitVolume* vol, bool fullASICPenalty=false, bool extendMode=false, bool reduced=false, float maxCost=-1.);
       /// Get cost to connect one volume to anothger volume
       float FindConnectionCost(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVolume* vol2, bool fullASICPenalty=false, bool extendMode=false, bool reduced=false, float maxCost=-1.);
 
       /// Connect one group to another group
-      ND::THandle<ND::TTPCOrderedVolGroup> ConnectGroupPair(ND::THandle<ND::TTPCVolGroup> group1, ND::THandle<ND::TTPCVolGroup> group2, bool vertexGroup1=false, bool vertexGroup2=false, bool fullASICPenalty=false, bool extendMode=false);
+    void ConnectGroupPair(ND::TTPCVolGroup& group1, ND::TTPCVolGroup& group2, ND::TTPCOrderedVolGroup& connection, bool vertexGroup1=false, bool vertexGroup2=false, bool fullASICPenalty=false, bool extendMode=false);
 
 
       /// Associate each hit with the best matched path through pathfinding (heavy-ish function - don't call more than necessary)
-      void AssociateBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > inPaths, bool fullASICPenalty=false, bool extendMode=false, float maxCost=9999);
+      void AssociateBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCOrderedVolGroup >& inPaths, bool fullASICPenalty=false, bool extendMode=false, float maxCost=9999);
+
+    //MDH
+    //Not used
       /// Merge in hits primary group to their closest groups in the input list
-      void MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, ND::THandle<ND::TTPCVolGroup> inGroup, bool fullASICPenalty=false, bool extendMode=false, float maxCost=9999.);
+      //void MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, ND::THandle<ND::TTPCVolGroup> inGroup, bool fullASICPenalty=false, bool extendMode=false, float maxCost=9999.);
+
       /// Merge in hits primary group to their closest groups in the input list
-      void MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > inGroups, bool fullASICPenalty=false, bool extendMode=false, float maxCost=9999.);
+      void MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& inGroups, bool fullASICPenalty=false, bool extendMode=false, float maxCost=9999.);
 
 
       /// Get iterator to beginning of list of points to use for path finding
@@ -114,9 +109,7 @@ namespace ND{
 
       /// Set up all internal variables resulting from connecting two vols
       int DoConnection(ND::TTPCAStarPoint* pathVolStart, ND::TTPCAStarPoint* pathVolEnd, bool fullASICPenalty=false, bool extendMode=false, float maxCost=-1.);
-      /// Merge nearby groups from their A* connection distance
-      std::vector< ND::THandle<ND::TTPCVolGroup> > MergeGroupsAStar(std::vector< ND::THandle<ND::TTPCVolGroup> > groups, float mergeDist=0.);
-
+      
       /// Get modified cost based on a cell's charge and ASIC status
       float GetModifiedCost(float cost, ND::TTPCAStarPoint* point1, ND::TTPCAStarPoint* point2, bool fullASICPenalty=false, bool extendMode=false);
 
@@ -139,6 +132,23 @@ namespace ND{
       std::map<long, ND::TTPCUnitVolume*> fHitMap;
       /// List of points to use for path finding
       std::vector<ND::TTPCAStarPoint*> fAStarPoints;
+
+  public:
+      /// Connect a group of vertices to a group of track ends
+      //MDH
+      //Not used
+      //std::vector< ND::THandle<ND::TTPCVolGroup> > ConnectVertexGroups(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > vertices, std::vector< ND::THandle<ND::TTPCVolGroup> > edges, int maxNo=999);
+      /// Connect pairs of groups to each other
+      //MDH
+      //Not used
+      //std::vector< ND::THandle<ND::TTPCVolGroup> > ConnectGroups(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> >, bool allConnections=false, int maxNo=999);
+//MDH
+    //Not used
+    /// Merge nearby groups from their A* connection distance
+    //std::vector< ND::THandle<ND::TTPCVolGroup> > MergeGroupsAStar(std::vector< ND::THandle<ND::TTPCVolGroup> > groups, float mergeDist=0.);
+
+    
+
   };
 }
 

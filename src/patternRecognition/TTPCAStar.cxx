@@ -53,6 +53,7 @@ void ND::TTPCAStar::AddHits(ND::TTPCVolGroupMan* volGroupMan, std::map<long, ND:
     };
   };
 }
+
 void ND::TTPCAStar::AddHits(ND::TTPCAStar* prevAStar, std::map<long, ND::TTPCUnitVolume*> hitMap){
   // add hit map
   fHitMap = hitMap;
@@ -174,29 +175,27 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ConnectGroups(ND::TT
 }
 */
 
-//MDH
-//just changed sig for now. Still needs going through
 void ND::TTPCAStar::ConnectGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, std::vector< ND::TTPCOrderedVolGroup >& connections, bool vertices, bool allConnections, int maxNo){
 
   // keep track of number of iterations to break when exceeded
   int i=0;
   // loop over each pair of groups once
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator grp1 = groups.begin(); grp1 != groups.end(); ++grp1){
-    std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator grp2Begin = allConnections ? groups.begin() : grp1+1;
-    std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator grp2End = groups.end();
-    for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator grp2 = grp2Begin; grp2 != grp2End; ++grp2){
-      if(*grp1 == *grp2) continue;
+  for(std::vector< ND::TTPCVolGroup >::iterator grp1 = groups.begin(); grp1 != groups.end(); ++grp1){
+    std::vector< ND::TTPCVolGroup >::iterator grp2Begin = allConnections ? groups.begin() : grp1+1;
+    std::vector< ND::TTPCVolGroup >::iterator grp2End = groups.end();
+    for(std::vector< ND::TTPCVolGroup >::iterator grp2 = grp2Begin; grp2 != grp2End; ++grp2){
+      if(grp1 == grp2) continue;
       i++;
       // add connection between the groups to set of connections
-      ND::THandle<ND::TTPCOrderedVolGroup> connection = ConnectGroupPair(*grp1,*grp2, vertices,vertices);
-      if(!connection->empty()) connections.push_back(connection);
+      connections.emplace_back(fLayout);
+      ConnectGroupPair(*grp1,*grp2, connections.back(), vertices,vertices);
+      if(connection->empty()) connections.pop_back();
       // break out if the number of iterations is too high
       if(i>=maxNo) break;
     };
     if(i>=maxNo) break;
   };
 
-  return connections;
 }
 
 //Ok this needs a bit of work. For now only changed the signature
@@ -204,15 +203,15 @@ void ND::TTPCAStar::ConnectGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::
 void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, int maxNo){
   // the next block of code is pretty ugly but needed to remove bugs in some very specific topologies
   // first, merge groups which are too close together
-  std::vector< ND::THandle<ND::TTPCVolGroup> > inGroups = groups;
-  std::vector< ND::THandle<ND::TTPCVolGroup> > mergedGroups;
 
-  while(inGroups.size()){
+  std::vector< ND::TTPCVolGroup > mergedGroups;
+
+  while(groups.size()){
     // copy id of merge from first inGroup for consistency
-    unsigned int id = (*inGroups.begin())->GetID();
+    unsigned int id = (*groups.begin()).GetID();
 
-    std::vector< std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator > mergeIts;
-    mergeIts.push_back(inGroups.begin());
+    std::vector< std::vector< ND::TTPCVolGroup >::iterator > mergeIts;
+    mergeIts.push_back(groups.begin());
 
     // stop only when all groups overlapping are merged
     bool furtherMerges = true;
@@ -220,16 +219,16 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
       furtherMerges = false;
 
       // add all groups overlapping with one in the 'to merge' list
-      if(inGroups.size() > 1)
-      for(std::vector< std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
-        std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator mergeIt = *mergeItIt;
-        ND::THandle<ND::TTPCVolGroup> merge = *mergeIt;
+      if(groups.size() > 1)
+      for(std::vector< std::vector< ND::TTPCVolGroup >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
+        std::vector< ND::TTPCVolGroup >::iterator mergeIt = *mergeItIt;
+        ND::TTPCVolGroup& merge = *mergeIt;
 
-        for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator inGroupIt = inGroups.begin(); inGroupIt != inGroups.end(); ++inGroupIt){
-          ND::THandle<ND::TTPCVolGroup> inGroup = *inGroupIt;
+        for(std::vector< ND::TTPCVolGroup >::iterator inGroupIt = groups.begin(); inGroupIt != groups.end(); ++inGroupIt){
+          ND::TTPCVolGroup& inGroup = *inGroupIt;
 
           bool alreadyAdded = false;
-          for(std::vector< std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator >::iterator mergeItIt2 = mergeIts.begin(); mergeItIt2 != mergeIts.end(); ++mergeItIt2)
+          for(std::vector< std::vector< ND::TTPCVolGroup >::iterator >::iterator mergeItIt2 = mergeIts.begin(); mergeItIt2 != mergeIts.end(); ++mergeItIt2)
           if(**mergeItIt2 == inGroup){
             alreadyAdded = true;
             break;
@@ -245,55 +244,57 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
         if(furtherMerges) break;
       };
     };
-
+  
     // set new group with the ID of the first of the merges
-    ND::THandle<ND::TTPCVolGroup> groupOut (new ND::TTPCVolGroup(fLayout, id));
+    mergedGroups.emplace_back(fLayout,id);
+    ND::TTPCVolGroup& groupOut = mergedGroups.back();
+    std::vector< ND::TTPCVolGroup >::iterator delGroups;
 
-    for(std::vector< std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
-      std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator mergeIt = *mergeItIt;
-      ND::THandle<ND::TTPCVolGroup> merge = *mergeIt;
+    for(std::vector< std::vector< ND::TTPCVolGroup >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
+      std::vector< ND::TTPCVolGroup >::iterator mergeIt = *mergeItIt;
+      ND::TTPCVolGroup& merge = *mergeIt;
 
-      groupOut->AddHits(merge);
-      groupOut->SetXLean(merge->GetXLean());
-      groupOut->SetYLean(merge->GetYLean());
-      groupOut->SetZLean(merge->GetZLean());
+      groupOut.AddHits(merge);
+      groupOut.SetXLean(merge.GetXLean());
+      groupOut.SetYLean(merge.GetYLean());
+      groupOut.SetZLean(merge.GetZLean());
 
-      // set to zero
-      *mergeIt = ND::THandle<ND::TTPCVolGroup>();
+      delGroups.push_back(mergeIt);
     };
 
-    std::vector< ND::THandle<ND::TTPCVolGroup> > newInGroups;
-    for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator grpIt = inGroups.begin(); grpIt != inGroups.end(); ++grpIt){
-      ND::THandle<ND::TTPCVolGroup> grp = *grpIt;
-      if(grp) newInGroups.push_back(grp);
-    };
-    inGroups = newInGroups;
-
-    mergedGroups.push_back(groupOut);
-  };
+    std::vector< ND::TTPCVolGroup > newInGroups;
+    for(std::vector< ND::TTPCVolGroup >::iterator grpIt = groups.begin(); grpIt != groups.end(); ++grpIt){
+      if(delGroups.find(grpIt)==delGroups.end()){
+      newInGroups.push_back(*grpIt);
+    }
+      groups = std::move(newInGroups);
+    }
+  }
 
   // parallel arrays for groups and list of groups they overlap
-  std::vector< ND::THandle<ND::TTPCVolGroup> > findGroups (mergedGroups);
   std::vector< std::vector<int> > connectedGroups;
-  for(std::vector<ND::THandle<ND::TTPCVolGroup> >::iterator grpIt = findGroups.begin(); grpIt != findGroups.end(); ++grpIt) connectedGroups.push_back(std::vector<int>());
-  std::vector<bool> groupsMaySurvive (findGroups.size(), true);
+  for(std::vector< ND::TTPCVolGroup >::iterator grpIt = mergedGroups.begin(); grpIt != mergedGroups.end(); ++grpIt){
+    connectedGroups.emplace_back();
+  }
+  std::vector<bool> groupsMaySurvive (mergedGroups.size(), true);
 
   // keep track of number of iterations to break when exceeded
-  int nGroups = (int)findGroups.size();
+  int nGroups = (int)mergedGroups.size();
   int count=0;
 
   // loop over each pair of groups once
   for(int i=0; i<nGroups; ++i){
     for(int j=i+1; j<nGroups; ++j){
-      ND::THandle<ND::TTPCVolGroup> grp1 = findGroups[i];
-      ND::THandle<ND::TTPCVolGroup> grp2 = findGroups[j];
+      ND::TTPCVolGroup& grp1 = mergedGroups[i];
+      ND::TTPCVolGroup& grp2 = mergedGroups[j];
       // add connection between the groups to set of connections
-      ND::THandle<ND::TTPCOrderedVolGroup> path = ConnectGroupPair(grp1, grp2);
+      ND::TTPCOrderedVolGroup path;
+      ConnectGroupPair(grp1, grp2,path);
       // kill any groups associated with this path other than its direct ends
       for(int k=0; k<nGroups; ++k){
         if(k == i) continue;
         if(k == j) continue;
-        ND::THandle<ND::TTPCVolGroup> grp3 = findGroups[k];
+        ND::TTPCVolGroup& grp3 = mergedGroups[k];
         if(volGroupMan->GetPathVolOverlap(path, grp3->GetAverageVol())){
           if(std::find(connectedGroups[i].begin(), connectedGroups[i].end(), k) == connectedGroups[i].end()) connectedGroups[i].push_back(k);
           if(std::find(connectedGroups[j].begin(), connectedGroups[j].end(), k) == connectedGroups[j].end()) connectedGroups[j].push_back(k);
@@ -332,14 +333,14 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
     };
 
     if(!madeRedundant){
-      survivors.push_back(findGroups[i]);
+      survivors.push_back(mergedGroups[i]);
 
       // mark everything this group overlapped with for death
       int connection2Size = connectedGroups[i].size();
       for(int conn=0; conn<connection2Size; ++conn) groupsMaySurvive[ connectedGroups[i][conn] ] = false;
-      connectedGroups[i] = std::vector<int>();
-    };
-  };
+      connectedGroups[i].clear();
+    }
+  }
 
   // look for loops and merge them
   for(int i=0; i<nGroups; ++i){
@@ -359,8 +360,8 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
         for(int k=0; k<connectionMergeSize; k++){
           if(connectedGroups[merge2][k] == merge1){
             // first, check if either is made redundant
-            ND::THandle<ND::TTPCVolGroup> grp = volGroupMan->MergeGroups(findGroups[merge1], findGroups[merge2]);
-            survivors.push_back(grp);
+	    survivors.emplace_back(fLayout,mergedGroups[merge1].GetId());
+            volGroupMan->MergeGroups(mergedGroups[merge1], mergedGroups[merge2], survivors.back());
           };
           break;
         };
@@ -371,7 +372,7 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
   groups=std::move(survivors);
 }
 
-ND::TTPCAStar::ClearVertexConnectionRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCOrderedVolGroup >& paths, std::vector< ND::TTPCVolGroup >& vertices){
+void ND::TTPCAStar::ClearVertexConnectionRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCOrderedVolGroup >& paths, std::vector< ND::TTPCVolGroup >& vertices){
   std::vector< ND::TTPCOrderedVolGroup > outPaths;
 
   for(std::vector< ND::TTPCOrderedVolGroup >::iterator path = paths.begin(); path != paths.end(); ++path){
@@ -391,13 +392,13 @@ ND::TTPCAStar::ClearVertexConnectionRedundancies(ND::TTPCVolGroupMan* volGroupMa
   
 }
 
-ND::THandle<ND::TTPCOrderedVolGroup> ND::TTPCAStar::ConnectGroupPair(ND::THandle<ND::TTPCVolGroup> group1, ND::THandle<ND::TTPCVolGroup> group2, bool vertexGroup1, bool vertexGroup2, bool fullASICPenalty, bool extendMode){
-  ND::THandle<ND::TTPCOrderedVolGroup> connection(new ND::TTPCOrderedVolGroup(fLayout));
-  // get unique ids and A* indices
-  ND::TTPCUnitVolume* startCell = group1->GetAverageVol();
-  ND::TTPCUnitVolume* endCell = group2->GetAverageVol();
+void ND::TTPCAStar::ConnectGroupPair(ND::TTPCVolGroup& group1, ND::TTPCVolGroup& group2, ND::TTPCOrderedVolGroup& connection, bool vertexGroup1, bool vertexGroup2, bool fullASICPenalty, bool extendMode){
 
-  if(!startCell || !endCell) return connection;
+  // get unique ids and A* indices
+  ND::TTPCUnitVolume* startCell = group1.GetAverageVol();
+  ND::TTPCUnitVolume* endCell = group2.GetAverageVol();
+
+  if(!startCell || !endCell) return;
 
   // reset relevant variables each time a connection needs to be made
   RebootHits();
@@ -413,39 +414,39 @@ ND::THandle<ND::TTPCOrderedVolGroup> ND::TTPCAStar::ConnectGroupPair(ND::THandle
   // set up the A* variables chaining start point to end point
   int connectionReturnCode = DoConnection(startPoint, endPoint, fullASICPenalty, extendMode);
   if(connectionReturnCode){
-    return connection;
+    return;
   };
 
   // add front and back groups to the returned group (front corresponds to hits near size()-1 index, back to hits near 0 index)
-  connection->AddFrontHits(group1);
-  connection->AddBackHits(group2);
+  connection.AddFrontHits(group1);
+  connection.AddBackHits(group2);
   // set status of front and back groups as vertices (or not)
-  connection->SetFrontIsVertex(vertexGroup1);
-  connection->SetBackIsVertex(vertexGroup2);
+  connection.SetFrontIsVertex(vertexGroup1);
+  connection.SetBackIsVertex(vertexGroup2);
 
   // start at end index and add the chain of cells connecting it from the start to the connection
   ND::TTPCAStarPoint* curPoint = endPoint;
   int nPoints = fAStarPoints.size();
   for(int i=0; i < nPoints; i++){
-    connection->AddCell(curPoint->vol);
+    connection.AddCell(curPoint->vol);
 
     ND::TTPCAStarPoint* nextPoint = curPoint->aStarParent;
     if(!nextPoint) break; 
     curPoint = nextPoint;
   };
   // add the first cell so long as the connection isn't one cell long
-  if(curPoint != endPoint) connection->AddCell(curPoint->vol);
+  if(curPoint != endPoint) connection.AddCell(curPoint->vol);
 
-  return connection;
 }
-float ND::TTPCAStar::FindConnectionCost(ND::THandle<ND::TTPCVolGroup> group1, ND::THandle<ND::TTPCVolGroup> group2, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
-  ND::TTPCUnitVolume* vol1 = group1->GetAverageVol();
-  ND::TTPCUnitVolume* vol2 = group2->GetAverageVol();
+
+float ND::TTPCAStar::FindConnectionCost(ND::TTPCVolGroup& group1, ND::TTPCVolGroup& group2, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
+  ND::TTPCUnitVolume* vol1 = group1.GetAverageVol();
+  ND::TTPCUnitVolume* vol2 = group2.GetAverageVol();
 
   return FindConnectionCost(vol1, vol2, fullASICPenalty, extendMode, reduced, maxCost);
 }
-float ND::TTPCAStar::FindConnectionCost(ND::THandle<ND::TTPCVolGroup> group, ND::TTPCUnitVolume* vol, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
-  ND::TTPCUnitVolume* groupVol = group->GetAverageVol();
+float ND::TTPCAStar::FindConnectionCost(ND::TTPCVolGroup& group, ND::TTPCUnitVolume* vol, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
+  ND::TTPCUnitVolume* groupVol = group.GetAverageVol();
 
   return FindConnectionCost(groupVol, vol, fullASICPenalty, extendMode, reduced, maxCost);
 }
@@ -510,25 +511,25 @@ float ND::TTPCAStar::FindConnectionCost(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVo
   return cost;
 }
 
-void ND::TTPCAStar::AssociateBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > inPaths, bool fullASICPenalty, bool extendMode, float maxCost){
+void ND::TTPCAStar::AssociateBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCOrderedVolGroup >& inPaths, bool fullASICPenalty, bool extendMode, float maxCost){
   // add hits in path to group, making sure the same isn't added twice
-  std::vector< ND::THandle<ND::TTPCVolGroup> > hitsGroups;
+  std::vector< ND::TTPCVolGroup > hitsGroups;
   std::set<ND::TTPCUnitVolume*> volsAdded;
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator inPathIt = inPaths.begin(); inPathIt != inPaths.end(); ++inPathIt){
-    ND::THandle<ND::TTPCOrderedVolGroup> inPath = *inPathIt;
+  for(std::vector< ND::TTPCOrderedVolGroup >::iterator inPathIt = inPaths.begin(); inPathIt != inPaths.end(); ++inPathIt){
+    ND::TTPCOrderedVolGroup& inPath = *inPathIt;
 
-    ND::THandle<ND::TTPCVolGroup> hitsGroup (new ND::TTPCVolGroup(fLayout));
-    for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = inPath->begin(); pathVolIt != inPath->end(); ++pathVolIt){
+    hitsGroups.emplace_back(fLayout);
+    ND::TTPCVolGroup& hitsGroup = hitsGroups.back();
+    for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = inPath.begin(); pathVolIt != inPath.end(); ++pathVolIt){
       ND::TTPCPathVolume* pathVol = *pathVolIt;
       ND::TTPCUnitVolume* vol = pathVol->GetUnitVolume();
 
       if(!volsAdded.count(vol)){
-        hitsGroup->AddHit(vol);
+        hitsGroup.AddHit(vol);
         volsAdded.insert(vol);
       };
     };
 
-    hitsGroups.push_back(hitsGroup);
   };
 
   // merge best hits in groups
@@ -536,19 +537,25 @@ void ND::TTPCAStar::AssociateBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vec
 
   // add merged hits to appropriate paths
   for(unsigned int i=0; i<inPaths.size(); ++i){
-    ND::THandle<ND::TTPCOrderedVolGroup> inPath = inPaths.at(i);
-    ND::THandle<ND::TTPCVolGroup> hitsGroup = hitsGroups.at(i);
+    ND::TTPCOrderedVolGroup& inPath = inPaths.at(i);
+    ND::TTPCVolGroup& hitsGroup = hitsGroups.at(i);
 
-    inPath->AddExtendedHits(hitsGroup);
+    inPath.AddExtendedHits(hitsGroup);
   };
 }
+
+//MDH
+//Not used
+/*
 void ND::TTPCAStar::MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, ND::THandle<ND::TTPCVolGroup> inGroup, bool fullASICPenalty, bool extendMode, float maxCost){
   std::vector< ND::THandle<ND::TTPCVolGroup> > dummyVector;
   dummyVector.push_back(inGroup);
 
   MergeBestHits(volGroupMan, dummyVector, fullASICPenalty, extendMode, maxCost);
 }
-void ND::TTPCAStar::MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > inGroups, bool fullASICPenalty, bool extendMode, float maxCost){
+*/
+
+void ND::TTPCAStar::MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& inGroups, bool fullASICPenalty, bool extendMode, float maxCost){
   // reset hits
   RebootHits();
 
@@ -556,10 +563,10 @@ void ND::TTPCAStar::MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector<
   std::vector<ND::TTPCAStarPoint*> openSet;
   std::vector<ND::TTPCAStarPoint*> definingSet (inGroups.size(), 0);
   int nGroup = 0;
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator groupIt = inGroups.begin(); groupIt != inGroups.end(); ++groupIt){
-    ND::THandle<ND::TTPCVolGroup> group = *groupIt;
+  for(std::vector< ND::TTPCVolGroup >::iterator groupIt = inGroups.begin(); groupIt != inGroups.end(); ++groupIt){
+    ND::TTPCVolGroup& group = *groupIt;
 
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator hitEl = group->begin(); hitEl != group->end(); ++hitEl){
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator hitEl = group.begin(); hitEl != group.end(); ++hitEl){
       ND::TTPCUnitVolume* vol = hitEl->second;
 
       for(std::vector<ND::TTPCAStarPoint*>::iterator pntIt = fAStarPoints.begin(); pntIt != fAStarPoints.end(); ++pntIt){
@@ -640,8 +647,8 @@ void ND::TTPCAStar::MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector<
 
   // now add all hits associated with the given group to that group
   nGroup = 0;
-  for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator groupIt = inGroups.begin(); groupIt != inGroups.end(); ++groupIt){
-    ND::THandle<ND::TTPCVolGroup> group = *groupIt;
+  for(std::vector< ND::TTPCVolGroup >::iterator groupIt = inGroups.begin(); groupIt != inGroups.end(); ++groupIt){
+    ND::TTPCVolGroup& group = *groupIt;
     ND::TTPCAStarPoint* definingPoint = definingSet[nGroup];
     ++nGroup;
 
@@ -652,7 +659,7 @@ void ND::TTPCAStar::MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector<
         // check if associated with this path
         if(pnt->aStarParent == definingPoint){
           // add vol to group
-          group->AddHit(pnt->vol);
+          group.AddHit(pnt->vol);
         };
       };
     };
@@ -663,14 +670,14 @@ void ND::TTPCAStar::GetNearHitConnections(ND::TTPCVolGroupMan* volGroupMan, ND::
   // only search for friends if none are already found
   if(!point->aStarHasFriends){
     // volume group to check for nearby hits
-    ND::THandle<ND::TTPCVolGroup> volCheck(new ND::TTPCVolGroup(fLayout));
-    volCheck->AddHitMap(fHitMap);
+    ND::TTPCVolGroup volCheck(fLayout);
+    volCheck.AddHitMap(fHitMap);
 
     // find near hits and (friends)
-    ND::THandle<ND::TTPCVolGroup> nearHits = volGroupMan->GetNearHits(volCheck, point->vol, ND::TTPCConnection::path);
+    ND::TTPCVolGroup nearHits = volGroupMan->GetNearHits(volCheck, point->vol, ND::TTPCConnection::path);
 
     // save cost of connecting to each of those friends
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator it = nearHits->begin(); it != nearHits->end(); ++it){
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator it = nearHits.begin(); it != nearHits.end(); ++it){
       ND::TTPCAStarPoint* newPoint = 0;
       for(std::vector<ND::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
         if((*pnt)->vol == it->second){
@@ -829,11 +836,15 @@ int ND::TTPCAStar::DoConnection(ND::TTPCAStarPoint* pathVolStart, ND::TTPCAStarP
 
   // if the end wasn't found with no limit set then something has gone badly wrong
   if(!foundEnd && maxCost <= 0.){
-    ND280Warn("Path not found between two points");
+    std::cout<<"Path not found between two points"<<std::endl;
     return 1;
   };
   return 0;
 }
+
+//MDH
+//Not used
+/*
 std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::MergeGroupsAStar(std::vector< ND::THandle<ND::TTPCVolGroup> > groups, float mergeDist){
   std::vector< ND::THandle<ND::TTPCVolGroup> > inGroups = groups;
   std::vector< ND::THandle<ND::TTPCVolGroup> > mergedGroups;
@@ -903,7 +914,7 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::MergeGroupsAStar(std
   };
 
   return mergedGroups;
-}
+  }*/
 
 float ND::TTPCAStar::GetModifiedCost(float cost, ND::TTPCAStarPoint* point1, ND::TTPCAStarPoint* point2, bool fullASICPenalty, bool extendMode){
   float penaltyVal = fLayout->GetAStarAssociatePathologyPenalty();

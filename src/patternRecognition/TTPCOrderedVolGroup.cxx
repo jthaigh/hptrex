@@ -15,10 +15,6 @@ ND::TTPCOrderedVolGroup::~TTPCOrderedVolGroup(){
 }
 
 void ND::TTPCOrderedVolGroup::SetUp(){
-  fHits = std::vector<ND::TTPCPathVolume*>();
-
-  fFrontHits = ND::THandle<ND::TTPCVolGroup>();
-  fBackHits = ND::THandle<ND::TTPCVolGroup>();
 
   fAddedFrontHits = false;
   fAddedBackHits = false;
@@ -31,15 +27,15 @@ void ND::TTPCOrderedVolGroup::SetUp(){
   fClosed = false;
 }
 
-void ND::TTPCOrderedVolGroup::AddFrontHits(ND::THandle<ND::TTPCVolGroup> frontHits){
+void ND::TTPCOrderedVolGroup::AddFrontHits(ND::TTPCVolGroup& frontHits){
   fFrontHits = frontHits;
   fAddedFrontHits = true;
 }
-void ND::TTPCOrderedVolGroup::AddBackHits(ND::THandle<ND::TTPCVolGroup> backHits){
+void ND::TTPCOrderedVolGroup::AddBackHits(ND::TTPCVolGroup& backHits){
   fBackHits = backHits;
   fAddedBackHits = true;
 }
-void ND::TTPCOrderedVolGroup::AddExtendedHits(ND::THandle<ND::TTPCVolGroup> extendedHits){
+void ND::TTPCOrderedVolGroup::AddExtendedHits(ND::TTPCVolGroup& extendedHits){
   fHasExtendedHits = true;
   fExtendedHits = extendedHits;
 }
@@ -767,8 +763,8 @@ void ND::TTPCOrderedVolGroup::ExpandXClusters(){
 
   int xMin = GetXMin();
   int xMax = GetXMax();
-  int zMin = fExtendedHits->GetZMin();
-  int zMax = fExtendedHits->GetZMax();
+  int zMin = fExtendedHits.GetZMin();
+  int zMax = fExtendedHits.GetZMax();
 
   // determing if pointing up (normal order) or down (inverted)
   bool normalOrder = (*fHits.begin())->GetX() < (*fHits.rbegin())->GetX();
@@ -823,11 +819,11 @@ void ND::TTPCOrderedVolGroup::Clean(){
 
 void ND::TTPCOrderedVolGroup::Flip(){
   // temporary copies
-  ND::THandle<ND::TTPCVolGroup> newFrontHits = fBackHits;
-  ND::THandle<ND::TTPCVolGroup> newBackHits = fFrontHits;
+
+  ND::TTPCVolGroup newBackHits = fFrontHits;
   bool newFrontIsVertex = fBackIsVertex;
   bool newBackIsVertex = fFrontIsVertex;
-  std::vector<ND::TTPCPathVolume*> newHits = std::vector<ND::TTPCPathVolume*>();
+  std::vector<ND::TTPCPathVolume*> newHits;
 
   // fill new hits
   for(std::vector<ND::TTPCPathVolume*>::reverse_iterator pathVolRit = fHits.rbegin(); pathVolRit != fHits.rend(); ++pathVolRit){
@@ -835,11 +831,13 @@ void ND::TTPCOrderedVolGroup::Flip(){
     newHits.push_back(pathVol);
   };
 
-  fFrontHits = newFrontHits;
-  fBackHits = newBackHits;
+  ND::TTPCVolGroup hitsTemp = fFrontHits;
+  fFrontHits = fBackHits;
+  fBackHits = hitsTemp;
+
   fFrontIsVertex = newFrontIsVertex;
   fBackIsVertex = newBackIsVertex;
-  fHits = newHits;
+  fHits = std::move(newHits);
 }
 void ND::TTPCOrderedVolGroup::OrderForwardsDirection(){
   if(!fHits.size()) return;
@@ -884,9 +882,11 @@ void ND::TTPCOrderedVolGroup::OrderNegativeCurvature(){
     Flip();
   };
 }
-void ND::TTPCOrderedVolGroup::OrderFromJunction(ND::THandle<ND::TTPCVolGroup> junction){
-  OrderFromPosition(junction->GetAveragePosition());
+
+void ND::TTPCOrderedVolGroup::OrderFromJunction(ND::TTPCVolGroup& junction){
+  OrderFromPosition(junction.GetAveragePosition());
 }
+
 void ND::TTPCOrderedVolGroup::OrderFromPosition(TVector3 pos){
   if(!fHits.size()) return;
 
@@ -925,19 +925,23 @@ bool ND::TTPCOrderedVolGroup::GetDeltaCriteriaMet(){
 
   return false;  // otherwise return false
 }
-ND::THandle<ND::THitSelection> ND::TTPCOrderedVolGroup::GetClusters(){
-  ND::THandle<ND::THitSelection> hits(new ND::THitSelection());
+
+//MDH
+//This is a bit messy since it looks like the output object is getting pushed back with
+//TTPCHVClusters which contain multiple hits but also derive from THit.
+//May need to revisit this
+std::vector<ND::TTPCHitPad*> ND::TTPCOrderedVolGroup::GetClusters(){
+  std::vector<ND::TTPCHitPad*> hits;
 
   for(std::vector<ND::TTPCPathVolume*>::iterator id = fHits.begin(); id != fHits.end(); ++id){
-    ND::THandle<ND::TTPCHVCluster> chits = (*id)->GetHits();
-    if(chits){
-      if(chits->GetHits().size()){
-        hits->push_back(chits);
-      };
-    };
+    std::vector<ND::TTPCHitPad*> chits = (*id)->GetCellHits();
+    for(auto hit=chits.begin();hit!=chits.end();++hit){
+      hits->push_back(*hit);
+    }
   };
-  return hits;
-};
+  
+  return std::move(hits);
+}
 
 std::string ND::TTPCOrderedVolGroup::GetOrientations(){
   std::string orientationsList = "";
@@ -965,32 +969,33 @@ void ND::TTPCOrderedVolGroup::PrintPositions(bool size, bool clusterHits){
 }
 void ND::TTPCOrderedVolGroup::CheckClusters(){
   if(fHasExtendedHits){
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fExtendedHits->begin(); volEl != fExtendedHits->end(); ++volEl){
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fExtendedHits.begin(); volEl != fExtendedHits.end(); ++volEl){
       ND::TTPCUnitVolume* vol = volEl->second;
       if(!vol){
-        if(ND::tpcDebug().PatternRecognition(DB_ERROR)) std::cout << "WARNING:  empty ND::TTPCUnitVolume* found in TTPCPathVolume extended hits" << std::endl;
+        std::cout << "WARNING:  empty ND::TTPCUnitVolume* found in TTPCPathVolume extended hits" << std::endl;
       }
       else{
-        if(ND::tpcDebug().PatternRecognition(DB_VERBOSE)) std::cout << "  attempting to access ND::TTPCOrderedVolGroup ND::TTPCUnitVolume* hits…" << std::endl;
-        std::vector< ND::THandle<ND::TTPCHitPad> > hits = vol->GetHits();
-        if(ND::tpcDebug().PatternRecognition(DB_VERBOSE)) std::cout << "  …got hits!" << std::endl;
-        for(std::vector< ND::THandle<ND::TTPCHitPad> >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
-          ND::THandle<ND::TTPCHitPad> nhit = *hitIt;
+        std::cout << "  attempting to access ND::TTPCOrderedVolGroup ND::TTPCUnitVolume* hits…" << std::endl;
+        std::vector<ND::TTPCHitPad*> hits = vol->GetHits();
+        std::cout << "  …got hits!" << std::endl;
+        for(std::vector< ND::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
+          ND::TTPCHitPad* nhit = *hitIt;
           if (!nhit){
-            if(ND::tpcDebug().PatternRecognition(DB_ERROR)) std::cout << "WARNING:  non ND::TTPCHitPad hit found in TTPCOrderedVolGroup extended hits" << std::endl;
-          };
-        };
-      };
-    };
-  };
+            std::cout << "WARNING:  non ND::TTPCHitPad hit found in TTPCOrderedVolGroup extended hits" << std::endl;
+          }
+        }
+      }
+    }
+  }
 
   for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
     ND::TTPCPathVolume* pathVol = *pathVolIt;
-    if(ND::tpcDebug().PatternRecognition(DB_VERBOSE)) std::cout << "checking ND::TTPCPathVol* hits…" << std::endl;
+    std::cout << "checking ND::TTPCPathVol* hits…" << std::endl;
     pathVol->CheckHits();
-    if(ND::tpcDebug().PatternRecognition(DB_VERBOSE)) std::cout << "…done checking ND::TTPCPathVol* hits" << std::endl;
-  };
-};
+    std::cout << "…done checking ND::TTPCPathVol* hits" << std::endl;
+  }
+}
+
 std::vector<ND::TTPCPathVolume*> ND::TTPCOrderedVolGroup::GetExtrapolatedClusters(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt, int dir){
   std::vector<ND::TTPCPathVolume*>::iterator pathVol2It;
   ND::TTPCPathVolume* pathVol = *pathVolIt;
@@ -1041,7 +1046,7 @@ std::vector<ND::TTPCPathVolume*> ND::TTPCOrderedVolGroup::GetExtrapolatedCluster
     // look for a hit within range of extrapolated position
     ND::TTPCUnitVolume* closestHit = 0;
     int closestDist2 = fLayout->GetClusterConnectDist()*fLayout->GetClusterConnectDist();
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator extHitEl = fExtendedHits->begin(); extHitEl != fExtendedHits->end(); ++extHitEl){
+    for(std::map<long, ND::TTPCUnitVolume*>::iterator extHitEl = fExtendedHits.begin(); extHitEl != fExtendedHits.end(); ++extHitEl){
       ND::TTPCUnitVolume* extHit = extHitEl->second;
       int diffX = (extHit->GetX() - extX)/xFact;
       int diffY = extHit->GetY() - extY;

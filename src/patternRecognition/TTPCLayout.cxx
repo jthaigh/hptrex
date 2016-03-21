@@ -2,11 +2,11 @@
 #include "TTPCLayout.hxx"
 
 ND::TTPCLayout::TTPCLayout(){
-  // flags for tools in development
-  fUseAltEdgeDetection = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.UseAltEdgeDetection");
-  fUseAltHitAssociation = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.UseAltHitAssociation");
-  fUsePatRecPathologyCut = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.UsePatRecPathologyCut");
 
+  //MDH
+  //This all needs reimplementing, and we need to think about if we really need
+  //all these parameters...
+  /*
   // values for cuts on charge
   fChargeCut = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.ChargeCut");
   fEarlyNegativePeakCut = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.EarlyNegativePeakCut");
@@ -156,7 +156,7 @@ ND::TTPCLayout::TTPCLayout(){
   fTPMax = -1.;
   fTNegativeBins = 0;
   fTPositiveBins = 0;
-  fTBins = 0;
+  fTBins = 0;*/
 }
 ND::TTPCLayout::~TTPCLayout(){
 }
@@ -291,7 +291,12 @@ ND::TTPCCell3D ND::TTPCLayout::UnMash(long id){
 
 ND::TTPCPadStruct ND::TTPCLayout::GlobalXYZToPos(TVector3 pos){
   ND::TTPCPadStruct padStruct;
+
+  //MDH
+  //This needs reimplementing with new geometry lookup
+  //or just simplifying
   // get pad geometry information
+  /*
   ND::TGeometryId id;
   ND::TGeomInfo::Get().TPC().GlobalXYZToGeomId(pos, id);
 
@@ -316,12 +321,17 @@ ND::TTPCPadStruct ND::TTPCLayout::GlobalXYZToPos(TVector3 pos){
   // shift to consistent pattern of MM module ids
   if(padStruct.half == 1){
     padStruct.mm = (padStruct.mm + 6) % 12;
-  };
+    };*/
 
   // mm numbers and mm pad numbers should now be oriented consistently across all modules
   return padStruct;
 }
 
+//MDH
+//Got rid of this sig since it uses a THit. Replace invocation of this sig in TTPCTRExPatAlgorithm
+//with the one below
+
+/*
 ND::TTPCCellInfo3D ND::TTPCLayout::GetPadPosID(ND::THandle<ND::THit> hit, int tpcMask){
   double time;
   ND::THandle<ND::TTPCHitPad> hitPad = hit;
@@ -345,6 +355,8 @@ ND::TTPCCellInfo3D ND::TTPCLayout::GetPadPosID(ND::THandle<ND::THit> hit, int tp
 
   return GetPadPosID(hit->GetPosition(), time, tpcMask);
 }
+*/
+
 ND::TTPCCellInfo3D ND::TTPCLayout::GetPadPosID(TVector3 pos, double time, int tpcMask){
   ND::TTPCCellInfo3D cellInfo;
 

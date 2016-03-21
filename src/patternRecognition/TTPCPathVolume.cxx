@@ -3,7 +3,6 @@
 
 ND::TTPCPathVolume::TTPCPathVolume(ND::TTPCUnitVolume* unitVolume){
   fUnitVolume = unitVolume;
-  fFriends = std::vector<ND::TTPCUnitVolume*>();
 
   fXMin = 0;
   fXMax = 0;
@@ -15,8 +14,6 @@ ND::TTPCPathVolume::TTPCPathVolume(ND::TTPCUnitVolume* unitVolume){
   fZMax = 0;
   fZSize = 0;
   fAverageTime = 0.;
-  fAveragePos = TVector3();
-  fAveragePosXYZ = TVector3();
 
   fClosed = false;
   fIsXCluster = false;
@@ -36,30 +33,29 @@ std::vector<ND::TTPCUnitVolume*> ND::TTPCPathVolume::GetExtendedCell(int filter)
 
   return extendedCells;
 }
-ND::THandle<ND::TTPCHVCluster> ND::TTPCPathVolume::GetHits(){
+
+std::vector<ND::TTPCHitPad*> ND::TTPCPathVolume::GetHits(){
+  
+  std::vector<ND::TTPCHitPad*> output;
   // cells whos hits to add
   std::vector<ND::TTPCUnitVolume*> volsToAdd = GetExtendedCell();
-  ND::THitSelection hitsel;
-
+  
   for(std::vector<ND::TTPCUnitVolume*>::iterator volIt = volsToAdd.begin(); volIt != volsToAdd.end(); ++volIt){
     ND::TTPCUnitVolume* vol = *volIt;
     if(!vol) continue;
 
-    std::vector< ND::THandle<ND::TTPCHitPad> > hits;
+    std::vector< ND::TTPCHitPad* > hits;
     hits = vol->GetHits();
-    for(std::vector< ND::THandle<ND::TTPCHitPad> >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
-      ND::THandle<ND::TTPCHitPad> nhit = *hitIt;
+    for(std::vector< ND::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
+      ND::TTPCHitPad* nhit = *hitIt;
       if (nhit)
-        hitsel.AddHit(nhit);
+        output.AddHit(nhit);
       else
         throw;
-    };
-  };
+    }
+  }
 
-  // null
-  if(!hitsel.size()) return ND::THandle<ND::TTPCHVCluster>();
-  // otherwise
-  return ND::THandle<ND::TTPCHVCluster> ( new ND::TTPCHVCluster(hitsel, fIsVertical) );
+  return output;
 }
 
 void ND::TTPCPathVolume::MarkFriend(std::vector<ND::TTPCUnitVolume*>::iterator focusFriendIt){
@@ -154,18 +150,18 @@ void ND::TTPCPathVolume::CheckHits(){
   for(std::vector<ND::TTPCUnitVolume*>::iterator volIt = volsToCheck.begin(); volIt != volsToCheck.end(); ++volIt){
     ND::TTPCUnitVolume* vol = *volIt;
     if(!vol){
-      if(ND::tpcDebug().PatternRecognition(DB_ERROR)) std::cout << "WARNING:  empty ND::TTPCUnitVolume* found in TTPCPathVolume" << std::endl;
+      std::cout << "WARNING:  empty ND::TTPCUnitVolume* found in TTPCPathVolume" << std::endl;
     }
     else{
-      if(ND::tpcDebug().PatternRecognition(DB_VERBOSE)) std::cout << "Attempting to access ND::TTPCUnitVolume hits…" << std::endl;
-      std::vector< ND::THandle<ND::TTPCHitPad> > hits = vol->GetHits();
-      if(ND::tpcDebug().PatternRecognition(DB_VERBOSE)) std::cout << "…success!" << std::endl;
-      for(std::vector< ND::THandle<ND::TTPCHitPad> >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
-        ND::THandle<ND::TTPCHitPad> nhit = *hitIt;
+      std::cout << "Attempting to access ND::TTPCUnitVolume hits…" << std::endl;
+      std::vector< ND::TTPCHitPad* > hits = vol->GetHits();
+      std::cout << "…success!" << std::endl;
+      for(std::vector< ND::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
+        ND::TTPCHitPad* nhit = *hitIt;
         if (!nhit){
-          if(ND::tpcDebug().PatternRecognition(DB_ERROR)) std::cout << "WARNING:  non ND::TTPCHitPad hit found in TTPCPathVolume" << std::endl;
-        };
-      };
-    };
-  };
+          std::cout << "WARNING:  non ND::TTPCHitPad hit found in TTPCPathVolume" << std::endl;
+        }
+      }
+    }
+  }
 }

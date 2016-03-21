@@ -97,8 +97,12 @@ void ND::TTPCTRExPatAlgorithm::PrepareHits(std::vector<ND::TTPCHitPad>& hits){
   for (std::vector<ND::TTPCHitPad>::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
     ND::TTPCHitPad* hit = &*hitIt;
 
+    //MDH
+    //Hopefully our hit object will have a GetTime method or else we need to abstract
+    //this out completely into a position number everywhere...
+
     // convert position to cell id in x, y and z
-    ND::TTPCCellInfo3D cell = fMasterLayout->GetPadPosID(hit);
+    ND::TTPCCellInfo3D cell = fMasterLayout->GetPadPosID(hit.GetPosition(),hit.GetTime());
 
     // find minima and maxima
     minX = std::min(minX, cell.x);
@@ -160,6 +164,9 @@ void ND::TTPCTRExPatAlgorithm::PrepareHits(std::vector<ND::TTPCHitPad>& hits){
   };
 }
 
+//MDH
+//Not used
+/*
 void ND::TTPCTRExPatAlgorithm::PopulateDeltaHits(){
   ND::TTPCVolGroup deltaHits;
 
@@ -171,7 +178,7 @@ void ND::TTPCTRExPatAlgorithm::PopulateDeltaHits(){
   fDeltaHits=fMasterVolGroupMan->GroupDeltaHits(deltaHits);
 
 }
-
+*/
 
 //Output - reimplement
 /*

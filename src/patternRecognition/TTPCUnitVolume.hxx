@@ -39,13 +39,11 @@ namespace ND{
       /// Add a charge to the total charge of this cell
       void AddCharge(double q);
       /// Associate another hit with this cell
-      void AddHit(ND::THandle<ND::TTPCHitPad> hit);
+      void AddHit(ND::TTPCHitPad* hit);
       /// Associate multiple hits with this event
-      void AddHits(std::vector< ND::THandle<ND::TTPCHitPad> > hits);
-      /// Associate combo with this event
-      void AddHits(ND::THandle<ND::TComboHit> hits);
+      void AddHits(std::vector< ND::TTPCHitPad* > hits);
       /// Add an event to this cell, charge weighted averaging position and incrementing charge
-      void AddEvent(ND::THandle<ND::TTPCHitPad> hit);
+      void AddEvent(ND::TTPCHitPad* hit);
       /// Get edge status of this cell in x, y and z - -1 for a lower edge of a MM volume, 1 for an upper edge, -2 for a dead region
       void GetEdges(int& edgeX, int& edgeY, int& edgeZ);
       /// Summarise position and edge status in one struct
@@ -92,11 +90,11 @@ namespace ND{
       double GetTimeMax(){ return fTimeMax;}
 
       /// Get hits associated with this cell
-      std::vector< ND::THandle<ND::TTPCHitPad> > GetHits(){ return fHits;}
+      std::vector< ND::TTPCHitPad* > GetHits(){ return fHits;}
       /// Get iterator to beginning of hits associated with this cell
-      std::vector< ND::THandle<ND::TTPCHitPad> >::iterator GetHitsBegin(){ return fHits.begin();}
+      std::vector< ND::TTPCHitPad* >::iterator GetHitsBegin(){ return fHits.begin();}
       /// Get iterator to end of hits associated with this cell
-      std::vector< ND::THandle<ND::TTPCHitPad> >::iterator GetHitsEnd(){ return fHits.end();}
+      std::vector< ND::TTPCHitPad* >::iterator GetHitsEnd(){ return fHits.end();}
       /// Get size of list of hits associated with this cell
       unsigned int size(){ return fHits.size();}
 
@@ -224,7 +222,7 @@ namespace ND{
       double fTimeMax;
 
       /// Hits associated with this cell
-      std::vector< ND::THandle<ND::TTPCHitPad> > fHits;
+      std::vector< ND::TTPCHitPad* > fHits;
 
       /// Cell x edge status
       int fEdgeX;

@@ -70,7 +70,10 @@ namespace ND{
     /// Add a selection of hits for the first time and work out preliminary t0 and cathode crossing, and set up hits
     void PrepareHits(std::vector<ND::TTPCHitPad> hits);
     /// Populate list of delta ray hits
-    void PopulateDeltaHits();
+    
+    //MDH
+    //Not used
+//void PopulateDeltaHits();
 
       /// Master layout to use for this event
       ND::TTPCLayout* fMasterLayout;

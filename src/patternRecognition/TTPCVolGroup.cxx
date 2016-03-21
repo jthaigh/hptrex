@@ -59,10 +59,10 @@ void ND::TTPCVolGroup::AddHits(std::vector<ND::TTPCUnitVolume*>::iterator hitLis
     fHitMap[vol->GetID()] = vol;
   };
 }
-void ND::TTPCVolGroup::AddHits(ND::THandle<ND::TTPCVolGroup> hits){
+void ND::TTPCVolGroup::AddHits(ND::TTPCVolGroup& hits){
   fIsClosed = false;
   // insert all hits in input group's map into this group's map
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator el = hits->begin(); el != hits->end(); ++el){
+  for(std::map<long, ND::TTPCUnitVolume*>::iterator el = hits.begin(); el != hits.end(); ++el){
     fHitMap[el->first] = el->second;
   };
 }
@@ -100,10 +100,12 @@ bool ND::TTPCVolGroup::RemoveHit(long id){
   fHitMap.erase(el);
   return true;
 }
+
 void ND::TTPCVolGroup::MarkHit(long id){
   fIsClosed = false;
   fHitMap[id] = 0;
 }
+
 void ND::TTPCVolGroup::ClearMarked(){
   fIsClosed = false;
   std::vector<long> keysToDelete = std::vector<long>();
@@ -115,91 +117,15 @@ void ND::TTPCVolGroup::ClearMarked(){
   };
 }
 
-void ND::TTPCVolGroup::MergeHits(ND::THandle<ND::TTPCVolGroup> hits){
+void ND::TTPCVolGroup::MergeHits(ND::TTPCVolGroup& hits){
   fIsClosed = false;
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator el = hits->begin(); el != hits->end(); ++el){
+  for(std::map<long, ND::TTPCUnitVolume*>::iterator el = hits.begin(); el != hits.end(); ++el){
     std::map<long, ND::TTPCUnitVolume*>::iterator id = fHitMap.find(el->first);
     // if cell isn't found, add it to this map
     if (id == fHitMap.end()) fHitMap[el->first] = el->second;
     // if it is, add it's charge to the corresponding cell in this group's map
     else id->second->SetQ(id->second->GetQ() + el->second->GetQ());
   };
-}
-
-void ND::TTPCVolGroup::AddPseudoHit(ND::TTPCUnitVolume* hit){
-  fIsClosed = false;
-  // add cell to map
-  fHitMap[hit->GetID()] = hit;
-}
-void ND::TTPCVolGroup::AddNewPseudoHit(int x, int y, int z, float q){
-  fIsClosed = false;
-  // get cell's id
-  long id = fLayout->Mash(x, y, z);
-  std::map<long, ND::TTPCUnitVolume*>::iterator el = fHitMap.find(id);
-  if (el == fHitMap.end()){
-    // if it doesn't already exist, make a new cell at specified x, y and z id with specified charge
-    ND::TTPCUnitVolume* cHit = new ND::TTPCUnitVolume();
-    cHit->SetCell(x, y, z, -3, -3, -3, id);
-    cHit->AddCharge(q);
-
-    AddPseudoHit(cHit);
-  }
-  else{
-    // if it does, just add specified charge to its charge
-    el->second->AddCharge(q);
-  };
-}
-void ND::TTPCVolGroup::AddNewPseudoGauss(int x, int y, int z, float q, int axis, float sigmaX, float sigmaY, float sigmaZ){
-  fIsClosed = false;
-  float sigmaI=1.;
-  float sigmaJ=1.;
-  // assign sigma two appropriate 2D dimensions depending on specified axis
-  if(axis == 1){
-    sigmaI = sigmaY;
-    sigmaJ = sigmaZ;
-  }
-  else if(axis == 2){
-    sigmaI = sigmaZ;
-    sigmaJ = sigmaX;
-  }
-  else if(axis == 3){
-    sigmaI = sigmaX;
-    sigmaJ = sigmaY;
-  };
-  // ensure non-zero sigma
-  sigmaI = std::max(.01f, sigmaI);
-  sigmaJ = std::max(.01f, sigmaJ);
-
-  int windowI = 1 + int(sigmaI);
-  int windowJ = 1 + int(sigmaJ);
-
-  const int sizeI = windowI*2 + 1;
-  const int sizeJ = windowJ*2 + 1;
-
-  // build unnormalised gaussian 
-  float** base = new float* [sizeI];
-  for(int i=0; i<sizeI; i++) base[i] = new float [sizeJ];
-
-  float norm = 0;
-  for(int i=-windowI; i<=windowI; i++){
-    for(int j=-windowJ; j<=windowJ; j++){
-      float val = exp(-.5*(float(i*i)/(sigmaI*sigmaI) + float(j*j)/(sigmaJ*sigmaJ)));
-      base[i+windowI][j+windowJ] = val;
-      norm += val;
-    };
-  };
-  norm /= q;
-
-  // add normalised gaussian 
-  for(int i=-windowI; i<=windowI; i++){
-    for(int j=-windowJ; j<=windowJ; j++){
-      if(axis == 1) AddNewPseudoHit(x, y+i, z+j, base[i+windowI][j+windowJ]/norm);
-      if(axis == 2) AddNewPseudoHit(x+j, y, z+i, base[i+windowI][j+windowJ]/norm);
-      if(axis == 3) AddNewPseudoHit(x+i, y+j, z, base[i+windowI][j+windowJ]/norm);
-    };
-    delete[] base[i+windowI];
-  };
-  delete[] base;
 }
 
 long ND::TTPCVolGroup::GetNearestHit(int x, int y, int z, int maxDist){
@@ -220,6 +146,7 @@ long ND::TTPCVolGroup::GetNearestHit(int x, int y, int z, int maxDist){
   // return correcponding cell id
   return id;
 }
+
 TVector3 ND::TTPCVolGroup::GetNearestHitPos(int x, int y, int z, int maxDist){
   // find nearest hit
   long id = GetNearestHit(x, y, z, maxDist);
@@ -229,28 +156,28 @@ TVector3 ND::TTPCVolGroup::GetNearestHitPos(int x, int y, int z, int maxDist){
   return fHitMap[id]->GetPos(); 
 }
 
-ND::THandle<ND::THitSelection> ND::TTPCVolGroup::GetHits(){
-  ND::THandle<ND::THitSelection> outHits(new ND::THitSelection());
+std::vector<ND::TTPCHitPad*> ND::TTPCVolGroup::GetHits(){
+  std::vector<ND::TTPCHitPad*> outHits;
 
   for(std::map<long, ND::TTPCUnitVolume*>::iterator el = fHitMap.begin(); el != fHitMap.end(); ++el){
-    std::vector< ND::THandle<ND::TTPCHitPad> > hits = el->second->GetHits();
-    for(std::vector< ND::THandle<ND::TTPCHitPad> >::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
-      ND::THandle<ND::TTPCHitPad> hit = *hitIt;
+    std::vector< ND::TTPCHitPad* > hits = el->second->GetHits();
+    for(std::vector< ND::TTPCHitPad* >::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
+      ND::TTPCHitPad* hit = *hitIt;
       outHits->push_back(hit);
-    };
-  };
-
-  return outHits;
-};
+    }
+  }
+  return std::move(outHits);
+}
 
 bool ND::TTPCVolGroup::Contains(long id){
   // search this group for the provided id
   std::map<long, ND::TTPCUnitVolume*>::iterator el = fHitMap.find(id);
   return (el != fHitMap.end());
-};
+}
+
 bool ND::TTPCVolGroup::Contains(TTPCUnitVolume* vol){
   return Contains(vol->GetID());
-};
+}
 
 bool ND::TTPCVolGroup::GetLeanValid(ND::TTPCUnitVolume* vol){
   Close();
@@ -258,7 +185,7 @@ bool ND::TTPCVolGroup::GetLeanValid(ND::TTPCUnitVolume* vol){
   if(fYLean != 0 && vol->GetY() != fAveragePad.y) return false;
   if(fZLean != 0 && vol->GetZ() != fAveragePad.z) return false;
   return true;
-};
+}
 
 ND::TTPCUnitVolume* ND::TTPCVolGroup::GetHit(long id, bool safe){
   safe = true;
@@ -270,7 +197,7 @@ ND::TTPCUnitVolume* ND::TTPCVolGroup::GetHit(long id, bool safe){
     if (el == fHitMap.end()) return 0;
   };
   return fHitMap[id];
-};
+}
 
 void ND::TTPCVolGroup::Close(){
   if(fIsClosed) return;
@@ -301,7 +228,7 @@ void ND::TTPCVolGroup::Close(){
   FindCharge();
 
   fIsClosed = true;
-};
+}
 
 void ND::TTPCVolGroup::FindSigmaPads(){
   ND::TTPCCellInfo3D avgPos = fAveragePad;
@@ -411,6 +338,9 @@ void ND::TTPCVolGroup::FindCharge(){
   };
 }
 
+//MDH
+//Under new scheme (HitSel->vector of TTPCHitPad) this is redundant
+/*
 ND::THitSelection* ND::TTPCVolGroup::GetHitSelection(){
   ND::THitSelection* allHits = new ND::THitSelection();
 
@@ -424,7 +354,8 @@ ND::THitSelection* ND::TTPCVolGroup::GetHitSelection(){
   };
 
   return allHits;
-}
+  }*/
+
 void ND::TTPCVolGroup::SetLean(int& leanVar, int leanVal, bool force){
   if(leanVar == leanVal) return;
   fIsClosed = false;
@@ -442,18 +373,98 @@ void ND::TTPCVolGroup::CheckHits(){
   for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fHitMap.begin(); volEl != fHitMap.end(); ++volEl){
     ND::TTPCUnitVolume* vol = volEl->second;
     if(!vol){
-      if(ND::tpcDebug().PatternRecognition(DB_ERROR)) std::cout << "WARNING:  empty ND::TTPCUnitVolume* found in TTPCVolGroup" << std::endl;
+      std::cout << "WARNING:  empty ND::TTPCUnitVolume* found in TTPCVolGroup" << std::endl;
     }
     else{
-      if(ND::tpcDebug().PatternRecognition(DB_VERBOSE)) std::cout << "  Attempting to access ND::TTPCUnitVolume hits…" << std::endl;
-      std::vector< ND::THandle<ND::TTPCHitPad> > hits = vol->GetHits();
-      if(ND::tpcDebug().PatternRecognition(DB_VERBOSE)) std::cout << "  …success!" << std::endl;
-      for(std::vector< ND::THandle<ND::TTPCHitPad> >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
-        ND::THandle<ND::TTPCHitPad> nhit = *hitIt;
+      std::cout << "  Attempting to access ND::TTPCUnitVolume hits…" << std::endl;
+      std::vector< ND::TTPCHitPad* > hits = vol->GetHits();
+      std::cout << "  …success!" << std::endl;
+      for(std::vector< ND::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
+        ND::TTPCHitPad* nhit = *hitIt;
         if (!nhit){
-          if(ND::tpcDebug().PatternRecognition(DB_ERROR)) std::cout << "WARNING:  non ND::TTPCHitPad hit found in TTPCPathVolume" << std::endl;
-        };
-      };
-    };
+          std::cout << "WARNING:  non ND::TTPCHitPad hit found in TTPCPathVolume" << std::endl;
+        }
+      }
+    }
+  }
+}
+
+//MDH
+//Not used - just as well since these create new TTPCUnitVolumes which would need to be managed...
+/*
+void ND::TTPCVolGroup::AddPseudoHit(ND::TTPCUnitVolume* hit){
+  fIsClosed = false;
+  // add cell to map
+  fHitMap[hit->GetID()] = hit;
+}
+void ND::TTPCVolGroup::AddNewPseudoHit(int x, int y, int z, float q){
+  fIsClosed = false;
+  // get cell's id
+  long id = fLayout->Mash(x, y, z);
+  std::map<long, ND::TTPCUnitVolume*>::iterator el = fHitMap.find(id);
+  if (el == fHitMap.end()){
+    // if it doesn't already exist, make a new cell at specified x, y and z id with specified charge
+    ND::TTPCUnitVolume* cHit = new ND::TTPCUnitVolume();
+    cHit->SetCell(x, y, z, -3, -3, -3, id);
+    cHit->AddCharge(q);
+
+    AddPseudoHit(cHit);
+  }
+  else{
+    // if it does, just add specified charge to its charge
+    el->second->AddCharge(q);
   };
 }
+void ND::TTPCVolGroup::AddNewPseudoGauss(int x, int y, int z, float q, int axis, float sigmaX, float sigmaY, float sigmaZ){
+  fIsClosed = false;
+  float sigmaI=1.;
+  float sigmaJ=1.;
+  // assign sigma two appropriate 2D dimensions depending on specified axis
+  if(axis == 1){
+    sigmaI = sigmaY;
+    sigmaJ = sigmaZ;
+  }
+  else if(axis == 2){
+    sigmaI = sigmaZ;
+    sigmaJ = sigmaX;
+  }
+  else if(axis == 3){
+    sigmaI = sigmaX;
+    sigmaJ = sigmaY;
+  };
+  // ensure non-zero sigma
+  sigmaI = std::max(.01f, sigmaI);
+  sigmaJ = std::max(.01f, sigmaJ);
+
+  int windowI = 1 + int(sigmaI);
+  int windowJ = 1 + int(sigmaJ);
+
+  const int sizeI = windowI*2 + 1;
+  const int sizeJ = windowJ*2 + 1;
+
+  // build unnormalised gaussian 
+  float** base = new float* [sizeI];
+  for(int i=0; i<sizeI; i++) base[i] = new float [sizeJ];
+
+  float norm = 0;
+  for(int i=-windowI; i<=windowI; i++){
+    for(int j=-windowJ; j<=windowJ; j++){
+      float val = exp(-.5*(float(i*i)/(sigmaI*sigmaI) + float(j*j)/(sigmaJ*sigmaJ)));
+      base[i+windowI][j+windowJ] = val;
+      norm += val;
+    };
+  };
+  norm /= q;
+
+  // add normalised gaussian 
+  for(int i=-windowI; i<=windowI; i++){
+    for(int j=-windowJ; j<=windowJ; j++){
+      if(axis == 1) AddNewPseudoHit(x, y+i, z+j, base[i+windowI][j+windowJ]/norm);
+      if(axis == 2) AddNewPseudoHit(x+j, y, z+i, base[i+windowI][j+windowJ]/norm);
+      if(axis == 3) AddNewPseudoHit(x+i, y+j, z, base[i+windowI][j+windowJ]/norm);
+    };
+    delete[] base[i+windowI];
+  };
+  delete[] base;
+}
+*/

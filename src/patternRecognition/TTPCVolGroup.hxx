@@ -49,7 +49,7 @@ class ND::TTPCVolGroup : public TObject {
     /// Copy hits between two vector iterators into this group's map 
     void AddHits(std::vector<ND::TTPCUnitVolume*>::iterator hitListBegin, std::vector<ND::TTPCUnitVolume*>::iterator hitListEnd);
     /// Copy hits in another group's map into this group's map
-    void AddHits(ND::THandle<ND::TTPCVolGroup> hits);
+    void AddHits(ND::TTPCVolGroup& hits);
     /// Add individual hit, returning false if it already existed in this group's map
     bool AddHit(ND::TTPCUnitVolume* hit, bool safe=true);
 
@@ -61,22 +61,25 @@ class ND::TTPCVolGroup : public TObject {
     void ClearMarked();
 
     /// Merge one group into this group, summing charges where cells overlap
-    void MergeHits(ND::THandle<ND::TTPCVolGroup> hits);
+    void MergeHits(ND::TTPCVolGroup& hits);
 
+  //MDH
+  //Not used
+  /*
     /// Add 'fake' cell not corresponding to a detected hit
     void AddPseudoHit(ND::TTPCUnitVolume* hit);
     /// Add 'fake' cell not corresponding to a detected hit from its x, y and z id and charge
     void AddNewPseudoHit(int x, int y, int z, float q);
     /// Add gaussian distribution of 'fake' cells in two dimensions (x view, y view or z view with axis 1, 2 or 3 respectively), around specific x, y and z id with specific x, y and z spread
     void AddNewPseudoGauss(int x, int y, int z, float q, int axis, float sigmaX, float sigmaY, float sigmaZ);
-
+  */
     /// Find nearest hit in group to a given x, y and z
     long GetNearestHit(int x, int y, int z, int maxDist=1000);
     /// Find position of nearest hit in group to a given x, y and z
     TVector3 GetNearestHitPos(int x, int y, int z, int maxDist);
 
     /// Get list of all hits associated with elements of this group
-    ND::THandle<ND::THitSelection> GetHits();
+  std::vector< ND::TTPCHitPad* > GetHits();
 
     /// Get ID corresponding to the track end or vertex this junction is supposed to represent
     unsigned int GetID(){ return fID; }
@@ -103,8 +106,11 @@ class ND::TTPCVolGroup : public TObject {
     ND::TTPCCellInfo3D GetAveragePad(){ Close(); return fAveragePad; }
     /// Get the unit volume at the average position of all cells in the group
     ND::TTPCUnitVolume* GetAverageVol(){ Close(); return fAverageUnitVolume; }
+
+  //MDH
+  //Redundant under new way of storing groups of hits
     /// Get bare pointer to the hit selection containing all cells in the group
-    ND::THitSelection* GetHitSelection();
+  //    ND::THitSelection* GetHitSelection();
     /// Get the average cell x
     int GetX(){ Close(); return fAveragePad.x; }
     /// Get the average cell y

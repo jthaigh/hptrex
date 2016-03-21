@@ -42,56 +42,53 @@ class ND::TTPCOrderedVolGroup : public TObject {
     virtual ~TTPCOrderedVolGroup();
 
     /// Add a pointer to the hits corresponding to hits near the start of this group (hits near hit at size()-1 index)
-    void AddFrontHits(ND::THandle<ND::TTPCVolGroup> frontHits);
+    void AddFrontHits(ND::TTPCVolGroup& frontHits);
     /// Add a pointer to the hits corresponding to hits near the end of this group (hits near hit at 0 index)
-    void AddBackHits(ND::THandle<ND::TTPCVolGroup> backHits);
+    void AddBackHits(ND::TTPCVolGroup& backHits);
     /// Add a pointer to extended group of hits associated with this path
-    void AddExtendedHits(ND::THandle<ND::TTPCVolGroup> extendedHits);
+    void AddExtendedHits(ND::TTPCVolGroup& extendedHits);
 
     /// Check front hits exist and are not empty
-    bool HasFrontHits(){ return fAddedFrontHits ? !fFrontHits->empty() : false; }
+    bool HasFrontHits(){ return fAddedFrontHits ? !fFrontHits.empty() : false; }
     /// Check back hits exist and are not empty
-    bool HasBackHits(){ return fAddedBackHits ? !fBackHits->empty() : false; }
+    bool HasBackHits(){ return fAddedBackHits ? !fBackHits.empty() : false; }
     /// Get average position of front hits 
-    TVector3 GetFrontAveragePosition(){ return fFrontHits->GetAveragePosition(); }
+    TVector3 GetFrontAveragePosition(){ return fFrontHits.GetAveragePosition(); }
     /// Get average position of back hits
-    TVector3 GetBackAveragePosition(){ return fBackHits->GetAveragePosition(); }
+    TVector3 GetBackAveragePosition(){ return fBackHits.GetAveragePosition(); }
     /// Get average cell in front hits
-    ND::TTPCUnitVolume* GetFrontAverageVol(){ return fFrontHits->GetAverageVol(); }
+    ND::TTPCUnitVolume* GetFrontAverageVol(){ return fFrontHits.GetAverageVol(); }
     /// Get average cell in back hits
-    ND::TTPCUnitVolume* GetBackAverageVol(){ return fBackHits->GetAverageVol(); }
+    ND::TTPCUnitVolume* GetBackAverageVol(){ return fBackHits.GetAverageVol(); }
     /// Return bare pointer to hits in front
-    ND::THitSelection* GetFrontHitSelection(){ return fFrontHits->GetHitSelection(); }
+    ND::THitSelection* GetFrontHitSelection(){ return fFrontHits.GetHitSelection(); }
     /// Return bare pointer to hits in back
-    ND::THitSelection* GetBackHitSelection(){ return fBackHits->GetHitSelection(); }
-    /// Get handle for front hits
-    ND::THandle<ND::TTPCVolGroup> GetFrontHits(){ return fFrontHits; }
-    /// Get handle for back hits
-    ND::THandle<ND::TTPCVolGroup> GetBackHits(){ return fBackHits; }
+    ND::THitSelection* GetBackHitSelection(){ return fBackHits.GetHitSelection(); }
     /// Get ID for the group of hits at the front of this group
-    unsigned int GetFrontID(){ return fFrontHits->GetID(); }
+    unsigned int GetFrontID(){ return fFrontHits.GetID(); }
     /// Get ID for the group of hits at the back of this group
-    unsigned int GetBackID(){ return fBackHits->GetID(); }
+    unsigned int GetBackID(){ return fBackHits.GetID(); }
 
     /// Get extended group of hits associated with this path
-    //MDH
-    //Changed this to copy fExtendedHits into input object.
-    //Slightly ugly but I think this may be the right way
-    //since we want to manage persistence separately.
-    void GetExtendedHits(ND::TTPCVolGroup& ret){  ret=fExtendedHits; }
+    ND::TTPCVolGroup& GetExtendedHits(){  return fExtendedHits; }
+    /// Get handle for front hits
+    ND::TTPCVolGroup& GetFrontHits(){ return fFrontHits; }
+    /// Get handle for back hits
+    ND::TTPCVolGroup& GetBackHits(){ return fBackHits; }
+
   
     /// Iterator to start of front hits
-    std::map<long, ND::TTPCUnitVolume*>::iterator frontHitsBegin(){ return fFrontHits->begin(); }
+    std::map<long, ND::TTPCUnitVolume*>::iterator frontHitsBegin(){ return fFrontHits.begin(); }
     /// Iterator to end of front hits
-    std::map<long, ND::TTPCUnitVolume*>::iterator frontHitsEnd(){ return fFrontHits->end(); }
+    std::map<long, ND::TTPCUnitVolume*>::iterator frontHitsEnd(){ return fFrontHits.end(); }
     /// Iterator to start of back hits
-    std::map<long, ND::TTPCUnitVolume*>::iterator backHitsBegin(){ return fBackHits->begin(); }
+    std::map<long, ND::TTPCUnitVolume*>::iterator backHitsBegin(){ return fBackHits.begin(); }
     /// Iterator to end of back hits
-    std::map<long, ND::TTPCUnitVolume*>::iterator backHitsEnd(){ return fBackHits->end(); }
+    std::map<long, ND::TTPCUnitVolume*>::iterator backHitsEnd(){ return fBackHits.end(); }
     /// Iterator to start of extended hits
-    std::map<long, ND::TTPCUnitVolume*>::iterator extendedHitsBegin(){ return fExtendedHits->begin(); }
+    std::map<long, ND::TTPCUnitVolume*>::iterator extendedHitsBegin(){ return fExtendedHits.begin(); }
     /// Iterator to end of extended hits
-    std::map<long, ND::TTPCUnitVolume*>::iterator extendedHitsEnd(){ return fExtendedHits->end(); }
+    std::map<long, ND::TTPCUnitVolume*>::iterator extendedHitsEnd(){ return fExtendedHits.end(); }
 
     /// Push a new path volume back into the vector of hits in this group and return it
     ND::TTPCPathVolume* AddCell(ND::TTPCUnitVolume* cell, bool isXCluster=false);
@@ -142,14 +139,14 @@ class ND::TTPCOrderedVolGroup : public TObject {
     /// Order for negative curvature
     void OrderNegativeCurvature();
     /// Order from junction position
-    void OrderFromJunction(ND::THandle<ND::TTPCVolGroup> junction);
+    void OrderFromJunction(ND::TTPCVolGroup& junction);
     /// Order from position
     void OrderFromPosition(TVector3 pos);
 
     /// Get whether the path meets criteria for delta ray tagging
     bool GetDeltaCriteriaMet();
     /// Get list of all hits associated with elements of this group
-    ND::THandle<ND::THitSelection> GetClusters();
+  std::vector<ND::TTPCHitPad*> GetClusters();
 
     /// Set front hits to be a vertex (or not)
     void SetFrontIsVertex(bool isVertex=false){ fFrontIsVertex = isVertex; }
@@ -224,12 +221,12 @@ class ND::TTPCOrderedVolGroup : public TObject {
     std::vector<ND::TTPCPathVolume*> fHits;
 
     /// Hits near the front of this group (near hit at size()-1 index)
-    ND::THandle<ND::TTPCVolGroup> fFrontHits;
+    ND::TTPCVolGroup fFrontHits;
     /// Hits near the end of this group (near hit at 0 index)
-    ND::THandle<ND::TTPCVolGroup> fBackHits;
+    ND::TTPCVolGroup fBackHits;
 
     /// Hits associated with the whole path
-    ND::THandle<ND::TTPCVolGroup> fExtendedHits;
+    ND::TTPCVolGroup fExtendedHits;
 
     /// Whether front hits have been added
     bool fAddedFrontHits;

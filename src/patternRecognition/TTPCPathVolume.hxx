@@ -35,7 +35,7 @@ namespace ND{
       /// Get this and cells in its assocaited cluster.  Filter of 1 for only vertical, 2 for only horizontal.
       std::vector<ND::TTPCUnitVolume*> GetExtendedCell(int filter=0);
       /// Get hits associated with associated cell and all connected to it
-      ND::THandle<ND::TTPCHVCluster> GetHits();
+      std::vector<ND::TTPCHitPad*> GetHits();
 
       // getters
       /// Get the unit volume associated with this path volume
@@ -73,7 +73,7 @@ namespace ND{
       TVector3 GetAvgPosXYZ();
 
       /// Get hits associated with associated cell
-      std::vector< ND::THandle<ND::TTPCHitPad> > GetCellHits(){ return fUnitVolume->GetHits();}
+      std::vector< ND::TTPCHitPad* > GetCellHits(){ return fUnitVolume->GetHits();}
 
       /// Set minimum and maximum values
       void Close();
