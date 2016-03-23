@@ -135,7 +135,8 @@ void ND::TTPCAStar::ConnectVertexGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan,
   for(std::vector< ND::TTPCVolGroup >::iterator ver = vertices.begin(); ver != vertices.end(); ++ver){
     for(std::vector< ND::TTPCVolGroup >::iterator grp = edges.begin(); grp != edges.end(); ++grp){
       // add connection between the groups to set of connections
-      connections.emplace_back(ConnectGroupPair(*ver,*grp, true,false));
+      connections.push_back(fLayout);
+      ConnectGroupPair(*ver,*grp,connections.back(), true,false);
       if(connections.back().empty()) connections.pop_back();
       // break out if the number of iterations is too high
       i++;
@@ -146,7 +147,7 @@ void ND::TTPCAStar::ConnectVertexGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan,
 
   // connect vertices to each other as well
   std::vector< ND::TTPCOrderedVolGroup > vertexConnections;
-  ConnectGroupsOrdered(volGroupMan, vertices, vertexConnections, true, maxNo);
+  ConnectGroupsOrdered(volGroupMan, vertices, vertexConnections, true, false, maxNo);
   // add inter-vertex connections to group
   for(std::vector< ND::TTPCOrderedVolGroup >::iterator it = vertexConnections.begin(); it != vertexConnections.end(); ++it){
     connections.push_back(*it);
@@ -189,7 +190,7 @@ void ND::TTPCAStar::ConnectGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::
       // add connection between the groups to set of connections
       connections.emplace_back(fLayout);
       ConnectGroupPair(*grp1,*grp2, connections.back(), vertices,vertices);
-      if(connection->empty()) connections.pop_back();
+      if(connections.back().empty()) connections.pop_back();
       // break out if the number of iterations is too high
       if(i>=maxNo) break;
     };
@@ -229,7 +230,7 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
 
           bool alreadyAdded = false;
           for(std::vector< std::vector< ND::TTPCVolGroup >::iterator >::iterator mergeItIt2 = mergeIts.begin(); mergeItIt2 != mergeIts.end(); ++mergeItIt2)
-          if(**mergeItIt2 == inGroup){
+          if(*mergeItIt2 == inGroupIt){
             alreadyAdded = true;
             break;
           };
@@ -248,7 +249,7 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
     // set new group with the ID of the first of the merges
     mergedGroups.emplace_back(fLayout,id);
     ND::TTPCVolGroup& groupOut = mergedGroups.back();
-    std::vector< ND::TTPCVolGroup >::iterator delGroups;
+    std::vector< std::vector<ND::TTPCVolGroup>::iterator > delGroups;
 
     for(std::vector< std::vector< ND::TTPCVolGroup >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
       std::vector< ND::TTPCVolGroup >::iterator mergeIt = *mergeItIt;
@@ -264,7 +265,7 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
 
     std::vector< ND::TTPCVolGroup > newInGroups;
     for(std::vector< ND::TTPCVolGroup >::iterator grpIt = groups.begin(); grpIt != groups.end(); ++grpIt){
-      if(delGroups.find(grpIt)==delGroups.end()){
+      if(std::find(delGroups.begin(),delGroups.end(),grpIt)==delGroups.end()){
       newInGroups.push_back(*grpIt);
     }
       groups = std::move(newInGroups);
@@ -295,7 +296,7 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
         if(k == i) continue;
         if(k == j) continue;
         ND::TTPCVolGroup& grp3 = mergedGroups[k];
-        if(volGroupMan->GetPathVolOverlap(path, grp3->GetAverageVol())){
+        if(volGroupMan->GetPathVolOverlap(path, grp3.GetAverageVol())){
           if(std::find(connectedGroups[i].begin(), connectedGroups[i].end(), k) == connectedGroups[i].end()) connectedGroups[i].push_back(k);
           if(std::find(connectedGroups[j].begin(), connectedGroups[j].end(), k) == connectedGroups[j].end()) connectedGroups[j].push_back(k);
         };
@@ -360,7 +361,7 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
         for(int k=0; k<connectionMergeSize; k++){
           if(connectedGroups[merge2][k] == merge1){
             // first, check if either is made redundant
-	    survivors.emplace_back(fLayout,mergedGroups[merge1].GetId());
+	    survivors.emplace_back(fLayout,mergedGroups[merge1].GetID());
             volGroupMan->MergeGroups(mergedGroups[merge1], mergedGroups[merge2], survivors.back());
           };
           break;
@@ -378,17 +379,17 @@ void ND::TTPCAStar::ClearVertexConnectionRedundancies(ND::TTPCVolGroupMan* volGr
   for(std::vector< ND::TTPCOrderedVolGroup >::iterator path = paths.begin(); path != paths.end(); ++path){
     bool redundancy = false;
     for(std::vector< ND::TTPCVolGroup >::iterator vert = vertices.begin(); vert != vertices.end(); ++vert){
-      if(volGroupMan->GetPathVolOverlap(*path, (*vert)->GetAverageVol(), ND::TTPCConnection::vertexPath)){
+      if(volGroupMan->GetPathVolOverlap(*path, vert->GetAverageVol(), ND::TTPCConnection::vertexPath)){
 	redundancy=true;
         break;
       }
     }
     if(!redundancy){
-      outpaths.push_back(*path);
+      outPaths.push_back(*path);
     }
   }
 
-  paths=std::move(outpaths);
+  paths=std::move(outPaths);
   
 }
 
@@ -674,7 +675,8 @@ void ND::TTPCAStar::GetNearHitConnections(ND::TTPCVolGroupMan* volGroupMan, ND::
     volCheck.AddHitMap(fHitMap);
 
     // find near hits and (friends)
-    ND::TTPCVolGroup nearHits = volGroupMan->GetNearHits(volCheck, point->vol, ND::TTPCConnection::path);
+    ND::TTPCVolGroup nearHits(fLayout);
+    volGroupMan->GetNearHits(volCheck, nearHits, point->vol, ND::TTPCConnection::path);
 
     // save cost of connecting to each of those friends
     for(std::map<long, ND::TTPCUnitVolume*>::iterator it = nearHits.begin(); it != nearHits.end(); ++it){

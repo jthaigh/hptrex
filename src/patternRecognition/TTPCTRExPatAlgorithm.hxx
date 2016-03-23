@@ -13,15 +13,13 @@
 #include <TVector3.h>
 
 // TREx
-#include <TTPCPattern.hxx>
-#include <TTPCPath.hxx>
-#include <TTPCJunction.hxx>
-#include <TTPCDebug.hxx>
+//#include <TTPCPattern.hxx>
+//#include <TTPCPath.hxx>
+//#include <TTPCJunction.hxx>
 
 // eddy
 #include "TTPCTRExPatSubAlgorithm.hxx"
 #include "TTPCLayout.hxx"
-#include "TTPCFeatureFinder.hxx"
 #include "TTPCUnitVolume.hxx"
 #include "TTPCVolGroupMan.hxx"
 #include "TTPCOrderedVolGroup.hxx"
@@ -49,7 +47,7 @@ namespace ND{
       bool GetXCathodeCross(){ return fMasterLayout->GetXCathodeCross(); }
 
       /// Current processing pattern recognition
-    void Process(const std::vector<ND::TTPCHitPad>& hits, std::vector<ND::TTPCHitPad*>& used, std::vector<ND::TTPCHitPad*>& unused);
+    void Process(std::vector<ND::TTPCHitPad*>& hits, std::vector<ND::TTPCHitPad*>& used, std::vector<ND::TTPCHitPad*>& unused);
 
       /// Getters
       /// Get iterator to start of set of sub-algorithms for sub-events in event
@@ -59,16 +57,15 @@ namespace ND{
       /// Get reference to layout contained by this object
       ND::TTPCLayout* GetLayout(){ return fMasterLayout; }
       /// Get reference to feature finder contained by this object
-      std::map<long, ND::TTPCUnitVolume>& GetHitMap(){ return fMasterHitMap; }
-      /// Get object containing all sub-events
-      std::vector< ND::TTPCVolGroup >& GetSubEvents(){ return fSubEvents; }
+      std::map<long, ND::TTPCUnitVolume*>& GetHitMap(){ return fMasterHitMap; }
+
       /// Get object containing all attached groups of delta hits
       std::vector< ND::TTPCVolGroup >& GetDeltaHits(){ return fDeltaHits; }
 
     private:
 
     /// Add a selection of hits for the first time and work out preliminary t0 and cathode crossing, and set up hits
-    void PrepareHits(std::vector<ND::TTPCHitPad> hits);
+    void PrepareHits(std::vector<ND::TTPCHitPad*>& hits);
     /// Populate list of delta ray hits
     
     //MDH
@@ -86,9 +83,8 @@ namespace ND{
       //on destruction.
       std::map<long, ND::TTPCUnitVolume*> fMasterHitMap;
       /// Object containing all hit pads
-      std::vector<const ND::TTPCHitPad*> fHits;
+      std::vector<ND::TTPCHitPad*> fHits;
       /// Object containing all sub-events
-      std::vector< ND::TTPCVolGroup > fSubEvents;
       /// Object containing all attached groups of delta hits
       std::vector< ND::TTPCVolGroup > fDeltaHits;
 

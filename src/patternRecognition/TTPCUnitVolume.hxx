@@ -9,11 +9,6 @@
 // ROOT
 #include <TVector3.h>
 
-// nd280
-#include <THandle.hxx>
-#include <THit.hxx>
-#include <TComboHit.hxx>
-
 // TREx
 #include <TTPCHitPad.hxx>
 

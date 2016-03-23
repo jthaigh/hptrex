@@ -1,6 +1,5 @@
 // eddy
 #include "TTPCTRExPatSubAlgorithm.hxx"
-#include "TTPCUtils.hxx"
 
 ND::TTPCTRExPatSubAlgorithm::TTPCTRExPatSubAlgorithm(ND::TTPCLayout* layout) {
   // initial values for containing hits, tpc number and event and sub-event numbers
@@ -9,14 +8,12 @@ ND::TTPCTRExPatSubAlgorithm::TTPCTRExPatSubAlgorithm(ND::TTPCLayout* layout) {
   fPrimary = false;
   fTPC = 0;
 
-  fTracks = std::vector< ND::TTPCOrderedVolGroup >;
-
   // set up objects for layout, hit group manager, feature finder and path finder
   fLayout = layout;
 
   fVolGroupMan = new ND::TTPCVolGroupMan(fLayout);
   fAStar = new ND::TTPCAStar(fLayout);  
-  fPattern = new ND::TTPCPattern;
+  //  fPattern = new ND::TTPCPattern;
 }
 ND::TTPCTRExPatSubAlgorithm::~TTPCTRExPatSubAlgorithm(){
   // delete groups of hits and path finders
@@ -26,10 +23,10 @@ ND::TTPCTRExPatSubAlgorithm::~TTPCTRExPatSubAlgorithm(){
   //MDH
   //Nobody had better use the pattern after we destroy the subalgorithm...
   //This is an output object that needs to be thoroughly re-engineered anyway
-  delete fPattern;
+  //delete fPattern;
 }
 
-void ND::TTPCTRExPatSubAlgorithm::SetUpHits(const std::map<long, ND::TTPCUnitVolume*>& map){
+void ND::TTPCTRExPatSubAlgorithm::SetUpHits(std::map<long, ND::TTPCUnitVolume*>& map, ND::TTPCAStar* aStarCopy){
   // add new pattern recognition cells if the charge cut is met
   fHitMap=map;
   
@@ -73,8 +70,7 @@ void ND::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   fHasValidPaths = false;
 
   // find list of hit groups on edge of paths
-  std::vector< ND::TTPCVolGroup > edgeGroups;
-  fVolGroupMan->GetEdgeGroups(edgeGroups);
+  std::vector< ND::TTPCVolGroup > edgeGroups=fVolGroupMan->GetEdgeGroups();
 
   // clear redundant edge groups (i.e. ones which are actually just half way points along existing paths)
   fAStar->ClearRedundancies(fVolGroupMan, edgeGroups);
@@ -91,8 +87,7 @@ void ND::TTPCTRExPatSubAlgorithm::ProduceContainers(){
     ND::TTPCOrderedVolGroup& edgePath = *edgePathIt;
 
     fVolGroupMan->BuildGroupFriends(edgePath, ND::TTPCConnection::extraHits);
-    ND::TTPCVolGroup pathHits;
-    edgePath->GetExtendedHits(pathHits);
+    ND::TTPCVolGroup pathHits=edgePath.GetExtendedHits();
 
     for(std::map<long, ND::TTPCUnitVolume*>::iterator foundVolIt = pathHits.begin(); foundVolIt != pathHits.end(); ++foundVolIt){
       long id = foundVolIt->first;
@@ -102,10 +97,10 @@ void ND::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   };
 
   // split and group unmatched hits
-  ND::TTPCVolGroupMan secondPassVolume = new ND::TTPCVolGroupMan(fLayout);
+  ND::TTPCVolGroupMan secondPassVolume(fLayout);
   secondPassVolume.AddPrimaryHits(unmatchedVolumes);
   std::vector< ND::TTPCVolGroup > extraSubVolumes;
-  secondPassVolume->GetConnectedHits(extraSubVolumes,ND::TTPCConnection::path, ND::TTPCHitGroupings::all, true);
+  secondPassVolume.GetConnectedHits(extraSubVolumes,ND::TTPCConnection::path, ND::TTPCHitGroupings::all, true);
 
   for(std::vector< ND::TTPCVolGroup >::iterator extraSubVolumeIt = extraSubVolumes.begin(); extraSubVolumeIt != extraSubVolumes.end(); ++extraSubVolumeIt){
     ND::TTPCVolGroup& extraSubVolume = *extraSubVolumeIt;
@@ -119,9 +114,8 @@ void ND::TTPCTRExPatSubAlgorithm::ProduceContainers(){
       subVolumeHits[volIt->first] = volIt->second;
     }
 
-    subVolumeMan->AddPrimaryHits(subVolumeHits);
-    std::vector<ND::TTPCVolGroup> extraEdgeGroups;
-    subVolumeMan->GetEdgeGroups(extraEdgeGroups);
+    subVolumeMan.AddPrimaryHits(subVolumeHits);
+    std::vector<ND::TTPCVolGroup> extraEdgeGroups=subVolumeMan.GetEdgeGroups();
     // add unmatched edges to main group
     for(std::vector< ND::TTPCVolGroup >::iterator extraEdgeGroupIt = extraEdgeGroups.begin(); extraEdgeGroupIt != extraEdgeGroups.end(); ++extraEdgeGroupIt){
       edgeGroups.emplace_back(std::move(*extraEdgeGroupIt));
@@ -223,12 +217,12 @@ void ND::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   fHasValidPaths = fTracks.size() > 0;
 }
 
-ND::TTPCPattern* ND::TTPCTRExPatSubAlgorithm::GetPattern(){
-  if(!fPattern){
-    return 0;
-  };
-  return fPattern;
-}
+//ND::TTPCPattern* ND::TTPCTRExPatSubAlgorithm::GetPattern(){
+//  if(!fPattern){
+//    return 0;
+//  };
+//  return fPattern;
+//}
 
 //MDH
 //Get rid of this for now since it needs to be rewritten for new output objects
@@ -362,11 +356,11 @@ void ND::TTPCTRExPatSubAlgorithm::ProducePattern(ND::THitSelection* used){
   }
   }*/
 
-std::vector<ND::TTPCHitPad*>& ND::TTPCTRExPatSubAlgorithm::GetHits(){
+std::vector<ND::TTPCHitPad*> ND::TTPCTRExPatSubAlgorithm::GetHits(){
   return fVolGroupMan->GetHits();
 }
-std::vector<ND::TTPCHitPad*>& ND::TTPCTRExPatSubAlgorithm::GetHits(ND::TTPCOrderedVolGroup& path){
-  return path.GetClusters();
+std::vector<ND::TTPCHitPad*> ND::TTPCTRExPatSubAlgorithm::GetHits(ND::TTPCOrderedVolGroup& path){
+  return std::move(path.GetClusters());
 }
 
 void ND::TTPCTRExPatSubAlgorithm::GetRegions(std::vector< ND::TTPCVolGroup >& regions){
@@ -428,11 +422,11 @@ void ND::TTPCTRExPatSubAlgorithm::FillUsedHits(std::vector<ND::TTPCHitPad*>& use
   };
 }
 */
-std::vector<ND::TTPCVolGroup > ND::TTPCTRExPatSubAlgorithm::GetTrackExtendedHits(std::vector<ND::TTPCVolGroup>& extHits){
+void ND::TTPCTRExPatSubAlgorithm::GetTrackExtendedHits(std::vector<ND::TTPCVolGroup>& extHits){
 
   for(std::vector< ND::TTPCOrderedVolGroup >::iterator trackIt = fTracks.begin(); trackIt != fTracks.end(); ++trackIt){
     ND::TTPCOrderedVolGroup& track = *trackIt;
-    extHits.push_back(track->GetExtendedHits());
+    extHits.push_back(track.GetExtendedHits());
   }
   
 }

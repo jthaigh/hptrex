@@ -6,17 +6,6 @@
 #include <vector>
 #include <algorithm>
 
-// ND280
-#include <THandle.hxx>
-#include <TComboHit.hxx>
-#include <TReconHit.hxx>
-#include <TReconCluster.hxx>
-#include <THitSelection.hxx>
-
-// TREx
-#include <TTPCHVCluster.hxx>
-#include <TTPCDebug.hxx>
-
 // eddy
 #include "TTPCUnitVolume.hxx"
 

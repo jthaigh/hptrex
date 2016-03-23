@@ -1,10 +1,11 @@
 #include "TTPCOrderedVolGroup.hxx"
 
 ClassImp(ND::TTPCOrderedVolGroup);
-ND::TTPCOrderedVolGroup::TTPCOrderedVolGroup(){
-  SetUp();
-}
-ND::TTPCOrderedVolGroup::TTPCOrderedVolGroup(ND::TTPCLayout* layout){
+//ND::TTPCOrderedVolGroup::TTPCOrderedVolGroup(){
+//  SetUp();
+//}
+ND::TTPCOrderedVolGroup::TTPCOrderedVolGroup(ND::TTPCLayout* layout):
+  fFrontHits(layout),fBackHits(layout),fExtendedHits(layout){
   fLayout = layout;
   SetUp();
 }
@@ -53,9 +54,6 @@ ND::TTPCPathVolume* ND::TTPCOrderedVolGroup::AddCell(ND::TTPCUnitVolume* cell, b
 void ND::TTPCOrderedVolGroup::DoClustering(bool partial){
   if(fIsXPath){
     DoXClustering();
-  }
-  else if(fLayout->GetUseAltHitAssociation() >= 2){
-    DoGreedyClustering(partial);
   }
   else{
     DoStandardClustering(partial);
@@ -416,7 +414,7 @@ void ND::TTPCOrderedVolGroup::InterpolateHVClusters(){
           // look for a hit within this distance
           ND::TTPCUnitVolume* closestVol = 0;
           int checkClosestDist2 = closestDist2;
-          for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fExtendedHits->begin(); volEl != fExtendedHits->end(); ++volEl){
+          for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fExtendedHits.begin(); volEl != fExtendedHits.end(); ++volEl){
             ND::TTPCUnitVolume* vol = volEl->second;
 
             int distX = targX - vol->GetX();
@@ -499,7 +497,7 @@ void ND::TTPCOrderedVolGroup::FillHVClusters(){
         long cellID = fLayout->SafeMash(x, y, z);
         if(cellID < 0) continue;
 
-        ND::TTPCUnitVolume* vol = fExtendedHits->GetEl(cellID);
+        ND::TTPCUnitVolume* vol = fExtendedHits.GetEl(cellID);
         if(!vol) continue;
 
         // check that his isn't already added
@@ -618,7 +616,7 @@ void ND::TTPCOrderedVolGroup::GreedyFillHVClusters(){
   GreedyMergeHVClusters(hClusters);
 
   // try and add all hits to horizontal and vertical cluster
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fExtendedHits->begin(); volEl != fExtendedHits->end(); ++volEl){
+  for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fExtendedHits.begin(); volEl != fExtendedHits.end(); ++volEl){
     GreedyAddVol(volEl->second, vClusters, true);
     GreedyAddVol(volEl->second, hClusters, false);
   };
@@ -780,7 +778,7 @@ void ND::TTPCOrderedVolGroup::ExpandXClusters(){
     for(int z=zMin; z<=zMax; z++){
       ND::TTPCPathVolume* hit = 0;
       // either add hits to current path volumes or create new ones
-      for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fExtendedHits->begin(); volEl != fExtendedHits->end(); ++volEl){
+      for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fExtendedHits.begin(); volEl != fExtendedHits.end(); ++volEl){
         ND::TTPCUnitVolume* vol = volEl->second;
 
         if(vol->GetX() != x) continue;
@@ -936,7 +934,7 @@ std::vector<ND::TTPCHitPad*> ND::TTPCOrderedVolGroup::GetClusters(){
   for(std::vector<ND::TTPCPathVolume*>::iterator id = fHits.begin(); id != fHits.end(); ++id){
     std::vector<ND::TTPCHitPad*> chits = (*id)->GetCellHits();
     for(auto hit=chits.begin();hit!=chits.end();++hit){
-      hits->push_back(*hit);
+      hits.push_back(*hit);
     }
   };
   

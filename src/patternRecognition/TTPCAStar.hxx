@@ -10,10 +10,6 @@
 #include <algorithm>
 #include <stdexcept>
 
-// nd280
-#include <TND280Log.hxx>
-#include <THandle.hxx>
-
 // ROOT
 #include <TVector3.h>
 
@@ -60,10 +56,10 @@ namespace ND{
 
 
       /// Connect a group of vertices to a group of track ends, holding on to the order of the hits in the path)
-    void ND::TTPCAStar::ConnectVertexGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& vertices, std::vector< ND::TTPCVolGroup >& edges, std::vector< ND::TTPCOrderedVolGroup >& connections, int maxNo=999);
+    void ConnectVertexGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& vertices, std::vector< ND::TTPCVolGroup >& edges, std::vector< ND::TTPCOrderedVolGroup >& connections, int maxNo=999);
 
       /// Connect pairs of groups to each other, holding on to the order of the hits in the path
-    void ND::TTPCAStar::ConnectGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, std::vector< ND::TTPCOrderedVolGroup >& connections, bool vertices, bool allConnections, int maxNo);
+    void ConnectGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, std::vector< ND::TTPCOrderedVolGroup >& connections, bool vertices=false, bool allConnections=false, int maxNo=999);
       
       /// Clear any groups that lie too close to paths between other groups
     void ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, int maxNo=999);

@@ -11,21 +11,11 @@
 // ROOT
 #include <TVector3.h>
 
-// nd280
-#include <TND280Log.hxx>
-#include <THandle.hxx>
-#include <THitSelection.hxx>
-#include <THit.hxx>
-#include <TReconPID.hxx>
-#include <TAlgorithm.hxx>
-#include <TAlgorithmResult.hxx>
-
 // TREx
 #include <TTPCHitPad.hxx>
-#include <TTPCPattern.hxx>
-#include <TTPCPath.hxx>
-#include <TTPCJunction.hxx>
-#include <TTPCDebug.hxx>
+//#include <TTPCPattern.hxx>
+//#include <TTPCPath.hxx>
+//#include <TTPCJunction.hxx>
 
 // eddy
 #include "TTPCLayout.hxx"
@@ -34,7 +24,6 @@
 #include "TTPCVolGroupMan.hxx"
 #include "TTPCOrderedVolGroup.hxx"
 #include "TTPCVolGroup.hxx"
-#include "TTPCCalibration.hxx"
 
 namespace ND{
   /// Main algorithm for pattern recognition for path finding.  Processes a sub-event of connected hits and returns a set of paths.
@@ -46,7 +35,7 @@ namespace ND{
       ~TTPCTRExPatSubAlgorithm();
 
       /// Set up pattern recognition algorithm cells from an iterable map of previously defined ones
-      void SetUpHits(std::map<long, ND::TTPCUnitVolume*> map, ND::TTPCAStar* aStarCopy=0);
+      void SetUpHits(std::map<long, ND::TTPCUnitVolume*>& map, ND::TTPCAStar* aStarCopy=0);
 
     //MDH
     //never used.
@@ -67,13 +56,13 @@ namespace ND{
       //void ProducePattern(std::vector<ND::TTPCHitPad*>& used);
 
       /// Return and this object's pattern
-      ND::TTPCPattern* GetPattern();
+      //ND::TTPCPattern* GetPattern();
 
       /// Get hits from internal group
-    std::vector<ND::TTPCHitPad*>& GetHits();
+    std::vector<ND::TTPCHitPad*> GetHits();
 
       /// Get hits from algorithm's hit map corresponding to provided path
-    std::vector<ND::TTPCHitPad*>& GetHits(ND::TTPCOrderedVolGroup& path);
+    std::vector<ND::TTPCHitPad*> GetHits(ND::TTPCOrderedVolGroup& path);
 
       /// Get groups of connected cells for defining sub-events
     void GetRegions(std::vector< ND::TTPCVolGroup >& regions);
@@ -108,7 +97,7 @@ namespace ND{
       /// Get found paths contained by this object
       std::vector< ND::TTPCOrderedVolGroup >& GetTracks(){ return fTracks; }
       /// Get found paths contained by this object as unordered groups
-    std::vector<ND::TTPCVolGroup> GetTrackExtendedHits(std::vector<ND::TTPCVolGroup>& extHits);
+      void GetTrackExtendedHits(std::vector<ND::TTPCVolGroup>& extHits);
 
       /// Get whether this is the primary sub group
       bool GetPrimary(){ return fPrimary; }
@@ -125,7 +114,7 @@ namespace ND{
       ND::TTPCAStar* fAStar;
 
       /// Overall pattern produced
-      ND::TTPCPattern* fPattern;
+    //    ND::TTPCPattern* fPattern;
 
       /// Vector of all paths
       std::vector< ND::TTPCOrderedVolGroup > fTracks;

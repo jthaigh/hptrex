@@ -49,7 +49,7 @@ std::vector<ND::TTPCHitPad*> ND::TTPCPathVolume::GetHits(){
     for(std::vector< ND::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
       ND::TTPCHitPad* nhit = *hitIt;
       if (nhit)
-        output.AddHit(nhit);
+        output.push_back(nhit);
       else
         throw;
     }

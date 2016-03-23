@@ -12,15 +12,7 @@
 #include <TObject.h>
 #include <TVector3.h>
 
-// nd280
-#include <THandle.hxx>
-#include <THitSelection.hxx>
-#include <TComboHit.hxx>
-#include <TReconBase.hxx>
 #include <cstdlib>
-
-// TREx
-#include <TTPCDebug.hxx>
 
 // eddy
 #include "TTPCLayout.hxx"

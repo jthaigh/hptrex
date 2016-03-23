@@ -1,56 +1,26 @@
 #include "TTPCHitPad.hxx"
-#include <TOARuntimeParameters.hxx>
-#include <TGeomInfo.hxx>
-#include <TMultiHit.hxx>
 #include <TGraph.h>
 #include <TF1.h>
 
 
 ClassImp(ND::TTPCHitPad);
 
-typedef std::vector< ND::THandle< ND::TSingleHit > >::const_iterator timebin;
+//typedef std::vector< ND::THandle< ND::TSingleHit > >::const_iterator timebin;
 
 //*****************************************************************************************************************
-ND::TTPCHitPad::TTPCHitPad() : TReconHit(){
+ND::TTPCHitPad::TTPCHitPad(){
 //*****************************************************************************************************************
   InitParameters();
-  fNegativePeakBin = std::vector< ND::THandle<ND::TSingleHit> >();
-}
-
-//*****************************************************************************************************************
-ND::TTPCHitPad::~TTPCHitPad() { }
-//*****************************************************************************************************************
-
-//*****************************************************************************************************************
-ND::TTPCHitPad::TTPCHitPad(const ND::TWritableReconHit& h, std::vector< ND::THandle< ND::TSingleHit > > bins, double ChargeExtrapolated)
-//*****************************************************************************************************************
-    : TReconHit(h), fPeakBin(bins), fChargeExtrapolated(ChargeExtrapolated){
-  InitParameters();
-  Init();
-}
-
-//*****************************************************************************************************************
-ND::TTPCHitPad::TTPCHitPad(const ND::TWritableReconHit& h, std::vector< ND::THandle< ND::TSingleHit > > bins, std::vector< ND::THandle< ND::TSingleHit > > negativeBins, double ChargeExtrapolated)
-    : TReconHit(h), fPeakBin(bins), fChargeExtrapolated(ChargeExtrapolated){
-//*****************************************************************************************************************
-  InitParameters();
-  Init();
-  fNegativePeakBin = negativeBins;
 }
 
 //*****************************************************************************************************************
 void ND::TTPCHitPad::InitParameters(){
 //*****************************************************************************************************************
-  fAnalyticFitRange = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.Wave.AnalyticFitRange");
-  fAnalyticFitAmpCut = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.Wave.AnalyticFitAmpCut");
-  fLowerTimeSpread = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.Wave.LowerTimeSpread");
-  fUpperTimeSpread = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.Wave.UpperTimeSpread");
-  fSamplingTime = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.AfterTPC.SamplingTime");
 }
 //*****************************************************************************************************************
 void ND::TTPCHitPad::Init(){
 //*****************************************************************************************************************
-  fNegativePeakBin = std::vector< ND::THandle<ND::TSingleHit> >();
+/*  fNegativePeakBin = std::vector< ND::THandle<ND::TSingleHit> >();
 
   // Saturation
   fSaturation = 0;
@@ -85,9 +55,9 @@ void ND::TTPCHitPad::Init(){
   // By default do the analytic fit.
   // The ROOT fit is available for studies but currently not considered
   // usable because probably too slow.
-  AnalyticFit();
+  AnalyticFit();*/
 }
-
+/*
 //*****************************************************************************************************************
 unsigned int ND::TTPCHitPad::GetNumberPeaks(){
 //*****************************************************************************************************************
@@ -153,10 +123,6 @@ void ND::TTPCHitPad::AnalyticFit() {
   typedef std::vector< ND::THandle< ND::TSingleHit > >::const_iterator iterator;
   iterator maxBin = mh->begin() + fMaxPeak;
 
-  /*  Solution to ln of gaussian using the minimization of the chi^2 for aquadratic:
-   *
-   *              chi^2 = Sum_i (y_i - a0 - a1*x - a2*x^2)^2
-   */
   iterator start = maxBin - fAnalyticFitRange,
            end = maxBin + fAnalyticFitRange;
 
@@ -266,27 +232,32 @@ void ND::TTPCHitPad::RootGaussFit() {
   }
 
 }
-
+*/
 //*****************************************************************************************************************
 std::vector<double> ND::TTPCHitPad::GetPeakTimes() {
 //*****************************************************************************************************************
-  std::vector<double> PeakTimes;
-  for (std::vector< ND::THandle< ND::TSingleHit > >::const_iterator bin = fPeakBin.begin(); bin !=  fPeakBin.end(); bin++) {
-    PeakTimes.push_back((*bin)->GetTime());
-  }
-  return PeakTimes;
+  //std::vector<double> PeakTimes;
+  //for (std::vector< ND::THandle< ND::TSingleHit > >::const_iterator bin = fPeakBin.begin(); bin !=  fPeakBin.end(); bin++) {
+  //  PeakTimes.push_back((*bin)->GetTime());
+  //}
+  //return PeakTimes;
+  std::vector<double> peakTimes;
+  peakTimes.push_back(fTimeFit);
+  return peakTimes;
 }
 
 //*****************************************************************************************************************
 std::vector<double> ND::TTPCHitPad::GetPeakCharges() {
 //*****************************************************************************************************************
   std::vector<double> PeakCharges;
-  for (std::vector< ND::THandle< ND::TSingleHit > >::const_iterator bin = fPeakBin.begin(); bin !=  fPeakBin.end(); bin++) {
-    PeakCharges.push_back((*bin)->GetCharge());
-  }
+//  for (std::vector< ND::THandle< ND::TSingleHit > >::const_iterator bin = fPeakBin.begin(); bin !=  fPeakBin.end(); bin++) {
+//    PeakCharges.push_back((*bin)->GetCharge());
+//  }
+  PeakCharges.push_back(fChargeFit);
   return PeakCharges;
+ 
 }
-
+/*
 //*****************************************************************************************************************
 std::vector<double> ND::TTPCHitPad::GetNegativePeakTimes() {
 //*****************************************************************************************************************
@@ -324,3 +295,4 @@ std::vector<double> ND::TTPCHitPad::GetNegativePeakCharges() {
 ND::THandle<ND::TMultiHit> ND::TTPCHitPad::ConvertToOAEvent() {
   return GetMultiHit();
 }
+*/

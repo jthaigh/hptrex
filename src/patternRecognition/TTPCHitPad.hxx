@@ -1,8 +1,8 @@
 #ifndef TTPCHitPad_hxx_seen
 #define TTPCHitPad_hxx_seen
 
-#include <TReconHit.hxx>
-#include <TMultiHit.hxx>
+#include <vector>
+#include "TVector3.h"
 
 /// Possible sources of the T0
 enum {kWFPEAKNOFIT = 0, kWFPEAKANALYTICFIT, kWFPEAKROOTGAUSSFIT};
@@ -14,41 +14,27 @@ namespace ND {
 /// Contains all the information relative to a waveform from a TPC pad.
 /// This may contains more than one peak if the peaks are too closed
 /// to be split into individual waveforms.
-class ND::TTPCHitPad : public TReconHit {
+class ND::TTPCHitPad {
 public:
   TTPCHitPad();
-  TTPCHitPad(const TWritableReconHit& val, std::vector< ND::THandle< ND::TSingleHit > >, double ChargeExtrapolated);
-  TTPCHitPad(const TWritableReconHit& val, std::vector< ND::THandle< ND::TSingleHit > > bins, std::vector< ND::THandle< ND::TSingleHit > > negativeBins, double ChargeExtrapolated);
-  virtual ~TTPCHitPad();
-
-  /// Simple analytic fit of the waveform peak.
-  /// It uses N bins on each side of the peak
-  /// with N = tpcRecon.Reco.Wave.AnalyticFitRange
-  void AnalyticFit();
-
-  /// More advanced fitting of the peak using a Gauss
-  /// fit from ROOT.
-  void RootGaussFit();
-
-  /// Number of peaks in the waveform that could not be split
-  /// into individuals waveforms because they overlap too much.
-  unsigned int GetNumberPeaks();
-
   /// Returns a vector with the charge of each one the peaks in the waveform.
   /// If there is only one peak, the given charge is the same as GetCharge().
   std::vector<double> GetPeakCharges();
+  double GetCharge(){return GetPeakCharges()[0];}
 
   /// Returns a vector with the time of each one the peaks in the waveform.
   /// If there is only one peak, the given time is the same as GetTime().
   std::vector<double> GetPeakTimes();
+  double GetTime(){return GetPeakTimes()[0];}
 
+  std::vector<double> GetNegativePeakTimes(){std::vector<double> dummy;return dummy;}
+  std::vector<double> GetNegativePeakCharges(){std::vector<double> dummy;return dummy;}
+
+  unsigned int GetNumberPeaks(){return 1;}
   /// Return a vector with the charges of each of the negative peaks in the waveform
-  std::vector<double> GetNegativePeakCharges();
+  //  std::vector<double> GetNegativePeakCharges();
   /// Return a vector with the times of each of the negative peaks in the waveform
-  std::vector<double> GetNegativePeakTimes();
-
-// TODO ?
-//  void GetWaveformTimeRange(double &min, double &max);
+  //std::vector<double> GetNegativePeakTimes();
 
   /// Number of bins with the same value at the highest peak.
   /// A return value of 1 is for a peak considered not saturated.
@@ -68,9 +54,6 @@ public:
   // Is this pad against the horizontal edge of the MM ?
   bool IsAtHoriEdge(){return fAtHoriEdge;};
 
-  /// Get whether hit is candidate for a hair
-  bool GetHairCandidate(){ return fHairCandidate; }
-
   /// Report if the peak of the waveform has been fitted and by which algorithm:
   /// kWFPEAKNOFIT        -> No successful fit
   /// kWFPEAKANALYTICFIT  -> Analytic fit
@@ -85,27 +68,17 @@ public:
   double SigmaFit(){return fSigmaFit;};
 
   /// Short cut to access the Y position of the pad
-  double Y(){return this->GetPosition().Y();};
+  double Y(){return fPosition.Y();};
   /// Short cut to access the Z position of the pad
-  double Z(){return this->GetPosition().Z();};
+  double Z(){return fPosition.Z();};
 
-  /// Set whether hit is candidate for a hair
-  void SetHairCandidate(bool hairCandidate){ fHairCandidate = hairCandidate; }
-
-  /// Short cut to get the TMultiHit directly
-  ND::THandle<ND::THit> GetMultiHit();
-
-  ND::THandle<ND::TMultiHit> ConvertToOAEvent();
+  TVector3 GetPosition(){return fPosition;}
 
 private:
   /// Initialise member variables
   void Init();
   void InitParameters();
 
-  /// Vector with all the peak times when the waveform is composed of multipeaks too close to be split up
-  std::vector< ND::THandle< ND::TSingleHit > > fPeakBin;
-  /// Vector with all the negative peaks in the waveform
-  std::vector< ND::THandle< ND::TSingleHit > > fNegativePeakBin;
   /// Index of the bin of maximum charge in the waveform
   int fMaxPeak;
   unsigned int fSaturation;
@@ -113,9 +86,6 @@ private:
 
   bool fAtHoriEdge;
   bool fAtVertEdge;
-
-  /// Whether hit is candidate for a hair
-  bool fHairCandidate;
 
   double fChargeIntegral;
   double fChargeExtrapolated;
@@ -140,10 +110,7 @@ private:
   /// tpcRecon.AfterTPC.SamplingTime
   double fSamplingTime;
 
-  ClassDef(TTPCHitPad,1);
-
-  //protected:
-
+  TVector3 fPosition;
 };
 
 #endif

@@ -163,7 +163,7 @@ std::vector<ND::TTPCHitPad*> ND::TTPCVolGroup::GetHits(){
     std::vector< ND::TTPCHitPad* > hits = el->second->GetHits();
     for(std::vector< ND::TTPCHitPad* >::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
       ND::TTPCHitPad* hit = *hitIt;
-      outHits->push_back(hit);
+      outHits.push_back(hit);
     }
   }
   return std::move(outHits);

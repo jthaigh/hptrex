@@ -15,10 +15,6 @@
 #include <TH1F.h>
 #include <TF1.h>
 
-// nd280
-#include <TND280Log.hxx>
-#include <THandle.hxx>
-
 // eddy
 #include "TTPCLayout.hxx"
 #include "TTPCPathVolume.hxx"
@@ -113,7 +109,7 @@ namespace ND{
       void BulkGroups(std::vector< ND::TTPCVolGroup >& groups);
 
       /// Break input tracks around any kinks found inside them
-      void ND::TTPCVolGroupMan::BreakPathsAboutKinks(std::vector< ND::TTPCOrderedVolGroup >& paths, bool tryChargeCut=false);
+      void BreakPathsAboutKinks(std::vector< ND::TTPCOrderedVolGroup >& paths, bool tryChargeCut=false);
 
       /// Get a pointer to the main group of hits associated with this manager
       ND::TTPCVolGroup& GetPrimaryHits(){ return fPrimaryHits; }
@@ -123,7 +119,7 @@ namespace ND{
 
 
       /// Process hits in unordered group, associating an unordered group of nearby hits with it
-      void BuildGroupFriends(ND::TTPCOrderedVolGroup& in, ND::TTPCConnection::Type type);
+      void BuildGroupFriends(ND::TTPCOrderedVolGroup& in, ND::TTPCConnection::Type type = ND::TTPCConnection::pathHits);
       /// Produce clusters in unordered group
       void ClusterGroupFriends(ND::TTPCOrderedVolGroup& in, bool doClustering=false, bool checkX=false, bool partial=false);
       
@@ -160,10 +156,10 @@ namespace ND{
       void GetExtendedGroup(ND::TTPCVolGroup& in, ND::TTPCVolGroup& out);
 
       /// Get hits in fPrimaryHits connected to this one within specified distance
-    void GetConnectedHits(std::vector<ND::TTPCVolGroup>& out, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter, bool usabilityCheck);
+    void GetConnectedHits(std::vector<ND::TTPCVolGroup>& out,ND::TTPCConnection::Type type=ND::TTPCConnection::path, ND::TTPCHitGroupings::Type typeFilter=ND::TTPCHitGroupings::all, bool usabilityCheck=false);
 
       /// Get hits in given group connected to this one within specified distance
-    void GetConnectedHits(ND::TTPCVolGroup& in, std::vector<ND::TTPCVolGroup>& out, ND::TTPCConnection::Type type, ND::TTPCHitGroupings::Type typeFilter, bool usabilityCheck);
+    void GetConnectedHits(ND::TTPCVolGroup& in, std::vector<ND::TTPCVolGroup>& out, ND::TTPCConnection::Type type=ND::TTPCConnection::path, ND::TTPCHitGroupings::Type typeFilter = ND::TTPCHitGroupings::all, bool usabilityCheck=false);
 
       /// Check that a provided group covers the minimum number of pads
       bool CheckUsability(ND::TTPCVolGroup& inGroup);
@@ -179,7 +175,7 @@ namespace ND{
     void GetUnusedHits(std::vector< ND::TTPCOrderedVolGroup >& paths, TTPCVolGroup& unusedHits);
 
       /// Associate unused hits with path junctions
-    void ND::TTPCVolGroupMan::AssociateUnusedWithJunctions(ND::TTPCVolGroup& unused, std::vector< ND::TTPCOrderedVolGroup >& paths);
+    void AssociateUnusedWithJunctions(ND::TTPCVolGroup& unused, std::vector< ND::TTPCOrderedVolGroup >& paths);
 
       /// Filter out any remaining tracks and hits that don't make sense
       void SanityFilter(std::vector< ND::TTPCOrderedVolGroup >& input);
@@ -195,7 +191,7 @@ namespace ND{
       bool IsXPathCandidate(ND::TTPCOrderedVolGroup& inPath);
 
       /// Get hits associated with primary path
-      std::vector<ND::TTPCHitPad*>& GetHits();
+      std::vector<ND::TTPCHitPad*> GetHits();
 
       
     private:

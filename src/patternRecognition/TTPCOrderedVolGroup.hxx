@@ -14,13 +14,6 @@
 #include <TObject.h>
 #include <TMath.h>
 
-// nd280
-#include <THandle.hxx>
-
-// TREx
-#include <TTPCHVCluster.hxx>
-#include <TTPCDebug.hxx>
-
 // eddy
 #include "TTPCLayout.hxx"
 #include "TTPCPathVolume.hxx"
@@ -35,7 +28,7 @@ namespace ND{
 class ND::TTPCOrderedVolGroup : public TObject {
   public:
     /// Default constructor
-    TTPCOrderedVolGroup();
+  //    TTPCOrderedVolGroup();
     /// Constructor
     TTPCOrderedVolGroup(ND::TTPCLayout* fLayout);
     /// Destructor
@@ -61,9 +54,9 @@ class ND::TTPCOrderedVolGroup : public TObject {
     /// Get average cell in back hits
     ND::TTPCUnitVolume* GetBackAverageVol(){ return fBackHits.GetAverageVol(); }
     /// Return bare pointer to hits in front
-    ND::THitSelection* GetFrontHitSelection(){ return fFrontHits.GetHitSelection(); }
+  std::vector<ND::TTPCHitPad*> GetFrontHitSelection(){ return fFrontHits.GetHits(); }
     /// Return bare pointer to hits in back
-    ND::THitSelection* GetBackHitSelection(){ return fBackHits.GetHitSelection(); }
+  std::vector<ND::TTPCHitPad*> GetBackHitSelection(){ return fBackHits.GetHits(); }
     /// Get ID for the group of hits at the front of this group
     unsigned int GetFrontID(){ return fFrontHits.GetID(); }
     /// Get ID for the group of hits at the back of this group

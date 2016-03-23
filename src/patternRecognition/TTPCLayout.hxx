@@ -10,17 +10,6 @@
 // ROOT
 #include <TVector3.h>
 
-// nd280
-#include <TOARuntimeParameters.hxx>
-#include <THandle.hxx>
-#include <THitSelection.hxx>
-#include <THit.hxx>
-#include <TGeomInfo.hxx>
-#include "TTPCCalibration.hxx"
-#include <TTPCGeom.hxx>
-#include <TGeometryId.hxx>
-#include "TTPCCalibration.hxx"
-
 // TRex
 #include <TTPCHitPad.hxx>
 
