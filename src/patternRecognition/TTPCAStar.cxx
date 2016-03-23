@@ -289,7 +289,7 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
       ND::TTPCVolGroup& grp1 = mergedGroups[i];
       ND::TTPCVolGroup& grp2 = mergedGroups[j];
       // add connection between the groups to set of connections
-      ND::TTPCOrderedVolGroup path;
+      ND::TTPCOrderedVolGroup path(fLayout);
       ConnectGroupPair(grp1, grp2,path);
       // kill any groups associated with this path other than its direct ends
       for(int k=0; k<nGroups; ++k){

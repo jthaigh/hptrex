@@ -86,7 +86,7 @@ class ND::TTPCVolGroup : public TObject {
     /// Return an element from hit map 
     ND::TTPCUnitVolume* GetHit(long id, bool safe=true);
     /// Return the hit map
-    std::map<long, ND::TTPCUnitVolume*> GetHitMap(){ return fHitMap; }
+    std::map<long, ND::TTPCUnitVolume*>& GetHitMap(){ return fHitMap; }
 
     /// Return average position of all cells in the group 
     TVector3 GetAveragePosition(){ Close(); return fAveragePosition; }
