@@ -1,21 +1,21 @@
 #include "TTPCOrderedVolGroup.hxx"
 
-ClassImp(ND::TTPCOrderedVolGroup);
-//ND::TTPCOrderedVolGroup::TTPCOrderedVolGroup(){
+ClassImp(trex::TTPCOrderedVolGroup);
+//trex::TTPCOrderedVolGroup::TTPCOrderedVolGroup(){
 //  SetUp();
 //}
-ND::TTPCOrderedVolGroup::TTPCOrderedVolGroup(ND::TTPCLayout* layout):
+trex::TTPCOrderedVolGroup::TTPCOrderedVolGroup(trex::TTPCLayout* layout):
   fFrontHits(layout),fBackHits(layout),fExtendedHits(layout){
   fLayout = layout;
   SetUp();
 }
-ND::TTPCOrderedVolGroup::~TTPCOrderedVolGroup(){
-  for(std::vector<ND::TTPCPathVolume*>::iterator pathVol = fHits.begin(); pathVol != fHits.end(); ++pathVol){
+trex::TTPCOrderedVolGroup::~TTPCOrderedVolGroup(){
+  for(std::vector<trex::TTPCPathVolume*>::iterator pathVol = fHits.begin(); pathVol != fHits.end(); ++pathVol){
     delete *pathVol;
   };
 }
 
-void ND::TTPCOrderedVolGroup::SetUp(){
+void trex::TTPCOrderedVolGroup::SetUp(){
 
   fAddedFrontHits = false;
   fAddedBackHits = false;
@@ -28,22 +28,22 @@ void ND::TTPCOrderedVolGroup::SetUp(){
   fClosed = false;
 }
 
-void ND::TTPCOrderedVolGroup::AddFrontHits(ND::TTPCVolGroup& frontHits){
+void trex::TTPCOrderedVolGroup::AddFrontHits(trex::TTPCVolGroup& frontHits){
   fFrontHits = frontHits;
   fAddedFrontHits = true;
 }
-void ND::TTPCOrderedVolGroup::AddBackHits(ND::TTPCVolGroup& backHits){
+void trex::TTPCOrderedVolGroup::AddBackHits(trex::TTPCVolGroup& backHits){
   fBackHits = backHits;
   fAddedBackHits = true;
 }
-void ND::TTPCOrderedVolGroup::AddExtendedHits(ND::TTPCVolGroup& extendedHits){
+void trex::TTPCOrderedVolGroup::AddExtendedHits(trex::TTPCVolGroup& extendedHits){
   fHasExtendedHits = true;
   fExtendedHits = extendedHits;
 }
 
-ND::TTPCPathVolume* ND::TTPCOrderedVolGroup::AddCell(ND::TTPCUnitVolume* cell, bool isXCluster){
+trex::TTPCPathVolume* trex::TTPCOrderedVolGroup::AddCell(trex::TTPCUnitVolume* cell, bool isXCluster){
   // create new path with input cell
-  ND::TTPCPathVolume* path = new ND::TTPCPathVolume(cell);
+  trex::TTPCPathVolume* path = new trex::TTPCPathVolume(cell);
   path->SetIsXCluster(isXCluster);
   // add to list of hits
   fHits.push_back(path);
@@ -51,7 +51,7 @@ ND::TTPCPathVolume* ND::TTPCOrderedVolGroup::AddCell(ND::TTPCUnitVolume* cell, b
 
   return path;
 }
-void ND::TTPCOrderedVolGroup::DoClustering(bool partial){
+void trex::TTPCOrderedVolGroup::DoClustering(bool partial){
   if(fIsXPath){
     DoXClustering();
   }
@@ -59,7 +59,7 @@ void ND::TTPCOrderedVolGroup::DoClustering(bool partial){
     DoStandardClustering(partial);
   };
 }
-void ND::TTPCOrderedVolGroup::DoStandardClustering(bool partial){
+void trex::TTPCOrderedVolGroup::DoStandardClustering(bool partial){
   if(!partial){
     StripX();
     FindClusterAnglesByDichotomy();
@@ -70,7 +70,7 @@ void ND::TTPCOrderedVolGroup::DoStandardClustering(bool partial){
   FillHVClusters();
   MergeHVClusters();
 }
-void ND::TTPCOrderedVolGroup::DoGreedyClustering(bool partial){
+void trex::TTPCOrderedVolGroup::DoGreedyClustering(bool partial){
   if(!partial){
     StripX();
     FindClusterAnglesByDichotomy();
@@ -80,16 +80,16 @@ void ND::TTPCOrderedVolGroup::DoGreedyClustering(bool partial){
   ExtrapolateHVClusters();
   GreedyFillHVClusters();
 }
-void ND::TTPCOrderedVolGroup::DoXClustering(){
+void trex::TTPCOrderedVolGroup::DoXClustering(){
   ExpandXClusters();
   SetXClusterHVAngles();
 }
-void ND::TTPCOrderedVolGroup::StripX(){
+void trex::TTPCOrderedVolGroup::StripX(){
   // kill adjacent nearby volumes repeated only in z
   int lastY = -1;
   int lastZ = -1;
-  for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
-    ND::TTPCPathVolume* pathVol = *pathVolIt;
+  for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
+    trex::TTPCPathVolume* pathVol = *pathVolIt;
     int curY = pathVol->GetY();
     int curZ = pathVol->GetZ();
 
@@ -101,14 +101,14 @@ void ND::TTPCOrderedVolGroup::StripX(){
     lastZ = curZ;
   };
   // erase dead path volumes
-  std::vector<ND::TTPCPathVolume*>::iterator pathDel = fHits.begin();
+  std::vector<trex::TTPCPathVolume*>::iterator pathDel = fHits.begin();
   while(pathDel != fHits.end()){
     if(!*pathDel) fHits.erase(pathDel);
     else pathDel ++;
   };
   fClosed = false;
 }
-void ND::TTPCOrderedVolGroup::FindClusterAnglesByDichotomy(){
+void trex::TTPCOrderedVolGroup::FindClusterAnglesByDichotomy(){
   int pathSize = fHits.size();
 
   // define vector establishing angles along track
@@ -138,7 +138,7 @@ void ND::TTPCOrderedVolGroup::FindClusterAnglesByDichotomy(){
 
     int prevZ = -1;
     for(int i=0; i<pathSize; i++){
-      ND::TTPCPathVolume* pathVol = fHits[i];
+      trex::TTPCPathVolume* pathVol = fHits[i];
 
       int z = pathVol->GetZ();
 
@@ -229,12 +229,12 @@ void ND::TTPCOrderedVolGroup::FindClusterAnglesByDichotomy(){
   // set angles
   for(int i=0; i<pathSize; i++){
     float angle = angles[i];
-    ND::TTPCPathVolume* pathVol = fHits[i];
+    trex::TTPCPathVolume* pathVol = fHits[i];
 
     pathVol->SetPatRecAngle(angle);
   };
 }
-void ND::TTPCOrderedVolGroup::RecursiveDichotomy(std::vector<float>& angles, int firstID, int lastID, float prevAngDiff){
+void trex::TTPCOrderedVolGroup::RecursiveDichotomy(std::vector<float>& angles, int firstID, int lastID, float prevAngDiff){
   int midPoint = int( (firstID+lastID)/2 );
   if(((lastID-firstID) < fLayout->GetDichotomyCutoff()) && (firstID != 0 || lastID != (int)angles.size()-1)) return;
   if(midPoint == firstID || midPoint == lastID) return;
@@ -258,7 +258,7 @@ void ND::TTPCOrderedVolGroup::RecursiveDichotomy(std::vector<float>& angles, int
     RecursiveDichotomy(angles, midPoint, lastID, angDiff);
   };
 }
-void ND::TTPCOrderedVolGroup::FindHVClustersFromAngles(){
+void trex::TTPCOrderedVolGroup::FindHVClustersFromAngles(){
   int pathSize = fHits.size();
 
   // relevant clustering parameters
@@ -274,8 +274,8 @@ void ND::TTPCOrderedVolGroup::FindHVClustersFromAngles(){
   float maxAngl = 0.0;
   float minAngl = 0.0;
   if(pathSize>0)
-  for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
-    ND::TTPCPathVolume* pathVol = *pathVolIt;
+  for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
+    trex::TTPCPathVolume* pathVol = *pathVolIt;
     if(pathVolIt == fHits.begin()){
       maxAngl = pathVol->GetPatRecAngle();
       minAngl = pathVol->GetPatRecAngle();
@@ -353,16 +353,16 @@ void ND::TTPCOrderedVolGroup::FindHVClustersFromAngles(){
     };
   };
 }
-void ND::TTPCOrderedVolGroup::ExtrapolateHVClusters(){
+void trex::TTPCOrderedVolGroup::ExtrapolateHVClusters(){
   if(fHits.size() < 2) return;
 
   // front and back hits
-  std::vector<ND::TTPCPathVolume*> backAddHits = GetExtrapolatedClusters(fHits.begin(), -1);
-  std::vector<ND::TTPCPathVolume*> frontAddHits = GetExtrapolatedClusters(fHits.end()-1, 1);
+  std::vector<trex::TTPCPathVolume*> backAddHits = GetExtrapolatedClusters(fHits.begin(), -1);
+  std::vector<trex::TTPCPathVolume*> frontAddHits = GetExtrapolatedClusters(fHits.end()-1, 1);
 
   // reverse front hits and insert to front
-  std::vector<ND::TTPCPathVolume*> orderedBackHits;
-  for(std::vector<ND::TTPCPathVolume*>::reverse_iterator pathVolRIt = backAddHits.rbegin(); pathVolRIt != backAddHits.rend(); ++pathVolRIt){
+  std::vector<trex::TTPCPathVolume*> orderedBackHits;
+  for(std::vector<trex::TTPCPathVolume*>::reverse_iterator pathVolRIt = backAddHits.rbegin(); pathVolRIt != backAddHits.rend(); ++pathVolRIt){
     orderedBackHits.push_back(*pathVolRIt);
   };
   fHits.insert(fHits.begin(), orderedBackHits.begin(), orderedBackHits.end());
@@ -372,14 +372,14 @@ void ND::TTPCOrderedVolGroup::ExtrapolateHVClusters(){
 
   fClosed = false;
 }
-void ND::TTPCOrderedVolGroup::InterpolateHVClusters(){
+void trex::TTPCOrderedVolGroup::InterpolateHVClusters(){
   if(fHits.size() < 2) return;
 
   int closestDist2 = fLayout->GetClusterConnectDist()*fLayout->GetClusterConnectDist();
   // look for pairs of hits where one is skipped in between
   for(unsigned int i = 0; i < fHits.size()-1; ++i){
-    ND::TTPCPathVolume* pathVol1 = fHits.at(i);
-    ND::TTPCPathVolume* pathVol2 = fHits.at(i+1);
+    trex::TTPCPathVolume* pathVol1 = fHits.at(i);
+    trex::TTPCPathVolume* pathVol2 = fHits.at(i+1);
 
     if(!pathVol1) continue;
     if(!pathVol2) continue;
@@ -399,7 +399,7 @@ void ND::TTPCOrderedVolGroup::InterpolateHVClusters(){
 
       if(diff > 1){
         // fill vector of points to insert
-        std::vector<ND::TTPCPathVolume*> toInsert;
+        std::vector<trex::TTPCPathVolume*> toInsert;
 
         // try and fill in points in between
         int dX = (pathVol2->GetX() - pathVol1->GetX()) / diff;
@@ -412,10 +412,10 @@ void ND::TTPCOrderedVolGroup::InterpolateHVClusters(){
           int targZ = pathVol1->GetZ() + (dZ * check);
 
           // look for a hit within this distance
-          ND::TTPCUnitVolume* closestVol = 0;
+          trex::TTPCUnitVolume* closestVol = 0;
           int checkClosestDist2 = closestDist2;
-          for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fExtendedHits.begin(); volEl != fExtendedHits.end(); ++volEl){
-            ND::TTPCUnitVolume* vol = volEl->second;
+          for(std::map<long, trex::TTPCUnitVolume*>::iterator volEl = fExtendedHits.begin(); volEl != fExtendedHits.end(); ++volEl){
+            trex::TTPCUnitVolume* vol = volEl->second;
 
             int distX = targX - vol->GetX();
             int distY = targY - vol->GetY();
@@ -441,7 +441,7 @@ void ND::TTPCOrderedVolGroup::InterpolateHVClusters(){
             };
           };
           if(closestVol){
-            ND::TTPCPathVolume* newPathVol = new ND::TTPCPathVolume(closestVol);
+            trex::TTPCPathVolume* newPathVol = new trex::TTPCPathVolume(closestVol);
             newPathVol->SetIsVertical(isVertical);
 
             toInsert.push_back(newPathVol);
@@ -460,10 +460,10 @@ void ND::TTPCOrderedVolGroup::InterpolateHVClusters(){
   fClosed = false;
 }
 
-void ND::TTPCOrderedVolGroup::FillHVClusters(){
+void trex::TTPCOrderedVolGroup::FillHVClusters(){
   // loop over all points in path
-  for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
-    ND::TTPCPathVolume* pathVol = *pathVolIt;
+  for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
+    trex::TTPCPathVolume* pathVol = *pathVolIt;
     bool isVertical = pathVol->GetIsVertical();
 
     // grab co-ordinates
@@ -497,7 +497,7 @@ void ND::TTPCOrderedVolGroup::FillHVClusters(){
         long cellID = fLayout->SafeMash(x, y, z);
         if(cellID < 0) continue;
 
-        ND::TTPCUnitVolume* vol = fExtendedHits.GetEl(cellID);
+        trex::TTPCUnitVolume* vol = fExtendedHits.GetEl(cellID);
         if(!vol) continue;
 
         // check that his isn't already added
@@ -522,10 +522,10 @@ void ND::TTPCOrderedVolGroup::FillHVClusters(){
   };
   fClosed = false;
 }
-void ND::TTPCOrderedVolGroup::MergeHVClusters(){
+void trex::TTPCOrderedVolGroup::MergeHVClusters(){
   // first, clear any empty clusters
-  for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
-    ND::TTPCPathVolume* pathVol = *pathVolIt;
+  for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
+    trex::TTPCPathVolume* pathVol = *pathVolIt;
     if(!pathVol->GetHasCluster()){
       delete pathVol;
       *pathVolIt = 0;
@@ -536,10 +536,10 @@ void ND::TTPCOrderedVolGroup::MergeHVClusters(){
   while(canMerge){
     canMerge = false;
     // compare pairs of path volumes 
-    for(std::vector<ND::TTPCPathVolume*>::iterator pathVol1It = fHits.begin(); pathVol1It != fHits.end(); ++pathVol1It)
-    for(std::vector<ND::TTPCPathVolume*>::iterator pathVol2It = pathVol1It+1; pathVol2It != fHits.end(); ++pathVol2It){
-      ND::TTPCPathVolume* pathVol1 = *pathVol1It;
-      ND::TTPCPathVolume* pathVol2 = *pathVol2It;
+    for(std::vector<trex::TTPCPathVolume*>::iterator pathVol1It = fHits.begin(); pathVol1It != fHits.end(); ++pathVol1It)
+    for(std::vector<trex::TTPCPathVolume*>::iterator pathVol2It = pathVol1It+1; pathVol2It != fHits.end(); ++pathVol2It){
+      trex::TTPCPathVolume* pathVol1 = *pathVol1It;
+      trex::TTPCPathVolume* pathVol2 = *pathVol2It;
       // break out if either path fails to exist
       if(!pathVol1 || !pathVol2) continue;
 
@@ -555,8 +555,8 @@ void ND::TTPCOrderedVolGroup::MergeHVClusters(){
       };
 
       bool olFound = false;
-      for(std::vector<ND::TTPCUnitVolume*>::iterator vol1It = pathVol1->GetFriendsBegin(); vol1It != pathVol1->GetFriendsEnd(); ++vol1It){
-        for(std::vector<ND::TTPCUnitVolume*>::iterator vol2It = pathVol2->GetFriendsBegin(); vol2It != pathVol2->GetFriendsEnd(); ++vol2It){
+      for(std::vector<trex::TTPCUnitVolume*>::iterator vol1It = pathVol1->GetFriendsBegin(); vol1It != pathVol1->GetFriendsEnd(); ++vol1It){
+        for(std::vector<trex::TTPCUnitVolume*>::iterator vol2It = pathVol2->GetFriendsBegin(); vol2It != pathVol2->GetFriendsEnd(); ++vol2It){
           if((*vol1It) == (*vol2It)){
             olFound = true;
             break;
@@ -567,7 +567,7 @@ void ND::TTPCOrderedVolGroup::MergeHVClusters(){
       // if overlap found, merge clusters into one
       if(olFound){
         canMerge = true;
-        for(std::vector<ND::TTPCUnitVolume*>::iterator volIt = pathVol2->GetFriendsBegin(); volIt != pathVol2->GetFriendsEnd(); ++volIt){
+        for(std::vector<trex::TTPCUnitVolume*>::iterator volIt = pathVol2->GetFriendsBegin(); volIt != pathVol2->GetFriendsEnd(); ++volIt){
           pathVol1->SafeAddFriend(*volIt);
         };
         delete pathVol2;
@@ -577,35 +577,35 @@ void ND::TTPCOrderedVolGroup::MergeHVClusters(){
   };
 
   // erase dead path volumes
-  std::vector<ND::TTPCPathVolume*>::iterator pathDel = fHits.begin();
+  std::vector<trex::TTPCPathVolume*>::iterator pathDel = fHits.begin();
   while(pathDel != fHits.end()){
     if(!*pathDel) fHits.erase(pathDel);
     else pathDel ++;
   };
   fClosed = false;
 }
-void ND::TTPCOrderedVolGroup::GreedyFillHVClusters(){
+void trex::TTPCOrderedVolGroup::GreedyFillHVClusters(){
   // fill maps of clusters based on their positions
-  std::map<int, std::vector<ND::TTPCPathVolume*> > vClusters;
-  std::map<int, std::vector<ND::TTPCPathVolume*> > hClusters;
+  std::map<int, std::vector<trex::TTPCPathVolume*> > vClusters;
+  std::map<int, std::vector<trex::TTPCPathVolume*> > hClusters;
 
   // loop over all points in path
-  for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); pathVolIt++){
-    ND::TTPCPathVolume* pathVol = *pathVolIt;
+  for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); pathVolIt++){
+    trex::TTPCPathVolume* pathVol = *pathVolIt;
     bool isVertical = pathVol->GetIsVertical();
 
     // store h clusters and v clusters separately to avoid duplicates
     if(isVertical){
       int bin = pathVol->GetZ();
       if(vClusters.find(bin) == vClusters.end()){
-        vClusters[bin] = std::vector<ND::TTPCPathVolume*>();
+        vClusters[bin] = std::vector<trex::TTPCPathVolume*>();
       };
       vClusters[bin].push_back(pathVol);
     }
     else{
       int bin = pathVol->GetY();
       if(hClusters.find(bin) == hClusters.end()){
-        hClusters[bin] = std::vector<ND::TTPCPathVolume*>();
+        hClusters[bin] = std::vector<trex::TTPCPathVolume*>();
       };
       hClusters[bin].push_back(pathVol);
     };
@@ -616,28 +616,28 @@ void ND::TTPCOrderedVolGroup::GreedyFillHVClusters(){
   GreedyMergeHVClusters(hClusters);
 
   // try and add all hits to horizontal and vertical cluster
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fExtendedHits.begin(); volEl != fExtendedHits.end(); ++volEl){
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator volEl = fExtendedHits.begin(); volEl != fExtendedHits.end(); ++volEl){
     GreedyAddVol(volEl->second, vClusters, true);
     GreedyAddVol(volEl->second, hClusters, false);
   };
 }
-void ND::TTPCOrderedVolGroup::GreedyMergeHVClusters(std::map<int, std::vector<ND::TTPCPathVolume*> >& clusters){
+void trex::TTPCOrderedVolGroup::GreedyMergeHVClusters(std::map<int, std::vector<trex::TTPCPathVolume*> >& clusters){
   int clusterMergeThreshold = fLayout->GetClusterConnectDist();
   int clusterMergeThreshold2 = clusterMergeThreshold*clusterMergeThreshold;
 
-  for(std::map<int, std::vector<ND::TTPCPathVolume*> >::iterator clEl = clusters.begin(); clEl != clusters.end(); ++clEl){
-    std::vector<ND::TTPCPathVolume*> oldCl = clEl->second;
-    std::vector<ND::TTPCPathVolume*> newCl;
+  for(std::map<int, std::vector<trex::TTPCPathVolume*> >::iterator clEl = clusters.begin(); clEl != clusters.end(); ++clEl){
+    std::vector<trex::TTPCPathVolume*> oldCl = clEl->second;
+    std::vector<trex::TTPCPathVolume*> newCl;
 
     // merge everything in a cell together if in range
     while(oldCl.size()){
 
-      std::vector<ND::TTPCPathVolume*> mergeSet;
+      std::vector<trex::TTPCPathVolume*> mergeSet;
       bool canMerge = true;
       while(canMerge){
         canMerge = false;
-        for(std::vector<ND::TTPCPathVolume*>::iterator oldVolIt = oldCl.begin(); oldVolIt != oldCl.end(); ++oldVolIt){
-          ND::TTPCPathVolume* oldVol = *oldVolIt;
+        for(std::vector<trex::TTPCPathVolume*>::iterator oldVolIt = oldCl.begin(); oldVolIt != oldCl.end(); ++oldVolIt){
+          trex::TTPCPathVolume* oldVol = *oldVolIt;
           if(!oldVol) continue;
 
           // if there's nothing to check yet, add this
@@ -647,8 +647,8 @@ void ND::TTPCOrderedVolGroup::GreedyMergeHVClusters(std::map<int, std::vector<ND
           }
           // otherwise, add if it's connected to anything in the merge set
           else{
-            for(std::vector<ND::TTPCPathVolume*>::iterator mergeIt = mergeSet.begin(); mergeIt != mergeSet.end(); ++mergeIt){
-              ND::TTPCPathVolume* merge = *mergeIt;
+            for(std::vector<trex::TTPCPathVolume*>::iterator mergeIt = mergeSet.begin(); mergeIt != mergeSet.end(); ++mergeIt){
+              trex::TTPCPathVolume* merge = *mergeIt;
 
               int dX = merge->GetX() - oldVol->GetX();
               int dY = merge->GetY() - oldVol->GetY();
@@ -672,7 +672,7 @@ void ND::TTPCOrderedVolGroup::GreedyMergeHVClusters(std::map<int, std::vector<ND
       };
 
       // clear dead vols
-      std::vector<ND::TTPCPathVolume*>::iterator clDel = oldCl.begin();
+      std::vector<trex::TTPCPathVolume*>::iterator clDel = oldCl.begin();
       while(clDel != oldCl.end()){
         if(!*clDel) oldCl.erase(clDel);
         else clDel ++;
@@ -681,16 +681,16 @@ void ND::TTPCOrderedVolGroup::GreedyMergeHVClusters(std::map<int, std::vector<ND
     clEl->second = newCl;
   };
 }
-ND::TTPCPathVolume* ND::TTPCOrderedVolGroup::GetAverageVol(std::vector<ND::TTPCPathVolume*> clusters){
-  ND::TTPCPathVolume* avgVol = 0;
+trex::TTPCPathVolume* trex::TTPCOrderedVolGroup::GetAverageVol(std::vector<trex::TTPCPathVolume*> clusters){
+  trex::TTPCPathVolume* avgVol = 0;
 
   // find average
   float avgX = 0.;
   float avgY = 0.;
   float avgZ = 0.;
   float weight = 0.;
-  for(std::vector<ND::TTPCPathVolume*>::iterator clusterIt = clusters.begin(); clusterIt != clusters.end(); ++clusterIt){
-    ND::TTPCPathVolume* cluster = *clusterIt;
+  for(std::vector<trex::TTPCPathVolume*>::iterator clusterIt = clusters.begin(); clusterIt != clusters.end(); ++clusterIt){
+    trex::TTPCPathVolume* cluster = *clusterIt;
 
     avgX += cluster->GetX();
     avgY += cluster->GetY();
@@ -703,8 +703,8 @@ ND::TTPCPathVolume* ND::TTPCOrderedVolGroup::GetAverageVol(std::vector<ND::TTPCP
 
   // get path vol closest to average
   float minR2 = 99999999.;
-  for(std::vector<ND::TTPCPathVolume*>::iterator clusterIt = clusters.begin(); clusterIt != clusters.end(); ++clusterIt){
-    ND::TTPCPathVolume* cluster = *clusterIt;
+  for(std::vector<trex::TTPCPathVolume*>::iterator clusterIt = clusters.begin(); clusterIt != clusters.end(); ++clusterIt){
+    trex::TTPCPathVolume* cluster = *clusterIt;
 
     float dX = cluster->GetX() - avgX;
     float dY = cluster->GetY() - avgY;
@@ -719,7 +719,7 @@ ND::TTPCPathVolume* ND::TTPCOrderedVolGroup::GetAverageVol(std::vector<ND::TTPCP
 
   return avgVol;
 }
-bool ND::TTPCOrderedVolGroup::GreedyAddVol(ND::TTPCUnitVolume* vol, std::map<int, std::vector<ND::TTPCPathVolume*> >& clusters, bool isVertical){
+bool trex::TTPCOrderedVolGroup::GreedyAddVol(trex::TTPCUnitVolume* vol, std::map<int, std::vector<trex::TTPCPathVolume*> >& clusters, bool isVertical){
   // add to nearest cluster in col
   int bin;
   if(isVertical){
@@ -730,13 +730,13 @@ bool ND::TTPCOrderedVolGroup::GreedyAddVol(ND::TTPCUnitVolume* vol, std::map<int
   };
 
   if(clusters.find(bin) != clusters.end()){
-    std::vector<ND::TTPCPathVolume*> cluster = clusters[bin];
+    std::vector<trex::TTPCPathVolume*> cluster = clusters[bin];
 
     // add to nearest cluster in bin
     float minDist2 = 99999999.;
-    ND::TTPCPathVolume* closestVol = 0;
-    for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = cluster.begin(); pathVolIt != cluster.end(); ++pathVolIt){
-      ND::TTPCPathVolume* pathVol = *pathVolIt;
+    trex::TTPCPathVolume* closestVol = 0;
+    for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = cluster.begin(); pathVolIt != cluster.end(); ++pathVolIt){
+      trex::TTPCPathVolume* pathVol = *pathVolIt;
 
       float dX = vol->GetX() - pathVol->GetX();
       float dY = vol->GetY() - pathVol->GetY();
@@ -756,7 +756,7 @@ bool ND::TTPCOrderedVolGroup::GreedyAddVol(ND::TTPCUnitVolume* vol, std::map<int
   return false;
 }
 
-void ND::TTPCOrderedVolGroup::ExpandXClusters(){
+void trex::TTPCOrderedVolGroup::ExpandXClusters(){
   if(!fHits.size()) return;
 
   int xMin = GetXMin();
@@ -768,7 +768,7 @@ void ND::TTPCOrderedVolGroup::ExpandXClusters(){
   bool normalOrder = (*fHits.begin())->GetX() < (*fHits.rbegin())->GetX();
 
   // delete old clusters
-  for(std::vector<ND::TTPCPathVolume*>::iterator pathVol = fHits.begin(); pathVol != fHits.end(); ++pathVol){
+  for(std::vector<trex::TTPCPathVolume*>::iterator pathVol = fHits.begin(); pathVol != fHits.end(); ++pathVol){
     delete *pathVol;
   };
   fHits.clear();
@@ -776,10 +776,10 @@ void ND::TTPCOrderedVolGroup::ExpandXClusters(){
   // add hits at desired x positions
   for(int x=xMin; x<=xMax; x++){
     for(int z=zMin; z<=zMax; z++){
-      ND::TTPCPathVolume* hit = 0;
+      trex::TTPCPathVolume* hit = 0;
       // either add hits to current path volumes or create new ones
-      for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fExtendedHits.begin(); volEl != fExtendedHits.end(); ++volEl){
-        ND::TTPCUnitVolume* vol = volEl->second;
+      for(std::map<long, trex::TTPCUnitVolume*>::iterator volEl = fExtendedHits.begin(); volEl != fExtendedHits.end(); ++volEl){
+        trex::TTPCUnitVolume* vol = volEl->second;
 
         if(vol->GetX() != x) continue;
         if(vol->GetZ() != z) continue;
@@ -797,16 +797,16 @@ void ND::TTPCOrderedVolGroup::ExpandXClusters(){
     Flip();
   };
 };
-void ND::TTPCOrderedVolGroup::SetXClusterHVAngles(){
-  for(std::vector<ND::TTPCPathVolume*>::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    ND::TTPCPathVolume* hit = *hitIt;
+void trex::TTPCOrderedVolGroup::SetXClusterHVAngles(){
+  for(std::vector<trex::TTPCPathVolume*>::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
+    trex::TTPCPathVolume* hit = *hitIt;
     hit->SetPatRecAngle(0);
     hit->SetIsVertical(true);
   };
 }
 
-void ND::TTPCOrderedVolGroup::Clean(){
-  std::vector<ND::TTPCPathVolume*>::iterator reaper;
+void trex::TTPCOrderedVolGroup::Clean(){
+  std::vector<trex::TTPCPathVolume*>::iterator reaper;
   reaper = begin();
   while(reaper != end()){
     if(!(*reaper)) erase(reaper);
@@ -815,21 +815,21 @@ void ND::TTPCOrderedVolGroup::Clean(){
   };
 }
 
-void ND::TTPCOrderedVolGroup::Flip(){
+void trex::TTPCOrderedVolGroup::Flip(){
   // temporary copies
 
-  ND::TTPCVolGroup newBackHits = fFrontHits;
+  trex::TTPCVolGroup newBackHits = fFrontHits;
   bool newFrontIsVertex = fBackIsVertex;
   bool newBackIsVertex = fFrontIsVertex;
-  std::vector<ND::TTPCPathVolume*> newHits;
+  std::vector<trex::TTPCPathVolume*> newHits;
 
   // fill new hits
-  for(std::vector<ND::TTPCPathVolume*>::reverse_iterator pathVolRit = fHits.rbegin(); pathVolRit != fHits.rend(); ++pathVolRit){
-    ND::TTPCPathVolume* pathVol = *pathVolRit;
+  for(std::vector<trex::TTPCPathVolume*>::reverse_iterator pathVolRit = fHits.rbegin(); pathVolRit != fHits.rend(); ++pathVolRit){
+    trex::TTPCPathVolume* pathVol = *pathVolRit;
     newHits.push_back(pathVol);
   };
 
-  ND::TTPCVolGroup hitsTemp = fFrontHits;
+  trex::TTPCVolGroup hitsTemp = fFrontHits;
   fFrontHits = fBackHits;
   fBackHits = hitsTemp;
 
@@ -837,23 +837,23 @@ void ND::TTPCOrderedVolGroup::Flip(){
   fBackIsVertex = newBackIsVertex;
   fHits = std::move(newHits);
 }
-void ND::TTPCOrderedVolGroup::OrderForwardsDirection(){
+void trex::TTPCOrderedVolGroup::OrderForwardsDirection(){
   if(!fHits.size()) return;
 
   // check if front hit is ahead of back hit and flip if not
-  ND::TTPCPathVolume* frontVol = *(fHits.rbegin());
-  ND::TTPCPathVolume* backVol = *(fHits.begin());
+  trex::TTPCPathVolume* frontVol = *(fHits.rbegin());
+  trex::TTPCPathVolume* backVol = *(fHits.begin());
 
   if(frontVol->GetZ() < backVol->GetZ()){
     Flip();
   };
 }
-void ND::TTPCOrderedVolGroup::OrderNegativeCurvature(){
+void trex::TTPCOrderedVolGroup::OrderNegativeCurvature(){
   if(!fHits.size()) return;
 
   // check if curvature corresponds to forwards going negative and flip if not
-  ND::TTPCPathVolume* frontVol = *(fHits.rbegin());
-  ND::TTPCPathVolume* backVol = *(fHits.begin());
+  trex::TTPCPathVolume* frontVol = *(fHits.rbegin());
+  trex::TTPCPathVolume* backVol = *(fHits.begin());
 
   TVector3 startPos = frontVol->GetPos();
   TVector3 endPos = backVol->GetPos();
@@ -862,8 +862,8 @@ void ND::TTPCOrderedVolGroup::OrderNegativeCurvature(){
   double maxDist = -1;
   int distCurvature = 0;
   // determine if furthest hit in perpendicular direction is in positive or negative direction
-  for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
-    ND::TTPCPathVolume* pathVol = *pathVolIt;
+  for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
+    trex::TTPCPathVolume* pathVol = *pathVolIt;
 
     TVector3 diff = startPos - pathVol->GetPos();
     TVector3 dist = diff - (parNorm*diff.Dot(parNorm));
@@ -881,16 +881,16 @@ void ND::TTPCOrderedVolGroup::OrderNegativeCurvature(){
   };
 }
 
-void ND::TTPCOrderedVolGroup::OrderFromJunction(ND::TTPCVolGroup& junction){
+void trex::TTPCOrderedVolGroup::OrderFromJunction(trex::TTPCVolGroup& junction){
   OrderFromPosition(junction.GetAveragePosition());
 }
 
-void ND::TTPCOrderedVolGroup::OrderFromPosition(TVector3 pos){
+void trex::TTPCOrderedVolGroup::OrderFromPosition(TVector3 pos){
   if(!fHits.size()) return;
 
   // check if curvature corresponds to forwards going negative and flip if not
-  ND::TTPCPathVolume* frontVol = *(fHits.end()-1);
-  ND::TTPCPathVolume* backVol = *(fHits.begin());
+  trex::TTPCPathVolume* frontVol = *(fHits.end()-1);
+  trex::TTPCPathVolume* backVol = *(fHits.begin());
 
   TVector3 frontDist = frontVol->GetPos() - pos;
   TVector3 backDist = backVol->GetPos() - pos;
@@ -900,17 +900,17 @@ void ND::TTPCOrderedVolGroup::OrderFromPosition(TVector3 pos){
   };
 }
 
-bool ND::TTPCOrderedVolGroup::GetDeltaCriteriaMet(){
+bool trex::TTPCOrderedVolGroup::GetDeltaCriteriaMet(){
   float fractionNeeded = fLayout->GetNonDeltaFraction();
   int minNonDelta = fLayout->GetNonDelta();
 
   // loop over all hits making sure none is delta
   int totalHits=0;
   int totalNonDelta=0;
-  for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
-    ND::TTPCPathVolume* pathVol = *pathVolIt;
-    for(std::vector<ND::TTPCUnitVolume*>::iterator volIt = pathVol->GetFriendsBegin(); volIt != pathVol->GetFriendsEnd(); ++volIt){
-      ND::TTPCUnitVolume* vol = *volIt;
+  for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
+    trex::TTPCPathVolume* pathVol = *pathVolIt;
+    for(std::vector<trex::TTPCUnitVolume*>::iterator volIt = pathVol->GetFriendsBegin(); volIt != pathVol->GetFriendsEnd(); ++volIt){
+      trex::TTPCUnitVolume* vol = *volIt;
 
       totalHits++;
       if( !vol->GetDeltaTagged() ) totalNonDelta++;
@@ -928,11 +928,11 @@ bool ND::TTPCOrderedVolGroup::GetDeltaCriteriaMet(){
 //This is a bit messy since it looks like the output object is getting pushed back with
 //TTPCHVClusters which contain multiple hits but also derive from THit.
 //May need to revisit this
-std::vector<ND::TTPCHitPad*> ND::TTPCOrderedVolGroup::GetClusters(){
-  std::vector<ND::TTPCHitPad*> hits;
+std::vector<trex::TTPCHitPad*> trex::TTPCOrderedVolGroup::GetClusters(){
+  std::vector<trex::TTPCHitPad*> hits;
 
-  for(std::vector<ND::TTPCPathVolume*>::iterator id = fHits.begin(); id != fHits.end(); ++id){
-    std::vector<ND::TTPCHitPad*> chits = (*id)->GetCellHits();
+  for(std::vector<trex::TTPCPathVolume*>::iterator id = fHits.begin(); id != fHits.end(); ++id){
+    std::vector<trex::TTPCHitPad*> chits = (*id)->GetCellHits();
     for(auto hit=chits.begin();hit!=chits.end();++hit){
       hits.push_back(*hit);
     }
@@ -941,23 +941,23 @@ std::vector<ND::TTPCHitPad*> ND::TTPCOrderedVolGroup::GetClusters(){
   return std::move(hits);
 }
 
-std::string ND::TTPCOrderedVolGroup::GetOrientations(){
+std::string trex::TTPCOrderedVolGroup::GetOrientations(){
   std::string orientationsList = "";
   if(fHits.size() > 0)
-  for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
+  for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
     orientationsList += (*pathVolIt)->GetIsVertical() ? 'v' : 'h';
     if(pathVolIt != fHits.end()-1) orientationsList += ' ';
   };
   return orientationsList;
 }
-void ND::TTPCOrderedVolGroup::PrintOrientations(){
+void trex::TTPCOrderedVolGroup::PrintOrientations(){
   std::cout << "  " << GetOrientations() << std::endl;
 }
-void ND::TTPCOrderedVolGroup::PrintPositions(bool size, bool clusterHits){
+void trex::TTPCOrderedVolGroup::PrintPositions(bool size, bool clusterHits){
   std::cout << "  ";
   if(fHits.size() > 0)
-  for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
-    ND::TTPCPathVolume* pathVol = *pathVolIt;
+  for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
+    trex::TTPCPathVolume* pathVol = *pathVolIt;
     std::cout << "(" << pathVol->GetX() << ", " << pathVol->GetY() << ", " << pathVol->GetZ() << ")";
     if(clusterHits) pathVol->PrintPositions(true);
     else if(size) std::cout << "{" << pathVol->GetClusterSize() << "} ";
@@ -965,41 +965,41 @@ void ND::TTPCOrderedVolGroup::PrintPositions(bool size, bool clusterHits){
   };
   std::cout << std::endl;
 }
-void ND::TTPCOrderedVolGroup::CheckClusters(){
+void trex::TTPCOrderedVolGroup::CheckClusters(){
   if(fHasExtendedHits){
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fExtendedHits.begin(); volEl != fExtendedHits.end(); ++volEl){
-      ND::TTPCUnitVolume* vol = volEl->second;
+    for(std::map<long, trex::TTPCUnitVolume*>::iterator volEl = fExtendedHits.begin(); volEl != fExtendedHits.end(); ++volEl){
+      trex::TTPCUnitVolume* vol = volEl->second;
       if(!vol){
-        std::cout << "WARNING:  empty ND::TTPCUnitVolume* found in TTPCPathVolume extended hits" << std::endl;
+        std::cout << "WARNING:  empty trex::TTPCUnitVolume* found in TTPCPathVolume extended hits" << std::endl;
       }
       else{
-        std::cout << "  attempting to access ND::TTPCOrderedVolGroup ND::TTPCUnitVolume* hits…" << std::endl;
-        std::vector<ND::TTPCHitPad*> hits = vol->GetHits();
+        std::cout << "  attempting to access trex::TTPCOrderedVolGroup trex::TTPCUnitVolume* hits…" << std::endl;
+        std::vector<trex::TTPCHitPad*> hits = vol->GetHits();
         std::cout << "  …got hits!" << std::endl;
-        for(std::vector< ND::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
-          ND::TTPCHitPad* nhit = *hitIt;
+        for(std::vector< trex::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
+          trex::TTPCHitPad* nhit = *hitIt;
           if (!nhit){
-            std::cout << "WARNING:  non ND::TTPCHitPad hit found in TTPCOrderedVolGroup extended hits" << std::endl;
+            std::cout << "WARNING:  non trex::TTPCHitPad hit found in TTPCOrderedVolGroup extended hits" << std::endl;
           }
         }
       }
     }
   }
 
-  for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
-    ND::TTPCPathVolume* pathVol = *pathVolIt;
-    std::cout << "checking ND::TTPCPathVol* hits…" << std::endl;
+  for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
+    trex::TTPCPathVolume* pathVol = *pathVolIt;
+    std::cout << "checking trex::TTPCPathVol* hits…" << std::endl;
     pathVol->CheckHits();
-    std::cout << "…done checking ND::TTPCPathVol* hits" << std::endl;
+    std::cout << "…done checking trex::TTPCPathVol* hits" << std::endl;
   }
 }
 
-std::vector<ND::TTPCPathVolume*> ND::TTPCOrderedVolGroup::GetExtrapolatedClusters(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt, int dir){
-  std::vector<ND::TTPCPathVolume*>::iterator pathVol2It;
-  ND::TTPCPathVolume* pathVol = *pathVolIt;
-  ND::TTPCPathVolume* pathVol2 = 0;
+std::vector<trex::TTPCPathVolume*> trex::TTPCOrderedVolGroup::GetExtrapolatedClusters(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt, int dir){
+  std::vector<trex::TTPCPathVolume*>::iterator pathVol2It;
+  trex::TTPCPathVolume* pathVol = *pathVolIt;
+  trex::TTPCPathVolume* pathVol2 = 0;
 
-  std::vector<ND::TTPCPathVolume*> outClusters;
+  std::vector<trex::TTPCPathVolume*> outClusters;
 
   // don't try to extrapolate into vertex
   if((dir == 1 && fFrontIsVertex) || (dir == -1 && fBackIsVertex)) return outClusters;
@@ -1026,7 +1026,7 @@ std::vector<ND::TTPCPathVolume*> ND::TTPCOrderedVolGroup::GetExtrapolatedCluster
   int extDir = (diff < 0) ? -1 : 1;
 
   // loop, setting limit on maximum number of iterations
-  ND::TTPCPathVolume* curVol = pathVol;
+  trex::TTPCPathVolume* curVol = pathVol;
   float xFact = (float)(fLayout->GetConnectDistX()) / (float)(fLayout->GetConnectDistY());
   int unfoundCount = fLayout->GetHVClusterExtrapolateDist();
   int limit = fLayout->GetHVClusterExtrapolateLimit();
@@ -1042,10 +1042,10 @@ std::vector<ND::TTPCPathVolume*> ND::TTPCOrderedVolGroup::GetExtrapolatedCluster
     else extY += extDir;
 
     // look for a hit within range of extrapolated position
-    ND::TTPCUnitVolume* closestHit = 0;
+    trex::TTPCUnitVolume* closestHit = 0;
     int closestDist2 = fLayout->GetClusterConnectDist()*fLayout->GetClusterConnectDist();
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator extHitEl = fExtendedHits.begin(); extHitEl != fExtendedHits.end(); ++extHitEl){
-      ND::TTPCUnitVolume* extHit = extHitEl->second;
+    for(std::map<long, trex::TTPCUnitVolume*>::iterator extHitEl = fExtendedHits.begin(); extHitEl != fExtendedHits.end(); ++extHitEl){
+      trex::TTPCUnitVolume* extHit = extHitEl->second;
       int diffX = (extHit->GetX() - extX)/xFact;
       int diffY = extHit->GetY() - extY;
       int diffZ = extHit->GetZ() - extZ;
@@ -1068,7 +1068,7 @@ std::vector<ND::TTPCPathVolume*> ND::TTPCOrderedVolGroup::GetExtrapolatedCluster
 
     // if a hit is found, add it as a new path volume and continue the search
     if(closestHit){
-      ND::TTPCPathVolume* newVol = new ND::TTPCPathVolume(closestHit);
+      trex::TTPCPathVolume* newVol = new trex::TTPCPathVolume(closestHit);
       newVol->SetIsVertical(isVertical);
 
       outClusters.push_back(newVol);
@@ -1097,7 +1097,7 @@ std::vector<ND::TTPCPathVolume*> ND::TTPCOrderedVolGroup::GetExtrapolatedCluster
   return outClusters;
 }
 
-void ND::TTPCOrderedVolGroup::Close(){
+void trex::TTPCOrderedVolGroup::Close(){
   if(fClosed) return;
 
   // get overall extents
@@ -1107,8 +1107,8 @@ void ND::TTPCOrderedVolGroup::Close(){
   fYMax = -99999;
   fZMin = 99999;
   fZMax = -99999;
-  for(std::vector<ND::TTPCPathVolume*>::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    ND::TTPCPathVolume* hit = *hitIt;
+  for(std::vector<trex::TTPCPathVolume*>::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
+    trex::TTPCPathVolume* hit = *hitIt;
     if(!hit) continue;
 
     fXMin = std::min(fXMin, hit->GetX());

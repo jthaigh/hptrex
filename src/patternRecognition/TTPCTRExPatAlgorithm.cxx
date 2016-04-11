@@ -1,7 +1,7 @@
 // eddy
 #include "TTPCTRExPatAlgorithm.hxx"
 
-ND::TTPCTRExPatAlgorithm::TTPCTRExPatAlgorithm() {
+trex::TTPCTRExPatAlgorithm::TTPCTRExPatAlgorithm() {
   // has no hits by default
   fDriftVelocity = 0;
   fHasHits = false;
@@ -11,12 +11,12 @@ ND::TTPCTRExPatAlgorithm::TTPCTRExPatAlgorithm() {
   fMasterVolGroupMan = 0;
 }
 
-ND::TTPCTRExPatAlgorithm::~TTPCTRExPatAlgorithm(){
+trex::TTPCTRExPatAlgorithm::~TTPCTRExPatAlgorithm(){
   // clear values from last lot of processing
   CleanUp();
 }
 
-void ND::TTPCTRExPatAlgorithm::CleanUp(){
+void trex::TTPCTRExPatAlgorithm::CleanUp(){
 
   // delete stuff from previous processing
   fSubAlgorithms.clear();
@@ -43,19 +43,19 @@ void ND::TTPCTRExPatAlgorithm::CleanUp(){
   fHits.clear();
 }
 
-void ND::TTPCTRExPatAlgorithm::PrepareHits(std::vector<ND::TTPCHitPad*>& hits){
+void trex::TTPCTRExPatAlgorithm::PrepareHits(std::vector<trex::TTPCHitPad*>& hits){
   // needed for pattern recognition - min and max times either side of the cathode
   double tPMin = +99999999.;
   double tPMax = -99999999.;
   double tNMin = +99999999.;
   double tNMax = -99999999.;
   fHits=hits;
-  for (std::vector<ND::TTPCHitPad*>::iterator hit = hits.begin(); hit != hits.end(); ++hit){
-    ND::TTPCHitPad* phit = *hit;
+  for (std::vector<trex::TTPCHitPad*>::iterator hit = hits.begin(); hit != hits.end(); ++hit){
+    trex::TTPCHitPad* phit = *hit;
 
     //MDH TODO - FIX CALL TO GEOM
     // sense determines which side of the cathode we're on
-    //    int curX = int(ND::TGeomInfo::TPC().GetDriftSense(phit->GetGeomId()));
+    //    int curX = int(trex::TGeomInfo::TPC().GetDriftSense(phit->GetGeomId()));
     int curX=0;
 
     // needed for pattern recognition - get min and max times either side of the cathode
@@ -94,15 +94,15 @@ void ND::TTPCTRExPatAlgorithm::PrepareHits(std::vector<ND::TTPCHitPad*>& hits){
   int maxY = -99999;
   int minZ = +99999;
   int maxZ = -99999;
-  for (std::vector<ND::TTPCHitPad*>::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
-    ND::TTPCHitPad* hit = *hitIt;
+  for (std::vector<trex::TTPCHitPad*>::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
+    trex::TTPCHitPad* hit = *hitIt;
 
     //MDH
     //Hopefully our hit object will have a GetTime method or else we need to abstract
     //this out completely into a position number everywhere...
 
     // convert position to cell id in x, y and z
-    ND::TTPCCellInfo3D cell = fMasterLayout->GetPadPosID(hit->GetPosition(),hit->GetTime());
+    trex::TTPCCellInfo3D cell = fMasterLayout->GetPadPosID(hit->GetPosition(),hit->GetTime());
 
     // find minima and maxima
     minX = std::min(minX, cell.x);
@@ -121,11 +121,11 @@ void ND::TTPCTRExPatAlgorithm::PrepareHits(std::vector<ND::TTPCHitPad*>& hits){
   fMasterLayout->SetRanges(minX,maxX, minY,maxY, minZ,maxZ);
 
   // loop over positions and charges and add a new pattern recognition cell for each one
-  for (std::vector<ND::TTPCHitPad*>::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
-    ND::TTPCHitPad* hit = *hitIt;
+  for (std::vector<trex::TTPCHitPad*>::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
+    trex::TTPCHitPad* hit = *hitIt;
 
     // convert position to cell id in x, y and z
-    ND::TTPCCellInfo3D cell = fMasterLayout->GetPadPosID(hit->GetPosition(), 0);
+    trex::TTPCCellInfo3D cell = fMasterLayout->GetPadPosID(hit->GetPosition(), 0);
 
     // convert cell id in x, y and z to unique id
     long id = fMasterLayout->Mash(cell.x, cell.y, cell.z);
@@ -135,11 +135,11 @@ void ND::TTPCTRExPatAlgorithm::PrepareHits(std::vector<ND::TTPCHitPad*>& hits){
     if (cell.x > maxX || cell.y > maxY || cell.z > maxZ) continue;
 
     // see if a cell already exists at this position
-    std::map<long, ND::TTPCUnitVolume*>::iterator el = fMasterHitMap.find(id);
+    std::map<long, trex::TTPCUnitVolume*>::iterator el = fMasterHitMap.find(id);
     // if cell doesn't already exist, define a new one at this position
     if(el == fMasterHitMap.end()){
-      fMasterHitMap[id]=new ND::TTPCUnitVolume;
-      ND::TTPCUnitVolume& curVol = *(fMasterHitMap[id]);
+      fMasterHitMap[id]=new trex::TTPCUnitVolume;
+      trex::TTPCUnitVolume& curVol = *(fMasterHitMap[id]);
 
       curVol.SetCell(cell.x, cell.y, cell.z, cell.edgeX, cell.edgeY, cell.edgeZ, id);
       curVol.SetAux(cell.segX, cell.segY, cell.segZ);
@@ -153,10 +153,10 @@ void ND::TTPCTRExPatAlgorithm::PrepareHits(std::vector<ND::TTPCHitPad*>& hits){
       // get MM information
 
       //MDH TODO - figure out if any of this is needed
-      /*ND::TGeometryId geomId = hit->GetGeomId();
-    unsigned int tpc = ND::TGeomInfo::Get().TPC().GeomIdToTPC(geomId);
-    unsigned int half = ND::TGeomInfo::Get().TPC().GeomIdToHalf(geomId);
-    unsigned int mm = ND::TGeomInfo::Get().TPC().GeomIdToMM(geomId);
+      /*trex::TGeometryId geomId = hit->GetGeomId();
+    unsigned int tpc = trex::TGeomInfo::Get().TPC().GeomIdToTPC(geomId);
+    unsigned int half = trex::TGeomInfo::Get().TPC().GeomIdToHalf(geomId);
+    unsigned int mm = trex::TGeomInfo::Get().TPC().GeomIdToMM(geomId);
     curVol.SetMMLoc(tpc, half, mm);
       curVol.SetFECASIC(fec, asic);
       curVol.SetRegion(asicRegionY, asicRegionZ);
@@ -171,10 +171,10 @@ void ND::TTPCTRExPatAlgorithm::PrepareHits(std::vector<ND::TTPCHitPad*>& hits){
 //MDH
 //Not used
 /*
-void ND::TTPCTRExPatAlgorithm::PopulateDeltaHits(){
-  ND::TTPCVolGroup deltaHits;
+void trex::TTPCTRExPatAlgorithm::PopulateDeltaHits(){
+  trex::TTPCVolGroup deltaHits;
 
-  for(std::map<long, ND::TTPCUnitVolume>::iterator vol = fMasterHitMap.begin(); vol != fMasterHitMap.end(); ++vol){
+  for(std::map<long, trex::TTPCUnitVolume>::iterator vol = fMasterHitMap.begin(); vol != fMasterHitMap.end(); ++vol){
     int nPeaks = vol->second->GetNPeaksSum();
     if(nPeaks != 1) deltaHits.AddHit(vol->second);
   };
@@ -186,11 +186,11 @@ void ND::TTPCTRExPatAlgorithm::PopulateDeltaHits(){
 
 //Output - reimplement
 /*
-void ND::TTPCTRExPatAlgorithm::GetPatterns(ND::TReconObjectContainer *foundPatterns){
+void trex::TTPCTRExPatAlgorithm::GetPatterns(trex::TReconObjectContainer *foundPatterns){
   // add patterns from all sub events
-  for(std::vector<ND::TTPCTRExPatSubAlgorithm*>::iterator subAlgIt = fSubAlgorithms.begin(); subAlgIt != fSubAlgorithms.end(); ++subAlgIt){
-    ND::TTPCTRExPatSubAlgorithm* subAlg = *subAlgIt;
-    ND::THandle<ND::TTPCPattern> foundPattern = subAlg->GetPattern();
+  for(std::vector<trex::TTPCTRExPatSubAlgorithm*>::iterator subAlgIt = fSubAlgorithms.begin(); subAlgIt != fSubAlgorithms.end(); ++subAlgIt){
+    trex::TTPCTRExPatSubAlgorithm* subAlg = *subAlgIt;
+    trex::THandle<trex::TTPCPattern> foundPattern = subAlg->GetPattern();
 
     // ensure pattern exists and contains sensible numbers of paths and junctions
     if(!foundPattern) continue;
@@ -216,29 +216,29 @@ void ND::TTPCTRExPatAlgorithm::GetPatterns(ND::TReconObjectContainer *foundPatte
 
 //Top-level code - reimplement
 
-void ND::TTPCTRExPatAlgorithm::Process(std::vector<ND::TTPCHitPad*>& hits, std::vector<ND::TTPCHitPad*>& used, std::vector<ND::TTPCHitPad*>& unused){
+void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused){
 
   // master layout for all sub-events
-  fMasterLayout = new ND::TTPCLayout();
+  fMasterLayout = new trex::TTPCLayout();
   fDriftVelocity = fMasterLayout->GetDriftSpeed();
 
   // reset group IDs
-  ND::TTPCVolGroup::ResetFreeID();
+  trex::TTPCVolGroup::ResetFreeID();
   // prepare hits
   PrepareHits(hits);
 
   // master manager for all unit volumes
-  fMasterVolGroupMan = new ND::TTPCVolGroupMan(fMasterLayout);
+  fMasterVolGroupMan = new trex::TTPCVolGroupMan(fMasterLayout);
   fMasterVolGroupMan->AddPrimaryHits(fMasterHitMap);
 
   // split all hits up into lists of sub events, with separate group for high charge ones if needed
-  std::vector< ND::TTPCVolGroup > subEvents;
+  std::vector< trex::TTPCVolGroup > subEvents;
   
-  fMasterVolGroupMan->GetConnectedHits(subEvents, ND::TTPCConnection::path);
+  fMasterVolGroupMan->GetConnectedHits(subEvents, trex::TTPCConnection::path);
   
   // push all groups of decent size into sub events
   for(unsigned int i=0; i<subEvents.size(); ++i){
-    ND::TTPCVolGroup& subEvent = subEvents.at(i);
+    trex::TTPCVolGroup& subEvent = subEvents.at(i);
     
     if(fMasterVolGroupMan->CheckUsability(subEvent)){
       // create sub-algorithm for each sub-event
@@ -251,19 +251,19 @@ void ND::TTPCTRExPatAlgorithm::Process(std::vector<ND::TTPCHitPad*>& hits, std::
 
   // first pass of processing
   int subEvent = 0;
-  for(std::vector<ND::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
-    ND::TTPCTRExPatSubAlgorithm alg = *algIt;
+  for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
+    trex::TTPCTRExPatSubAlgorithm alg = *algIt;
     subEvent++;
     alg.ProduceContainers();
   };
 
   // set up container for hitpad level unused
-  std::vector<ND::TTPCHitPad*> usedTREx;
+  std::vector<trex::TTPCHitPad*> usedTREx;
 
   // get patterns
   subEvent = 0;
-  for(std::vector<ND::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
-    ND::TTPCTRExPatSubAlgorithm& alg = *algIt;
+  for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
+    trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
     subEvent++;
 
     //MDH TODO - This is where the output needs to be generated...

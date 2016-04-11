@@ -9,7 +9,7 @@
 // eddy
 #include "TTPCUnitVolume.hxx"
 
-namespace ND{
+namespace trex{
   // forward declaration
   class TTPCPathVolume;
 
@@ -17,24 +17,24 @@ namespace ND{
   class TTPCPathVolume{
     public:
       /// Constructor with unit volume attached
-      TTPCPathVolume(ND::TTPCUnitVolume* unitVolume=0);
+      TTPCPathVolume(trex::TTPCUnitVolume* unitVolume=0);
       /// Default destructor
       ~TTPCPathVolume();
 
       /// Get this and cells in its assocaited cluster.  Filter of 1 for only vertical, 2 for only horizontal.
-      std::vector<ND::TTPCUnitVolume*> GetExtendedCell(int filter=0);
+      std::vector<trex::TTPCUnitVolume*> GetExtendedCell(int filter=0);
       /// Get hits associated with associated cell and all connected to it
-      std::vector<ND::TTPCHitPad*> GetHits();
+      std::vector<trex::TTPCHitPad*> GetHits();
 
       // getters
       /// Get the unit volume associated with this path volume
-      ND::TTPCUnitVolume* GetUnitVolume(){ return fUnitVolume;}
+      trex::TTPCUnitVolume* GetUnitVolume(){ return fUnitVolume;}
       /// Get indicator of whether list of friends linked to this contains a given volume
-      bool GetFriendsContains(ND::TTPCUnitVolume* vol){ return (std::find(fFriends.begin(), fFriends.end(), vol) != fFriends.end()); }
+      bool GetFriendsContains(trex::TTPCUnitVolume* vol){ return (std::find(fFriends.begin(), fFriends.end(), vol) != fFriends.end()); }
       /// Get iterator to start of list of friends linked to this
-      std::vector<ND::TTPCUnitVolume*>::iterator GetFriendsBegin(){ return fFriends.begin();}
+      std::vector<trex::TTPCUnitVolume*>::iterator GetFriendsBegin(){ return fFriends.begin();}
       /// Get iterator to end of list of friends linked to this
-      std::vector<ND::TTPCUnitVolume*>::iterator GetFriendsEnd(){ return fFriends.end();}
+      std::vector<trex::TTPCUnitVolume*>::iterator GetFriendsEnd(){ return fFriends.end();}
 
       /// Get whether this has elements attached
       bool GetHasCluster(){ return fFriends.size()>0; }
@@ -62,7 +62,7 @@ namespace ND{
       TVector3 GetAvgPosXYZ();
 
       /// Get hits associated with associated cell
-      std::vector< ND::TTPCHitPad* > GetCellHits(){ return fUnitVolume->GetHits();}
+      std::vector< trex::TTPCHitPad* > GetCellHits(){ return fUnitVolume->GetHits();}
 
       /// Set minimum and maximum values
       void Close();
@@ -110,7 +110,7 @@ namespace ND{
       float GetPatRecAngle(){ return fPatRecAngle;}
 
       /// Mark friend for deletion
-      void MarkFriend(std::vector<ND::TTPCUnitVolume*>::iterator focusFriendIt);
+      void MarkFriend(std::vector<trex::TTPCUnitVolume*>::iterator focusFriendIt);
       /// Clear friends marked for deletion
       void ClearMarked();
       /// Clear list of friends
@@ -118,11 +118,11 @@ namespace ND{
 
       // setters
       /// Add new friend to list of friends linked to this
-      void AddFriend(ND::TTPCUnitVolume* focusFriend){ fClosed=false; fFriends.push_back(focusFriend); }
+      void AddFriend(trex::TTPCUnitVolume* focusFriend){ fClosed=false; fFriends.push_back(focusFriend); }
       /// Add new friend to list of friends linked to this, checking to avoid duplicates
-      void SafeAddFriend(ND::TTPCUnitVolume* focusFriend){ if(!GetFriendsContains(focusFriend)) AddFriend(focusFriend); }
+      void SafeAddFriend(trex::TTPCUnitVolume* focusFriend){ if(!GetFriendsContains(focusFriend)) AddFriend(focusFriend); }
       /// Set the unit volume associated with this path volume
-      void SetUnitVolume(ND::TTPCUnitVolume* unitVolume){ fClosed=false; fUnitVolume = unitVolume; }
+      void SetUnitVolume(trex::TTPCUnitVolume* unitVolume){ fClosed=false; fUnitVolume = unitVolume; }
       /// Set flag for whether this is a vertical cluster
       void SetIsVertical(bool isVertical){ fIsVertical = isVertical; }
       /// Flag for whether this is an x-cluster
@@ -137,10 +137,10 @@ namespace ND{
 
     private:
       /// Unit of volume associated with this element
-      ND::TTPCUnitVolume* fUnitVolume;
+      trex::TTPCUnitVolume* fUnitVolume;
 
       /// List of members of same cluster as this
-      std::vector<ND::TTPCUnitVolume*> fFriends;
+      std::vector<trex::TTPCUnitVolume*> fFriends;
 
       /// Whether internal values have been calculated
       bool fClosed;

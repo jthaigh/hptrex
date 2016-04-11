@@ -13,7 +13,7 @@
 // TRex
 #include <TTPCHitPad.hxx>
 
-namespace ND{
+namespace trex{
 
   /// Enumeration for specifying types of connection (effects characteristic distances)
   // should work similar way to c++11 enum class
@@ -94,7 +94,7 @@ namespace ND{
       void GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int axis=1);
 
       /// Get cell id in x, y and z based on a 3D position
-      ND::TTPCCellInfo3D GetPadPosID(TVector3 pos, double time, int tpcMask=-1);
+      trex::TTPCCellInfo3D GetPadPosID(TVector3 pos, double time, int tpcMask=-1);
 
       /// Convert cell id in x, y and z to a single unique long integer
       long Mash(int x, int y, int z);
@@ -103,13 +103,13 @@ namespace ND{
       /// Convert cell id in x, y and z to a single unique long integer, returning -1 if bad ids are supplied
       long SafeMash(int x, int y, int z);
       /// Convert a single unique long integer into a cell id in x, y and z
-      ND::TTPCCell3D UnMash(long id);
+      trex::TTPCCell3D UnMash(long id);
 
       /// Get converts a 3D position into MM pad information
-      ND::TTPCPadStruct GlobalXYZToPos(TVector3 pos);
+      trex::TTPCPadStruct GlobalXYZToPos(TVector3 pos);
 
       /// Find appropriate distances for a given type of connection
-      void GetTypeDistances(int& distX, int& distY, int& distZ, ND::TTPCConnection::Type type);
+      void GetTypeDistances(int& distX, int& distY, int& distZ, trex::TTPCConnection::Type type);
 
       /// Get absolute cut for minimum charge on cells going into pattern recognition
       double GetChargeCut(){ return fChargeCut; }

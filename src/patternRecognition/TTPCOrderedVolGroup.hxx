@@ -20,26 +20,26 @@
 #include "TTPCUnitVolume.hxx"
 #include "TTPCVolGroup.hxx"
 
-namespace ND{
+namespace trex{
   class TTPCOrderedVolGroup;
 }
 
 /// class for holding an ordered chain of cells between two groups, and also holding pointers to the groups themselves
-class ND::TTPCOrderedVolGroup : public TObject {
+class trex::TTPCOrderedVolGroup : public TObject {
   public:
     /// Default constructor
   //    TTPCOrderedVolGroup();
     /// Constructor
-    TTPCOrderedVolGroup(ND::TTPCLayout* fLayout);
+    TTPCOrderedVolGroup(trex::TTPCLayout* fLayout);
     /// Destructor
     virtual ~TTPCOrderedVolGroup();
 
     /// Add a pointer to the hits corresponding to hits near the start of this group (hits near hit at size()-1 index)
-    void AddFrontHits(ND::TTPCVolGroup& frontHits);
+    void AddFrontHits(trex::TTPCVolGroup& frontHits);
     /// Add a pointer to the hits corresponding to hits near the end of this group (hits near hit at 0 index)
-    void AddBackHits(ND::TTPCVolGroup& backHits);
+    void AddBackHits(trex::TTPCVolGroup& backHits);
     /// Add a pointer to extended group of hits associated with this path
-    void AddExtendedHits(ND::TTPCVolGroup& extendedHits);
+    void AddExtendedHits(trex::TTPCVolGroup& extendedHits);
 
     /// Check front hits exist and are not empty
     bool HasFrontHits(){ return fAddedFrontHits ? !fFrontHits.empty() : false; }
@@ -50,41 +50,41 @@ class ND::TTPCOrderedVolGroup : public TObject {
     /// Get average position of back hits
     TVector3 GetBackAveragePosition(){ return fBackHits.GetAveragePosition(); }
     /// Get average cell in front hits
-    ND::TTPCUnitVolume* GetFrontAverageVol(){ return fFrontHits.GetAverageVol(); }
+    trex::TTPCUnitVolume* GetFrontAverageVol(){ return fFrontHits.GetAverageVol(); }
     /// Get average cell in back hits
-    ND::TTPCUnitVolume* GetBackAverageVol(){ return fBackHits.GetAverageVol(); }
+    trex::TTPCUnitVolume* GetBackAverageVol(){ return fBackHits.GetAverageVol(); }
     /// Return bare pointer to hits in front
-  std::vector<ND::TTPCHitPad*> GetFrontHitSelection(){ return fFrontHits.GetHits(); }
+  std::vector<trex::TTPCHitPad*> GetFrontHitSelection(){ return fFrontHits.GetHits(); }
     /// Return bare pointer to hits in back
-  std::vector<ND::TTPCHitPad*> GetBackHitSelection(){ return fBackHits.GetHits(); }
+  std::vector<trex::TTPCHitPad*> GetBackHitSelection(){ return fBackHits.GetHits(); }
     /// Get ID for the group of hits at the front of this group
     unsigned int GetFrontID(){ return fFrontHits.GetID(); }
     /// Get ID for the group of hits at the back of this group
     unsigned int GetBackID(){ return fBackHits.GetID(); }
 
     /// Get extended group of hits associated with this path
-    ND::TTPCVolGroup& GetExtendedHits(){  return fExtendedHits; }
+    trex::TTPCVolGroup& GetExtendedHits(){  return fExtendedHits; }
     /// Get handle for front hits
-    ND::TTPCVolGroup& GetFrontHits(){ return fFrontHits; }
+    trex::TTPCVolGroup& GetFrontHits(){ return fFrontHits; }
     /// Get handle for back hits
-    ND::TTPCVolGroup& GetBackHits(){ return fBackHits; }
+    trex::TTPCVolGroup& GetBackHits(){ return fBackHits; }
 
   
     /// Iterator to start of front hits
-    std::map<long, ND::TTPCUnitVolume*>::iterator frontHitsBegin(){ return fFrontHits.begin(); }
+    std::map<long, trex::TTPCUnitVolume*>::iterator frontHitsBegin(){ return fFrontHits.begin(); }
     /// Iterator to end of front hits
-    std::map<long, ND::TTPCUnitVolume*>::iterator frontHitsEnd(){ return fFrontHits.end(); }
+    std::map<long, trex::TTPCUnitVolume*>::iterator frontHitsEnd(){ return fFrontHits.end(); }
     /// Iterator to start of back hits
-    std::map<long, ND::TTPCUnitVolume*>::iterator backHitsBegin(){ return fBackHits.begin(); }
+    std::map<long, trex::TTPCUnitVolume*>::iterator backHitsBegin(){ return fBackHits.begin(); }
     /// Iterator to end of back hits
-    std::map<long, ND::TTPCUnitVolume*>::iterator backHitsEnd(){ return fBackHits.end(); }
+    std::map<long, trex::TTPCUnitVolume*>::iterator backHitsEnd(){ return fBackHits.end(); }
     /// Iterator to start of extended hits
-    std::map<long, ND::TTPCUnitVolume*>::iterator extendedHitsBegin(){ return fExtendedHits.begin(); }
+    std::map<long, trex::TTPCUnitVolume*>::iterator extendedHitsBegin(){ return fExtendedHits.begin(); }
     /// Iterator to end of extended hits
-    std::map<long, ND::TTPCUnitVolume*>::iterator extendedHitsEnd(){ return fExtendedHits.end(); }
+    std::map<long, trex::TTPCUnitVolume*>::iterator extendedHitsEnd(){ return fExtendedHits.end(); }
 
     /// Push a new path volume back into the vector of hits in this group and return it
-    ND::TTPCPathVolume* AddCell(ND::TTPCUnitVolume* cell, bool isXCluster=false);
+    trex::TTPCPathVolume* AddCell(trex::TTPCUnitVolume* cell, bool isXCluster=false);
     /// Associate hits from input group with hits from the main path
     void DoClustering(bool partial=false);
     /// General clustering for most paths 
@@ -112,11 +112,11 @@ class ND::TTPCOrderedVolGroup : public TObject {
     /// Greedily fill clusters depending on whether they're classed as horizontal or vertical
     void GreedyFillHVClusters();
     /// Merge directly adjacent clusters for greedy filling
-    void GreedyMergeHVClusters(std::map<int, std::vector<ND::TTPCPathVolume*> >& clusters);
+    void GreedyMergeHVClusters(std::map<int, std::vector<trex::TTPCPathVolume*> >& clusters);
     /// Find path volume with most average position in a set
-    ND::TTPCPathVolume* GetAverageVol(std::vector<ND::TTPCPathVolume*> clusters);
+    trex::TTPCPathVolume* GetAverageVol(std::vector<trex::TTPCPathVolume*> clusters);
     /// Try to add a volume to a cluster
-    bool GreedyAddVol(ND::TTPCUnitVolume* vol, std::map<int, std::vector<ND::TTPCPathVolume*> >& clusters, bool isVertical);
+    bool GreedyAddVol(trex::TTPCUnitVolume* vol, std::map<int, std::vector<trex::TTPCPathVolume*> >& clusters, bool isVertical);
 
     /// Create and populate new x clusters
     void ExpandXClusters();
@@ -132,14 +132,14 @@ class ND::TTPCOrderedVolGroup : public TObject {
     /// Order for negative curvature
     void OrderNegativeCurvature();
     /// Order from junction position
-    void OrderFromJunction(ND::TTPCVolGroup& junction);
+    void OrderFromJunction(trex::TTPCVolGroup& junction);
     /// Order from position
     void OrderFromPosition(TVector3 pos);
 
     /// Get whether the path meets criteria for delta ray tagging
     bool GetDeltaCriteriaMet();
     /// Get list of all hits associated with elements of this group
-  std::vector<ND::TTPCHitPad*> GetClusters();
+  std::vector<trex::TTPCHitPad*> GetClusters();
 
     /// Set front hits to be a vertex (or not)
     void SetFrontIsVertex(bool isVertex=false){ fFrontIsVertex = isVertex; }
@@ -177,25 +177,25 @@ class ND::TTPCOrderedVolGroup : public TObject {
     void SetIsXPath(bool isXPath){ fIsXPath = isXPath; }
 
     /// Erase element from hits in this group
-    void erase(std::vector<ND::TTPCPathVolume*>::iterator hit){ fHits.erase(hit); fClosed = false; }
+    void erase(std::vector<trex::TTPCPathVolume*>::iterator hit){ fHits.erase(hit); fClosed = false; }
     /// Erase elements from hits in this group
-    void erase(std::vector<ND::TTPCPathVolume*>::iterator begin, std::vector<ND::TTPCPathVolume*>::iterator end){ fHits.erase(begin, end); fClosed = false; }
+    void erase(std::vector<trex::TTPCPathVolume*>::iterator begin, std::vector<trex::TTPCPathVolume*>::iterator end){ fHits.erase(begin, end); fClosed = false; }
     /// Returns whether hit vector is empty 
     bool empty(){ return fHits.empty(); }
     /// Returns size of hit vector
     int size(){ return int(fHits.size()); }
     /// Returns element at a specified index
-    ND::TTPCPathVolume* at(int i){ return fHits.at(i); }
+    trex::TTPCPathVolume* at(int i){ return fHits.at(i); }
     /// Return element at i
-    ND::TTPCPathVolume*& operator[](int i){ return fHits[i]; }
+    trex::TTPCPathVolume*& operator[](int i){ return fHits[i]; }
     /// Iterator to begining of hit map
-    std::vector<ND::TTPCPathVolume*>::iterator begin(){ return fHits.begin(); }
+    std::vector<trex::TTPCPathVolume*>::iterator begin(){ return fHits.begin(); }
     /// Iterator to end of hit map
-    std::vector<ND::TTPCPathVolume*>::iterator end(){ return fHits.end(); }
+    std::vector<trex::TTPCPathVolume*>::iterator end(){ return fHits.end(); }
     /// Reverse iterator to end of hit map
-    std::vector<ND::TTPCPathVolume*>::reverse_iterator rbegin(){ return fHits.rbegin(); }
+    std::vector<trex::TTPCPathVolume*>::reverse_iterator rbegin(){ return fHits.rbegin(); }
     /// Reverse iterator to beginning of hit map
-    std::vector<ND::TTPCPathVolume*>::reverse_iterator rend(){ return fHits.rend(); }
+    std::vector<trex::TTPCPathVolume*>::reverse_iterator rend(){ return fHits.rend(); }
 
     /// Get string representing cluster orientations
     std::string GetOrientations();
@@ -208,18 +208,18 @@ class ND::TTPCOrderedVolGroup : public TObject {
 
   private:
     /// TPC layout associated with this group
-    ND::TTPCLayout* fLayout;
+    trex::TTPCLayout* fLayout;
 
     /// List of hits in this group
-    std::vector<ND::TTPCPathVolume*> fHits;
+    std::vector<trex::TTPCPathVolume*> fHits;
 
     /// Hits near the front of this group (near hit at size()-1 index)
-    ND::TTPCVolGroup fFrontHits;
+    trex::TTPCVolGroup fFrontHits;
     /// Hits near the end of this group (near hit at 0 index)
-    ND::TTPCVolGroup fBackHits;
+    trex::TTPCVolGroup fBackHits;
 
     /// Hits associated with the whole path
-    ND::TTPCVolGroup fExtendedHits;
+    trex::TTPCVolGroup fExtendedHits;
 
     /// Whether front hits have been added
     bool fAddedFrontHits;
@@ -257,7 +257,7 @@ class ND::TTPCOrderedVolGroup : public TObject {
     /// Recursive function to use for dichotomy technique of working out angle
     void RecursiveDichotomy(std::vector<float>& prevAngles, int firstID, int lastID, float prevAngDiff);
     /// Extrapolate HV clusters in a specific dirction
-    std::vector<ND::TTPCPathVolume*> GetExtrapolatedClusters(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt, int dir);
+    std::vector<trex::TTPCPathVolume*> GetExtrapolatedClusters(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt, int dir);
 
     /// Calculate internal variables
     void Close();

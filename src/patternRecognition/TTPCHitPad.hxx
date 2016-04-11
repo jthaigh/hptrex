@@ -7,14 +7,14 @@
 /// Possible sources of the T0
 enum {kWFPEAKNOFIT = 0, kWFPEAKANALYTICFIT, kWFPEAKROOTGAUSSFIT};
 
-namespace ND {
+namespace trex {
   class TTPCHitPad;
 }
 
 /// Contains all the information relative to a waveform from a TPC pad.
 /// This may contains more than one peak if the peaks are too closed
 /// to be split into individual waveforms.
-class ND::TTPCHitPad {
+class trex::TTPCHitPad {
 public:
   TTPCHitPad();
   /// Returns a vector with the charge of each one the peaks in the waveform.

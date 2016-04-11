@@ -18,32 +18,32 @@
 #include "TTPCLayout.hxx"
 #include "TTPCUnitVolume.hxx"
 
-namespace ND{
+namespace trex{
   class TTPCVolGroup;
 }
 
 /// class for holding and operating on groups of the cells used in feature finding and path finding
-class ND::TTPCVolGroup : public TObject {
+class trex::TTPCVolGroup : public TObject {
   public:
     /// Constructor
-    TTPCVolGroup(ND::TTPCLayout* layout, unsigned int id=0);
+    TTPCVolGroup(trex::TTPCLayout* layout, unsigned int id=0);
     /// Destructor
     virtual ~TTPCVolGroup();
 
     /// Add whole map of hits to group from scratch
-    void AddHitMap(std::map<long, ND::TTPCUnitVolume*> hitMap);
+    void AddHitMap(std::map<long, trex::TTPCUnitVolume*> hitMap);
     /// Copy hits in an existing map into this group's map
-    void AddHits(std::map<long, ND::TTPCUnitVolume*> hitMap);
+    void AddHits(std::map<long, trex::TTPCUnitVolume*> hitMap);
     /// Copy hits between two iterators into this group's map 
-    void AddHits(std::map<long, ND::TTPCUnitVolume*>::iterator hitMapBegin, std::map<long, ND::TTPCUnitVolume*>::iterator hitMapEnd);
+    void AddHits(std::map<long, trex::TTPCUnitVolume*>::iterator hitMapBegin, std::map<long, trex::TTPCUnitVolume*>::iterator hitMapEnd);
     /// Copy hits in from a vector into this group's map
-    void AddHits(std::vector<ND::TTPCUnitVolume*> hitList);
+    void AddHits(std::vector<trex::TTPCUnitVolume*> hitList);
     /// Copy hits between two vector iterators into this group's map 
-    void AddHits(std::vector<ND::TTPCUnitVolume*>::iterator hitListBegin, std::vector<ND::TTPCUnitVolume*>::iterator hitListEnd);
+    void AddHits(std::vector<trex::TTPCUnitVolume*>::iterator hitListBegin, std::vector<trex::TTPCUnitVolume*>::iterator hitListEnd);
     /// Copy hits in another group's map into this group's map
-    void AddHits(ND::TTPCVolGroup& hits);
+    void AddHits(trex::TTPCVolGroup& hits);
     /// Add individual hit, returning false if it already existed in this group's map
-    bool AddHit(ND::TTPCUnitVolume* hit, bool safe=true);
+    bool AddHit(trex::TTPCUnitVolume* hit, bool safe=true);
 
     /// Remove a hit by its id from this group's map, returning false if it wasn't found and true if it was sucessfully removed
     bool RemoveHit(long id);
@@ -53,13 +53,13 @@ class ND::TTPCVolGroup : public TObject {
     void ClearMarked();
 
     /// Merge one group into this group, summing charges where cells overlap
-    void MergeHits(ND::TTPCVolGroup& hits);
+    void MergeHits(trex::TTPCVolGroup& hits);
 
   //MDH
   //Not used
   /*
     /// Add 'fake' cell not corresponding to a detected hit
-    void AddPseudoHit(ND::TTPCUnitVolume* hit);
+    void AddPseudoHit(trex::TTPCUnitVolume* hit);
     /// Add 'fake' cell not corresponding to a detected hit from its x, y and z id and charge
     void AddNewPseudoHit(int x, int y, int z, float q);
     /// Add gaussian distribution of 'fake' cells in two dimensions (x view, y view or z view with axis 1, 2 or 3 respectively), around specific x, y and z id with specific x, y and z spread
@@ -71,7 +71,7 @@ class ND::TTPCVolGroup : public TObject {
     TVector3 GetNearestHitPos(int x, int y, int z, int maxDist);
 
     /// Get list of all hits associated with elements of this group
-  std::vector< ND::TTPCHitPad* > GetHits();
+  std::vector< trex::TTPCHitPad* > GetHits();
 
     /// Get ID corresponding to the track end or vertex this junction is supposed to represent
     unsigned int GetID(){ return fID; }
@@ -81,12 +81,12 @@ class ND::TTPCVolGroup : public TObject {
     /// Return whether this group contains an element corresponding to the supplied volume element
     bool Contains(TTPCUnitVolume* vol);
     /// Get wheter a hit is at a lean in this group
-    bool GetLeanValid(ND::TTPCUnitVolume* vol);
+    bool GetLeanValid(trex::TTPCUnitVolume* vol);
 
     /// Return an element from hit map 
-    ND::TTPCUnitVolume* GetHit(long id, bool safe=true);
+    trex::TTPCUnitVolume* GetHit(long id, bool safe=true);
     /// Return the hit map
-    std::map<long, ND::TTPCUnitVolume*>& GetHitMap(){ return fHitMap; }
+    std::map<long, trex::TTPCUnitVolume*>& GetHitMap(){ return fHitMap; }
 
     /// Return average position of all cells in the group 
     TVector3 GetAveragePosition(){ Close(); return fAveragePosition; }
@@ -95,14 +95,14 @@ class ND::TTPCVolGroup : public TObject {
     /// Return average time of all cells in the group 
     double GetAverageTime(){ Close(); return fAverageTime; }
     /// Get the pad at the average position of all cells in the group
-    ND::TTPCCellInfo3D GetAveragePad(){ Close(); return fAveragePad; }
+    trex::TTPCCellInfo3D GetAveragePad(){ Close(); return fAveragePad; }
     /// Get the unit volume at the average position of all cells in the group
-    ND::TTPCUnitVolume* GetAverageVol(){ Close(); return fAverageUnitVolume; }
+    trex::TTPCUnitVolume* GetAverageVol(){ Close(); return fAverageUnitVolume; }
 
   //MDH
   //Redundant under new way of storing groups of hits
     /// Get bare pointer to the hit selection containing all cells in the group
-  //    ND::THitSelection* GetHitSelection();
+  //    trex::THitSelection* GetHitSelection();
     /// Get the average cell x
     int GetX(){ Close(); return fAveragePad.x; }
     /// Get the average cell y
@@ -155,13 +155,13 @@ class ND::TTPCVolGroup : public TObject {
     /// Clear this group's map
     void clear(){ fIsClosed = false; fHitMap.clear(); }
     /// Iterator to begining of hit map
-    std::map<long, ND::TTPCUnitVolume*>::iterator begin(){ return fHitMap.begin(); }
+    std::map<long, trex::TTPCUnitVolume*>::iterator begin(){ return fHitMap.begin(); }
     /// Iterator to end of hit map
-    std::map<long, ND::TTPCUnitVolume*>::iterator end(){ return fHitMap.end(); }
+    std::map<long, trex::TTPCUnitVolume*>::iterator end(){ return fHitMap.end(); }
     /// Find an element
-    std::map<long, ND::TTPCUnitVolume*>::iterator find(long id){ return fHitMap.find(id); }
+    std::map<long, trex::TTPCUnitVolume*>::iterator find(long id){ return fHitMap.find(id); }
     /// Return an element
-    ND::TTPCUnitVolume* GetEl(long id){ std::map<long, ND::TTPCUnitVolume*>::iterator vol = find(id); return ((vol == end()) ? 0 : vol->second); }
+    trex::TTPCUnitVolume* GetEl(long id){ std::map<long, trex::TTPCUnitVolume*>::iterator vol = find(id); return ((vol == end()) ? 0 : vol->second); }
 
     /// Set status for filtering out x hits when getting positions
     void SetXLean(int xLean=0, bool force=false){ SetLean(fXLean, xLean, force); }
@@ -182,7 +182,7 @@ class ND::TTPCVolGroup : public TObject {
 
   private:
     /// Layout in which the cells in this group live
-    ND::TTPCLayout* fLayout;
+    trex::TTPCLayout* fLayout;
 
     /// Filter on x position to use for calculating average cell
     int fXLean;
@@ -215,9 +215,9 @@ class ND::TTPCVolGroup : public TObject {
     /// Average time of all cells in group
     double fAverageTime;
     /// Pad at average position of all cells in group
-    ND::TTPCCellInfo3D fAveragePad;
+    trex::TTPCCellInfo3D fAveragePad;
     /// Unit volume at average position of all cells in group
-    ND::TTPCUnitVolume* fAverageUnitVolume;
+    trex::TTPCUnitVolume* fAverageUnitVolume;
     /// Standard deviation of all pads in this group along x axis
     float fSigmaPadX;
     /// Standard deviation of all pads in this group along y axis
@@ -232,7 +232,7 @@ class ND::TTPCVolGroup : public TObject {
     float fAverageCharge;
 
     /// Map of all hits in group
-    std::map<long, ND::TTPCUnitVolume*> fHitMap;
+    std::map<long, trex::TTPCUnitVolume*> fHitMap;
 
     /// Whether internal values have yet been set
     bool fIsClosed;

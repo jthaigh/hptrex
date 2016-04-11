@@ -22,7 +22,7 @@
 #include "TTPCVolGroup.hxx"
 #include "TTPCOrderedVolGroup.hxx"
 
-namespace ND{
+namespace trex{
   /// Enum for filters when grouping hits
   namespace TTPCHitGroupings{
     enum Type {
@@ -36,251 +36,251 @@ namespace ND{
   class TTPCVolGroupMan{
     public:
       /// Constructor
-      TTPCVolGroupMan(ND::TTPCLayout* layout);
+      TTPCVolGroupMan(trex::TTPCLayout* layout);
       /// Destructor
       virtual ~TTPCVolGroupMan(){};
 
       /// Add the hits to the main group of hits for this manager
-      void AddPrimaryHits(std::map<long, ND::TTPCUnitVolume*>& hitMap);
+      void AddPrimaryHits(std::map<long, trex::TTPCUnitVolume*>& hitMap);
 
     //MDH
     //Not used
       /// Group delta hits in a two dimensional projection, then extend to 3D
-      //std::vector< ND::THandle<ND::TTPCVolGroup> > GroupDeltaHits(ND::THandle<ND::TTPCVolGroup> suspectHits);
+      //std::vector< trex::THandle<trex::TTPCVolGroup> > GroupDeltaHits(trex::THandle<trex::TTPCVolGroup> suspectHits);
       /// Grab one group of delta hits, removing them from an input group
-      //ND::THandle<ND::TTPCVolGroup> GrabADeltaHitGroup(ND::THandle<ND::TTPCVolGroup> inputGroup, ND::THandle<ND::TTPCVolGroup> allHits);
+      //trex::THandle<trex::TTPCVolGroup> GrabADeltaHitGroup(trex::THandle<trex::TTPCVolGroup> inputGroup, trex::THandle<trex::TTPCVolGroup> allHits);
 
       /// Get vector of groups at edge of volumes split into delta and non-delt
-      std::vector< ND::TTPCVolGroup > GetAllEdgeGroups();
+      std::vector< trex::TTPCVolGroup > GetAllEdgeGroups();
       /// Get vector of groups on the edge of the MM volume
-      std::vector< ND::TTPCVolGroup > GetEdgeGroups();
+      std::vector< trex::TTPCVolGroup > GetEdgeGroups();
       /// Get vector of groups on the edge of the MM volume
-      std::vector< ND::TTPCVolGroup > GetEdgeGroups(ND::TTPCVolGroup& inGroup, bool fiddlyLeans=false);
+      std::vector< trex::TTPCVolGroup > GetEdgeGroups(trex::TTPCVolGroup& inGroup, bool fiddlyLeans=false);
 
       /// Find points along set of paths at which they start to diverge
-      void GetFoci(std::vector< ND::TTPCOrderedVolGroup >& paths, std::vector< ND::TTPCVolGroup >& groupsOut, float diffThreshold=0.5);
+      void GetFoci(std::vector< trex::TTPCOrderedVolGroup >& paths, std::vector< trex::TTPCVolGroup >& groupsOut, float diffThreshold=0.5);
 
       /// Find first point along a path that's more than a given distance from a second path
-      ND::TTPCPathVolume* GetDetatchmentPoint(ND::TTPCOrderedVolGroup& path1, ND::TTPCOrderedVolGroup& path2, ND::TTPCConnection::Type type=ND::TTPCConnection::vertexFind);
+      trex::TTPCPathVolume* GetDetatchmentPoint(trex::TTPCOrderedVolGroup& path1, trex::TTPCOrderedVolGroup& path2, trex::TTPCConnection::Type type=trex::TTPCConnection::vertexFind);
       /// Find point backwards along a path that's a given distance from the provided point on the same path
-      ND::TTPCPathVolume* GetProjectionPoint(ND::TTPCOrderedVolGroup& path, ND::TTPCPathVolume* pathVol, int dist=0);
+      trex::TTPCPathVolume* GetProjectionPoint(trex::TTPCOrderedVolGroup& path, trex::TTPCPathVolume* pathVol, int dist=0);
       /// Find closest point between two lines spanning between start and end points
-      ND::TTPCUnitVolume* GetClosestPoint(ND::TTPCPathVolume* begin1, ND::TTPCPathVolume* end1, ND::TTPCPathVolume* begin2, ND::TTPCPathVolume* end2);
+      trex::TTPCUnitVolume* GetClosestPoint(trex::TTPCPathVolume* begin1, trex::TTPCPathVolume* end1, trex::TTPCPathVolume* begin2, trex::TTPCPathVolume* end2);
 
       /// Make sure a sensible number of paths and vertices is returned
-      void CleanUpVertices(std::vector< ND::TTPCVolGroup >& edgeGroups, std::vector< ND::TTPCVolGroup >& vertices);
+      void CleanUpVertices(std::vector< trex::TTPCVolGroup >& edgeGroups, std::vector< trex::TTPCVolGroup >& vertices);
       
 
       /// Work back along two paths to find point where they started to diverge 
-      ND::TTPCUnitVolume* GetZero(ND::TTPCOrderedVolGroup& path1, ND::TTPCOrderedVolGroup& path2, ND::TTPCPathVolume* vol1=0, ND::TTPCPathVolume* vol2=0);
+      trex::TTPCUnitVolume* GetZero(trex::TTPCOrderedVolGroup& path1, trex::TTPCOrderedVolGroup& path2, trex::TTPCPathVolume* vol1=0, trex::TTPCPathVolume* vol2=0);
       /// Work back along first path to find point where it started to diverge from second
-      ND::TTPCPathVolume* GetPathZero(ND::TTPCOrderedVolGroup& path1, ND::TTPCOrderedVolGroup& path2, ND::TTPCPathVolume* vol=0);
+      trex::TTPCPathVolume* GetPathZero(trex::TTPCOrderedVolGroup& path1, trex::TTPCOrderedVolGroup& path2, trex::TTPCPathVolume* vol=0);
       /// Get area of a triangle between three points
-      double GetTriangleArea(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVolume* vol2, ND::TTPCUnitVolume* vol3);
+      double GetTriangleArea(trex::TTPCUnitVolume* vol1, trex::TTPCUnitVolume* vol2, trex::TTPCUnitVolume* vol3);
       /// Get distance from one point in a path to the closest point in another
-      double GetMinDistance(ND::TTPCOrderedVolGroup& path, ND::TTPCPathVolume* point);
+      double GetMinDistance(trex::TTPCOrderedVolGroup& path, trex::TTPCPathVolume* point);
       /// Get distance from one unit volume to the closest point in another
-      double GetMinDistance(ND::TTPCOrderedVolGroup& path, ND::TTPCUnitVolume* vol);
+      double GetMinDistance(trex::TTPCOrderedVolGroup& path, trex::TTPCUnitVolume* vol);
 
       /// Get preliminary group of hits which could be a track end
-      void GetFarHitsPreGroup(ND::TTPCOrderedVolGroup& path, ND::TTPCVolGroup& hits, bool tryChargeCut=false);
+      void GetFarHitsPreGroup(trex::TTPCOrderedVolGroup& path, trex::TTPCVolGroup& hits, bool tryChargeCut=false);
       /// Get group of hits which could be a track end
-      void GetFarHitsGroup(ND::TTPCOrderedVolGroup& path, ND::TTPCVolGroup& hits, bool tryChargeCut=false);
+      void GetFarHitsGroup(trex::TTPCOrderedVolGroup& path, trex::TTPCVolGroup& hits, bool tryChargeCut=false);
       /// Find one point along set of paths at which discontinuities occur (the most significant)
-      void GetDiscontinuity(std::vector< ND::TTPCOrderedVolGroup >& paths, ND::TTPCVolGroup& point);
+      void GetDiscontinuity(std::vector< trex::TTPCOrderedVolGroup >& paths, trex::TTPCVolGroup& point);
       /// Find points along set of paths at which discontinuities occur
-      void GetDiscontinuities(std::vector< ND::TTPCOrderedVolGroup >& paths, std::vector< ND::TTPCVolGroup >& points, float diffThreshold=.5, float threshold=2.);
+      void GetDiscontinuities(std::vector< trex::TTPCOrderedVolGroup >& paths, std::vector< trex::TTPCVolGroup >& points, float diffThreshold=.5, float threshold=2.);
       /// Get in-path id of a sudden sharp change 
-      int GetDiscontinuityID(ND::TTPCOrderedVolGroup& path, int dimension=1, float threshold=2.);
+      int GetDiscontinuityID(trex::TTPCOrderedVolGroup& path, int dimension=1, float threshold=2.);
       /// Find suddent sharp change in angle along a path 
       void FindDiscontinuity(float& pos, float& step, float size, TH1F* hist, float threshold=2.);
 
       /// Determine whether a vol overlaps a path 
-      bool GetPathVolOverlap(ND::TTPCOrderedVolGroup& path, ND::TTPCUnitVolume* vol, ND::TTPCConnection::Type type = ND::TTPCConnection::edgeMerge);
+      bool GetPathVolOverlap(trex::TTPCOrderedVolGroup& path, trex::TTPCUnitVolume* vol, trex::TTPCConnection::Type type = trex::TTPCConnection::edgeMerge);
       /// Determine whether the average position of one group comes near another
-      bool GetGroupGroupOverlap(ND::TTPCVolGroup& group1, ND::TTPCVolGroup& group2, ND::TTPCConnection::Type type = ND::TTPCConnection::edgeMerge, bool simple=false, bool checkLean=false);
+      bool GetGroupGroupOverlap(trex::TTPCVolGroup& group1, trex::TTPCVolGroup& group2, trex::TTPCConnection::Type type = trex::TTPCConnection::edgeMerge, bool simple=false, bool checkLean=false);
 
       /// Merge two groups and return the result
-      void MergeGroups(ND::TTPCVolGroup& group1, ND::TTPCVolGroup& group2,ND::TTPCVolGroup& merged);
+      void MergeGroups(trex::TTPCVolGroup& group1, trex::TTPCVolGroup& group2,trex::TTPCVolGroup& merged);
 
       /// Add anything inside this group to it
-      void BulkGroup(ND::TTPCVolGroup& group);
+      void BulkGroup(trex::TTPCVolGroup& group);
       /// Add anything inside each group to it
-      void BulkGroups(std::vector< ND::TTPCVolGroup >& groups);
+      void BulkGroups(std::vector< trex::TTPCVolGroup >& groups);
 
       /// Break input tracks around any kinks found inside them
-      void BreakPathsAboutKinks(std::vector< ND::TTPCOrderedVolGroup >& paths, bool tryChargeCut=false);
+      void BreakPathsAboutKinks(std::vector< trex::TTPCOrderedVolGroup >& paths, bool tryChargeCut=false);
 
       /// Get a pointer to the main group of hits associated with this manager
-      ND::TTPCVolGroup& GetPrimaryHits(){ return fPrimaryHits; }
+      trex::TTPCVolGroup& GetPrimaryHits(){ return fPrimaryHits; }
 
       /// Get unordered group corresponding to hits in an ordered group
-    void GetUnorderedGroup(ND::TTPCOrderedVolGroup& in, ND::TTPCVolGroup& out);
+    void GetUnorderedGroup(trex::TTPCOrderedVolGroup& in, trex::TTPCVolGroup& out);
 
 
       /// Process hits in unordered group, associating an unordered group of nearby hits with it
-      void BuildGroupFriends(ND::TTPCOrderedVolGroup& in, ND::TTPCConnection::Type type = ND::TTPCConnection::pathHits);
+      void BuildGroupFriends(trex::TTPCOrderedVolGroup& in, trex::TTPCConnection::Type type = trex::TTPCConnection::pathHits);
       /// Produce clusters in unordered group
-      void ClusterGroupFriends(ND::TTPCOrderedVolGroup& in, bool doClustering=false, bool checkX=false, bool partial=false);
+      void ClusterGroupFriends(trex::TTPCOrderedVolGroup& in, bool doClustering=false, bool checkX=false, bool partial=false);
       
     //MDH
     //Not used
 /// Return copy of list of paths with cleared empty paths
-    //std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > ClearEmptyPaths(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >& paths);
+    //std::vector< trex::THandle<trex::TTPCOrderedVolGroup> > ClearEmptyPaths(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> >& paths);
 
       /// Uniquely build friends for all paths
-      void BuildAllFriends(std::vector< ND::TTPCOrderedVolGroup>& paths);
+      void BuildAllFriends(std::vector< trex::TTPCOrderedVolGroup>& paths);
       /// Separate hits assigned to incomplete paths so that each contains a unique set
-      void SeparateHits(std::vector< ND::TTPCOrderedVolGroup >& paths);
+      void SeparateHits(std::vector< trex::TTPCOrderedVolGroup >& paths);
       /// Merge x-paths into junctions
-      void SeparateXPathHits(std::vector< ND::TTPCOrderedVolGroup >& paths);
+      void SeparateXPathHits(std::vector< trex::TTPCOrderedVolGroup >& paths);
       /// Separate out any empty hits
-      void SeparateEmptyClusters(std::vector< ND::TTPCOrderedVolGroup >& paths);
+      void SeparateEmptyClusters(std::vector< trex::TTPCOrderedVolGroup >& paths);
       /// Separate hits mis-assigned to one cluster from a nearby one
-      void SeparateClusterHits(std::vector< ND::TTPCOrderedVolGroup >& paths);
+      void SeparateClusterHits(std::vector< trex::TTPCOrderedVolGroup >& paths);
       /// Separate hits next to a junction which don't seem to fit in to the rest of the path
-      void SeparateAnomHits(std::vector< ND::TTPCOrderedVolGroup >& paths);
+      void SeparateAnomHits(std::vector< trex::TTPCOrderedVolGroup >& paths);
       /// Separate hits assigned to junctions from those assigned to complete paths
-      std::vector<ND::TTPCUnitVolume*> SeparateAnomHitsPath(ND::TTPCOrderedVolGroup& path, int checkDir=0);
+      std::vector<trex::TTPCUnitVolume*> SeparateAnomHitsPath(trex::TTPCOrderedVolGroup& path, int checkDir=0);
       /// Separate hits assigned to junctions from those assigned to complete paths
-      void SeparateJunctionHits(std::vector< ND::TTPCOrderedVolGroup >& paths);
+      void SeparateJunctionHits(std::vector< trex::TTPCOrderedVolGroup >& paths);
       /// Enforce ordering on paths
-      void EnforceOrdering(std::vector< ND::TTPCOrderedVolGroup >& paths);
+      void EnforceOrdering(std::vector< trex::TTPCOrderedVolGroup >& paths);
       /// Get whether two vol groups overlap
-      bool GetOverlaps(ND::TTPCVolGroup& group1, ND::TTPCVolGroup& group2, bool checkHits=true);
+      bool GetOverlaps(trex::TTPCVolGroup& group1, trex::TTPCVolGroup& group2, bool checkHits=true);
 
       /// Set vertex statuses exclusively based on how many paths a junction is connected to
-      void ResetVertexStatuses(std::vector< ND::TTPCOrderedVolGroup >& paths, bool partial=false);
+      void ResetVertexStatuses(std::vector< trex::TTPCOrderedVolGroup >& paths, bool partial=false);
 
       /// Get extended group corresponding to hits in given group, and hits from hitMap which are close enough to be incorporated
-      void GetExtendedGroup(ND::TTPCVolGroup& in, ND::TTPCVolGroup& out);
+      void GetExtendedGroup(trex::TTPCVolGroup& in, trex::TTPCVolGroup& out);
 
       /// Get hits in fPrimaryHits connected to this one within specified distance
-    void GetConnectedHits(std::vector<ND::TTPCVolGroup>& out,ND::TTPCConnection::Type type=ND::TTPCConnection::path, ND::TTPCHitGroupings::Type typeFilter=ND::TTPCHitGroupings::all, bool usabilityCheck=false);
+    void GetConnectedHits(std::vector<trex::TTPCVolGroup>& out,trex::TTPCConnection::Type type=trex::TTPCConnection::path, trex::TTPCHitGroupings::Type typeFilter=trex::TTPCHitGroupings::all, bool usabilityCheck=false);
 
       /// Get hits in given group connected to this one within specified distance
-    void GetConnectedHits(ND::TTPCVolGroup& in, std::vector<ND::TTPCVolGroup>& out, ND::TTPCConnection::Type type=ND::TTPCConnection::path, ND::TTPCHitGroupings::Type typeFilter = ND::TTPCHitGroupings::all, bool usabilityCheck=false);
+    void GetConnectedHits(trex::TTPCVolGroup& in, std::vector<trex::TTPCVolGroup>& out, trex::TTPCConnection::Type type=trex::TTPCConnection::path, trex::TTPCHitGroupings::Type typeFilter = trex::TTPCHitGroupings::all, bool usabilityCheck=false);
 
       /// Check that a provided group covers the minimum number of pads
-      bool CheckUsability(ND::TTPCVolGroup& inGroup);
+      bool CheckUsability(trex::TTPCVolGroup& inGroup);
 
       /// Get cells in an input group within specified distance of a specified id (including itself if inclusive is set to true)
-      void GetNearHits(ND::TTPCVolGroup& in, ND::TTPCVolGroup& cellsOut, long id, ND::TTPCConnection::Type type=ND::TTPCConnection::path, bool inclusive=false, bool singular=false, float distFilter=-2., ND::TTPCHitGroupings::Type typeFilter = ND::TTPCHitGroupings::all, bool square=false);
+      void GetNearHits(trex::TTPCVolGroup& in, trex::TTPCVolGroup& cellsOut, long id, trex::TTPCConnection::Type type=trex::TTPCConnection::path, bool inclusive=false, bool singular=false, float distFilter=-2., trex::TTPCHitGroupings::Type typeFilter = trex::TTPCHitGroupings::all, bool square=false);
       /// Get cells in an input group within specified distance of a specified cell (including itself if inclusive is set to true)
-      void GetNearHits(ND::TTPCVolGroup& in, ND::TTPCVolGroup& cellsOut, ND::TTPCUnitVolume* vol, ND::TTPCConnection::Type type=ND::TTPCConnection::path, bool inclusive=false, bool singular=false, float distFilter=-1., ND::TTPCHitGroupings::Type typeFilter = ND::TTPCHitGroupings::all, bool square=false);
+      void GetNearHits(trex::TTPCVolGroup& in, trex::TTPCVolGroup& cellsOut, trex::TTPCUnitVolume* vol, trex::TTPCConnection::Type type=trex::TTPCConnection::path, bool inclusive=false, bool singular=false, float distFilter=-1., trex::TTPCHitGroupings::Type typeFilter = trex::TTPCHitGroupings::all, bool square=false);
 
       /// Get list of tagged vertices from a list of paths
-    std::vector< ND::TTPCVolGroup > GetJunctionsFromPaths(std::vector< ND::TTPCOrderedVolGroup >& paths);
+    std::vector< trex::TTPCVolGroup > GetJunctionsFromPaths(std::vector< trex::TTPCOrderedVolGroup >& paths);
       /// Get unused hits given an input of paths and junctions
-    void GetUnusedHits(std::vector< ND::TTPCOrderedVolGroup >& paths, TTPCVolGroup& unusedHits);
+    void GetUnusedHits(std::vector< trex::TTPCOrderedVolGroup >& paths, TTPCVolGroup& unusedHits);
 
       /// Associate unused hits with path junctions
-    void AssociateUnusedWithJunctions(ND::TTPCVolGroup& unused, std::vector< ND::TTPCOrderedVolGroup >& paths);
+    void AssociateUnusedWithJunctions(trex::TTPCVolGroup& unused, std::vector< trex::TTPCOrderedVolGroup >& paths);
 
       /// Filter out any remaining tracks and hits that don't make sense
-      void SanityFilter(std::vector< ND::TTPCOrderedVolGroup >& input);
+      void SanityFilter(std::vector< trex::TTPCOrderedVolGroup >& input);
    
       /// Get representation of position using time and co-ordinates
-      TVector3 GetAvgPosRep(ND::TTPCPathVolume* vol);
+      TVector3 GetAvgPosRep(trex::TTPCPathVolume* vol);
       /// Get representation of position using time and co-ordinates
-      TVector3 GetAvgPosRep(ND::TTPCUnitVolume* vol, int sign=0);
+      TVector3 GetAvgPosRep(trex::TTPCUnitVolume* vol, int sign=0);
 
       /// Get whether a specified cell is within a specified range of another
-      bool IsInRange(ND::TTPCPathVolume* point1, ND::TTPCPathVolume* point2, int sizeX=1, int sizeY=1, int sizeZ=1);
+      bool IsInRange(trex::TTPCPathVolume* point1, trex::TTPCPathVolume* point2, int sizeX=1, int sizeY=1, int sizeZ=1);
       /// Get whether a specified path meets the criteria for being tagged as an x-path
-      bool IsXPathCandidate(ND::TTPCOrderedVolGroup& inPath);
+      bool IsXPathCandidate(trex::TTPCOrderedVolGroup& inPath);
 
       /// Get hits associated with primary path
-      std::vector<ND::TTPCHitPad*> GetHits();
+      std::vector<trex::TTPCHitPad*> GetHits();
 
       
     private:
       /// TPC layout associated with this group
-      ND::TTPCLayout* fLayout;
+      trex::TTPCLayout* fLayout;
 
       /// Primary map of all hits associated with this manager 
-      std::map<long, ND::TTPCUnitVolume*> fHitMap; 
+      std::map<long, trex::TTPCUnitVolume*> fHitMap; 
       /// Primary group of hits assoicated with this manager
-      ND::TTPCVolGroup fPrimaryHits;
+      trex::TTPCVolGroup fPrimaryHits;
 
       /// Recursively build groups and add them to a given container
-      void FillWithSplitGroups(std::vector< ND::TTPCVolGroup >& container, ND::TTPCVolGroup& inputHits, ND::TTPCConnection::Type type=ND::TTPCConnection::path, int maxFilterX=0, int maxFilterY=0, int maxFilterZ=0);
+      void FillWithSplitGroups(std::vector< trex::TTPCVolGroup >& container, trex::TTPCVolGroup& inputHits, trex::TTPCConnection::Type type=trex::TTPCConnection::path, int maxFilterX=0, int maxFilterY=0, int maxFilterZ=0);
       /// Retrieve split groups from one input
-    std::vector< ND::TTPCVolGroup > GetSplitGroups(ND::TTPCVolGroup& inputHits, ND::TTPCConnection::Type type=ND::TTPCConnection::path);
+    std::vector< trex::TTPCVolGroup > GetSplitGroups(trex::TTPCVolGroup& inputHits, trex::TTPCConnection::Type type=trex::TTPCConnection::path);
 
       /// Build a list of connected cells recursively, with type specifying mode
-      void RecursiveFriendBuild(long startID, ND::TTPCVolGroup& target, ND::TTPCVolGroup& source, ND::TTPCConnection::Type type=ND::TTPCConnection::path, ND::TTPCHitGroupings::Type typeFilter = ND::TTPCHitGroupings::all);
+      void RecursiveFriendBuild(long startID, trex::TTPCVolGroup& target, trex::TTPCVolGroup& source, trex::TTPCConnection::Type type=trex::TTPCConnection::path, trex::TTPCHitGroupings::Type typeFilter = trex::TTPCHitGroupings::all);
             
     /// Get list of connected cells within a certain distance of a specified list recursively
-      void RecursiveFriendSeek(ND::TTPCOrderedVolGroup& inList, ND::TTPCVolGroup& target, float dist=9999., ND::TTPCConnection::Type type=ND::TTPCConnection::path, ND::TTPCHitGroupings::Type typeFilter = ND::TTPCHitGroupings::all);
+      void RecursiveFriendSeek(trex::TTPCOrderedVolGroup& inList, trex::TTPCVolGroup& target, float dist=9999., trex::TTPCConnection::Type type=trex::TTPCConnection::path, trex::TTPCHitGroupings::Type typeFilter = trex::TTPCHitGroupings::all);
       /// Get list of connected cells within a certain distance of a specified list recursively
-      void RecursiveFriendSeek(ND::TTPCVolGroup& inList, ND::TTPCVolGroup& target, float dist=9999., ND::TTPCConnection::Type type=ND::TTPCConnection::path, ND::TTPCHitGroupings::Type typeFilter = ND::TTPCHitGroupings::all);
+      void RecursiveFriendSeek(trex::TTPCVolGroup& inList, trex::TTPCVolGroup& target, float dist=9999., trex::TTPCConnection::Type type=trex::TTPCConnection::path, trex::TTPCHitGroupings::Type typeFilter = trex::TTPCHitGroupings::all);
       /// Fill distances for cells in input list to start within specified distance 
-      void RecursiveFriendListSeek(long startID, ND::TTPCVolGroup& source, float curDist=9999., float dist=9999., ND::TTPCConnection::Type type=ND::TTPCConnection::path, ND::TTPCHitGroupings::Type typeFilter = ND::TTPCHitGroupings::all);
+      void RecursiveFriendListSeek(long startID, trex::TTPCVolGroup& source, float curDist=9999., float dist=9999., trex::TTPCConnection::Type type=trex::TTPCConnection::path, trex::TTPCHitGroupings::Type typeFilter = trex::TTPCHitGroupings::all);
 
       /// Check if two unit volumes are within a given distance of each other
-      bool HitTest(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVolume* vol2, ND::TTPCConnection::Type type);
+      bool HitTest(trex::TTPCUnitVolume* vol1, trex::TTPCUnitVolume* vol2, trex::TTPCConnection::Type type);
       /// Check if two unit volumes are within a given distance of each other
-      bool HitTest(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVolume* vol2, int xDist, int yDist, int zDist);
+      bool HitTest(trex::TTPCUnitVolume* vol1, trex::TTPCUnitVolume* vol2, int xDist, int yDist, int zDist);
 
   public:
     //MDH
     //Not used
     /// Separate an input into its delta and non-delta hits
-      //void GetDeltaNonDelta(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >& nonDelta, std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >& delta, ND::THandle<ND::TTPCOrderedVolGroup> input);
+      //void GetDeltaNonDelta(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> >& nonDelta, std::vector< trex::THandle<trex::TTPCOrderedVolGroup> >& delta, trex::THandle<trex::TTPCOrderedVolGroup> input);
       /// Break long junctions into x-paths
-      //void BreakLongJunctions(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >& paths);
+      //void BreakLongJunctions(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> >& paths);
 
       /// Count any duplicated hits in paths and junctions
-      //std::pair<std::pair<int, int>, std::pair<int, int> > CountDuplicates(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths);
+      //std::pair<std::pair<int, int>, std::pair<int, int> > CountDuplicates(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> > paths);
 
       /// Get iterable vector to ids in 3D spheroid of hits in map, given input connection scheme
-      //std::vector<long> SpheroidIterable(ND::TTPCCell3D cell, ND::TTPCConnection::Type type);
+      //std::vector<long> SpheroidIterable(trex::TTPCCell3D cell, trex::TTPCConnection::Type type);
       /// Get iterable vector to ids in 3D spheroid of hits in map, given input dimensions in x, y and z
-      //std::vector<long> SpheroidIterable(ND::TTPCCell3D cell, int diffX, int diffY, int diffZ);
+      //std::vector<long> SpheroidIterable(trex::TTPCCell3D cell, int diffX, int diffY, int diffZ);
     /// Debugging function to check overlap between path extended hits
-    //      void CheckExtendedHitOverlap(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths);
+    //      void CheckExtendedHitOverlap(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> > paths);
 
     //MDH
     //Not used
       /// Try to fill in gaps between MM volumes with pseudo-hits to tape over difficulties in pattern recognition
-      //ND::THandle<ND::TTPCVolGroup> GetGapFillHits(ND::THandle<ND::TTPCVolGroup> in);
+      //trex::THandle<trex::TTPCVolGroup> GetGapFillHits(trex::THandle<trex::TTPCVolGroup> in);
       /// Extrapolate this group of hits in a particular direction based on larger set of reference hits
-      //ND::THandle<ND::TTPCVolGroup> GetGapProjections(ND::THandle<ND::TTPCVolGroup> in, int dirX, int dirY, int dirZ, std::map<long, ND::TTPCUnitVolume*> refHits);
+      //trex::THandle<trex::TTPCVolGroup> GetGapProjections(trex::THandle<trex::TTPCVolGroup> in, int dirX, int dirY, int dirZ, std::map<long, trex::TTPCUnitVolume*> refHits);
 
       /// Find the nearest group of hits to the provided one along a given axis
-      //ND::THandle<ND::TTPCVolGroup> GetNearestGroup(ND::THandle<ND::TTPCVolGroup> in, int x, int y, int z, int axis, int maxDist=100);
+      //trex::THandle<trex::TTPCVolGroup> GetNearestGroup(trex::THandle<trex::TTPCVolGroup> in, int x, int y, int z, int axis, int maxDist=100);
       /// Find group containing just nearest hit to a given x, y and z from input
-      //ND::THandle<ND::TTPCVolGroup> GetNearestHitGroup(ND::THandle<ND::TTPCVolGroup> in, int x, int y, int z, int maxDist=100);
+      //trex::THandle<trex::TTPCVolGroup> GetNearestHitGroup(trex::THandle<trex::TTPCVolGroup> in, int x, int y, int z, int maxDist=100);
 
       /// Find group representing portion of a pair of groups which overlaps (or doesn't if swap=true)
-      //ND::THandle<ND::TTPCVolGroup> GetOverlap(ND::THandle<ND::TTPCVolGroup> grp1, ND::THandle<ND::TTPCVolGroup> grp2, bool swap=false);
+      //trex::THandle<trex::TTPCVolGroup> GetOverlap(trex::THandle<trex::TTPCVolGroup> grp1, trex::THandle<trex::TTPCVolGroup> grp2, bool swap=false);
     //MDH
     //Not used
       /// Find one point along set of paths at which they start to diverge (the most significant)
-      //ND::THandle<ND::TTPCVolGroup> GetFocus(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths);
+      //trex::THandle<trex::TTPCVolGroup> GetFocus(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> > paths);
 
     //MDH
     //Not used
       /// Find points along set of paths which could be track ends
-      //std::vector< ND::THandle<ND::TTPCVolGroup> > GetFarHits(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > paths, bool tryChargeCut=false);
+      //std::vector< trex::THandle<trex::TTPCVolGroup> > GetFarHits(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> > paths, bool tryChargeCut=false);
 
     //MDH
     //Not used
       /// Merge input tracks which severely overlap 
-      //std::vector< ND::THandle<ND::TTPCVolGroup> > GetFilteredPaths(std::vector< ND::THandle<ND::TTPCVolGroup> > inPaths);
+      //std::vector< trex::THandle<trex::TTPCVolGroup> > GetFilteredPaths(std::vector< trex::THandle<trex::TTPCVolGroup> > inPaths);
 
     //MDH
     //Not used
       /// Get extended unordered group corresponding to hits in given group
-      //ND::THandle<ND::TTPCVolGroup> GetExtendedUnorderedGroup(ND::THandle<ND::TTPCOrderedVolGroup> in);
+      //trex::THandle<trex::TTPCVolGroup> GetExtendedUnorderedGroup(trex::THandle<trex::TTPCOrderedVolGroup> in);
 
   private:
 
     //MDH
     //Not used
     /// Get list of connected cells within a certain distance of a specified list recursively
-    //void FriendConnect(ND::THandle<ND::TTPCOrderedVolGroup> inList, ND::THandle<ND::TTPCVolGroup> inField);
+    //void FriendConnect(trex::THandle<trex::TTPCOrderedVolGroup> inList, trex::THandle<trex::TTPCVolGroup> inField);
 
   };
 }

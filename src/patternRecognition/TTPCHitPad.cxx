@@ -3,22 +3,22 @@
 #include <TF1.h>
 
 
-ClassImp(ND::TTPCHitPad);
+ClassImp(trex::TTPCHitPad);
 
-//typedef std::vector< ND::THandle< ND::TSingleHit > >::const_iterator timebin;
+//typedef std::vector< trex::THandle< trex::TSingleHit > >::const_iterator timebin;
 
-ND::TTPCHitPad::TTPCHitPad(){
+trex::TTPCHitPad::TTPCHitPad(){
   InitParameters();
 }
 
 
-void ND::TTPCHitPad::InitParameters(){
+void trex::TTPCHitPad::InitParameters(){
 
 }
 
-void ND::TTPCHitPad::Init(){
+void trex::TTPCHitPad::Init(){
 
-/*  fNegativePeakBin = std::vector< ND::THandle<ND::TSingleHit> >();
+/*  fNegativePeakBin = std::vector< trex::THandle<trex::TSingleHit> >();
 
   // Saturation
   fSaturation = 0;
@@ -26,15 +26,15 @@ void ND::TTPCHitPad::Init(){
     fSaturation = int(this->GetTimeUncertainty() *2. / fSamplingTime);
   }
 
-  fAtHoriEdge = ND::TGeomInfo::Get().TPC().PadIsAtHorEdge(this->GetGeomId());
-  fAtVertEdge = ND::TGeomInfo::Get().TPC().PadIsAtVerEdge(this->GetGeomId());
+  fAtHoriEdge = trex::TGeomInfo::Get().TPC().PadIsAtHorEdge(this->GetGeomId());
+  fAtVertEdge = trex::TGeomInfo::Get().TPC().PadIsAtVerEdge(this->GetGeomId());
 
   fHairCandidate = false;
 
-  fDriftSense = int(ND::TGeomInfo::Get().TPC().GetDriftSense( this->GetGeomId() ));
+  fDriftSense = int(trex::TGeomInfo::Get().TPC().GetDriftSense( this->GetGeomId() ));
 
   fChargeIntegral = 0.;
-  ND::THandle<ND::TMultiHit> mh = GetMultiHit();
+  trex::THandle<trex::TMultiHit> mh = GetMultiHit();
   int binNb = 0;
   double maxCharge = -9999.;
   for( timebin bin = mh->begin(); bin < mh->end(); bin++, binNb++){
@@ -56,22 +56,22 @@ void ND::TTPCHitPad::Init(){
   AnalyticFit();*/
 }
 /*
-unsigned int ND::TTPCHitPad::GetNumberPeaks(){
+unsigned int trex::TTPCHitPad::GetNumberPeaks(){
   return fPeakBin.size();
 }
 
 
-ND::THandle<ND::THit> ND::TTPCHitPad::GetMultiHit(){
+trex::THandle<trex::THit> trex::TTPCHitPad::GetMultiHit(){
 
   if ( this->GetContributorCount() > 0 ){
     return this->GetContributor(0);
   } else {
-    return ND::THandle<ND::TMultiHit>();
+    return trex::THandle<trex::TMultiHit>();
   }
 }
 
 
-void ND::TTPCHitPad::AnalyticFit() {
+void trex::TTPCHitPad::AnalyticFit() {
 
   fIsFitted = kWFPEAKNOFIT;
   fChargeFit = -0xABCDEF;
@@ -90,7 +90,7 @@ void ND::TTPCHitPad::AnalyticFit() {
   }
 
   // Only do the fit if there is enough room around the peak.
-  ND::THandle<ND::TMultiHit> mh = GetMultiHit();
+  trex::THandle<trex::TMultiHit> mh = GetMultiHit();
   if ((unsigned int)(fMaxPeak + fAnalyticFitRange) > mh->size() || (fMaxPeak - fAnalyticFitRange) < 0) {
     return;
   }
@@ -116,7 +116,7 @@ void ND::TTPCHitPad::AnalyticFit() {
          time,         // time bin
          time2;        // time bin squared
 
-  typedef std::vector< ND::THandle< ND::TSingleHit > >::const_iterator iterator;
+  typedef std::vector< trex::THandle< trex::TSingleHit > >::const_iterator iterator;
   iterator maxBin = mh->begin() + fMaxPeak;
 
   iterator start = maxBin - fAnalyticFitRange,
@@ -168,7 +168,7 @@ void ND::TTPCHitPad::AnalyticFit() {
 }
 
 
-void ND::TTPCHitPad::RootGaussFit() {
+void trex::TTPCHitPad::RootGaussFit() {
 
   fIsFitted = kWFPEAKNOFIT;
   fChargeFit = -0xABCDEF;
@@ -182,14 +182,14 @@ void ND::TTPCHitPad::RootGaussFit() {
   std::vector<double> at;
   std::vector<double> aq;
 
-  ND::THandle<ND::TMultiHit> mh = GetMultiHit();
+  trex::THandle<trex::TMultiHit> mh = GetMultiHit();
 
   double localmaxADC = 0.0;
   int idxmax=-1;
   int idx=0;
   double   Time=0;
 
-  typedef std::vector< ND::THandle< ND::TSingleHit > >::const_iterator iterator;
+  typedef std::vector< trex::THandle< trex::TSingleHit > >::const_iterator iterator;
   for( iterator mhit = mh->begin(); mhit !=  mh->end(); mhit++ ) {
     if( localmaxADC < (*mhit)->GetCharge() ) {
       localmaxADC = (*mhit)->GetCharge();
@@ -230,10 +230,10 @@ void ND::TTPCHitPad::RootGaussFit() {
 }
 */
 
-std::vector<double> ND::TTPCHitPad::GetPeakTimes() {
+std::vector<double> trex::TTPCHitPad::GetPeakTimes() {
 
   //std::vector<double> PeakTimes;
-  //for (std::vector< ND::THandle< ND::TSingleHit > >::const_iterator bin = fPeakBin.begin(); bin !=  fPeakBin.end(); bin++) {
+  //for (std::vector< trex::THandle< trex::TSingleHit > >::const_iterator bin = fPeakBin.begin(); bin !=  fPeakBin.end(); bin++) {
   //  PeakTimes.push_back((*bin)->GetTime());
   //}
   //return PeakTimes;
@@ -243,10 +243,10 @@ std::vector<double> ND::TTPCHitPad::GetPeakTimes() {
 }
 
 
-std::vector<double> ND::TTPCHitPad::GetPeakCharges() {
+std::vector<double> trex::TTPCHitPad::GetPeakCharges() {
 
   std::vector<double> PeakCharges;
-//  for (std::vector< ND::THandle< ND::TSingleHit > >::const_iterator bin = fPeakBin.begin(); bin !=  fPeakBin.end(); bin++) {
+//  for (std::vector< trex::THandle< trex::TSingleHit > >::const_iterator bin = fPeakBin.begin(); bin !=  fPeakBin.end(); bin++) {
 //    PeakCharges.push_back((*bin)->GetCharge());
 //  }
   PeakCharges.push_back(fChargeFit);
@@ -255,27 +255,27 @@ std::vector<double> ND::TTPCHitPad::GetPeakCharges() {
 }
 /*
 
-std::vector<double> ND::TTPCHitPad::GetNegativePeakTimes() {
+std::vector<double> trex::TTPCHitPad::GetNegativePeakTimes() {
 
   std::vector<double> negativePeakTimes;
-  for (std::vector< ND::THandle< ND::TSingleHit > >::const_iterator bin = fNegativePeakBin.begin(); bin !=  fNegativePeakBin.end(); bin++) {
+  for (std::vector< trex::THandle< trex::TSingleHit > >::const_iterator bin = fNegativePeakBin.begin(); bin !=  fNegativePeakBin.end(); bin++) {
     negativePeakTimes.push_back((*bin)->GetTime());
   }
   return negativePeakTimes;
 }
 
 
-std::vector<double> ND::TTPCHitPad::GetNegativePeakCharges() {
+std::vector<double> trex::TTPCHitPad::GetNegativePeakCharges() {
 
   std::vector<double> negativePeakCharges;
-  for (std::vector< ND::THandle< ND::TSingleHit > >::const_iterator bin = fNegativePeakBin.begin(); bin !=  fNegativePeakBin.end(); bin++) {
+  for (std::vector< trex::THandle< trex::TSingleHit > >::const_iterator bin = fNegativePeakBin.begin(); bin !=  fNegativePeakBin.end(); bin++) {
     negativePeakCharges.push_back((*bin)->GetCharge());
   }
   return negativePeakCharges;
 }
 
 
-// void GetWaveformTimeRange(ND::THandle<ND::TReconHit> wf, double &min, double &max) {
+// void GetWaveformTimeRange(trex::THandle<trex::TReconHit> wf, double &min, double &max) {
 
 //   // Simple single peak
 //   if ( fPeakBin.size()){
@@ -288,7 +288,7 @@ std::vector<double> ND::TTPCHitPad::GetNegativePeakCharges() {
 //   }
 // }
 
-ND::THandle<ND::TMultiHit> ND::TTPCHitPad::ConvertToOAEvent() {
+trex::THandle<trex::TMultiHit> trex::TTPCHitPad::ConvertToOAEvent() {
   return GetMultiHit();
 }
 */

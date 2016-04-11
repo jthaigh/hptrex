@@ -1,7 +1,7 @@
 // eddy
 #include "TTPCPathVolume.hxx"
 
-ND::TTPCPathVolume::TTPCPathVolume(ND::TTPCUnitVolume* unitVolume){
+trex::TTPCPathVolume::TTPCPathVolume(trex::TTPCUnitVolume* unitVolume){
   fUnitVolume = unitVolume;
 
   fXMin = 0;
@@ -18,36 +18,36 @@ ND::TTPCPathVolume::TTPCPathVolume(ND::TTPCUnitVolume* unitVolume){
   fClosed = false;
   fIsXCluster = false;
 }
-ND::TTPCPathVolume::~TTPCPathVolume(){
+trex::TTPCPathVolume::~TTPCPathVolume(){
 }
 
-std::vector<ND::TTPCUnitVolume*> ND::TTPCPathVolume::GetExtendedCell(int filter){
+std::vector<trex::TTPCUnitVolume*> trex::TTPCPathVolume::GetExtendedCell(int filter){
   // list to return
-  std::vector<ND::TTPCUnitVolume*> extendedCells = std::vector<ND::TTPCUnitVolume*>();
+  std::vector<trex::TTPCUnitVolume*> extendedCells = std::vector<trex::TTPCUnitVolume*>();
   // add friends to the list
   if(GetHasCluster()){
     if((fIsVertical && (filter==0 || filter==1)) || (!fIsVertical && (filter==0 || filter==2))){
-      for(std::vector<ND::TTPCUnitVolume*>::iterator ffriend = fFriends.begin(); ffriend != fFriends.end(); ++ffriend) extendedCells.push_back(*ffriend);
+      for(std::vector<trex::TTPCUnitVolume*>::iterator ffriend = fFriends.begin(); ffriend != fFriends.end(); ++ffriend) extendedCells.push_back(*ffriend);
     }
   };
 
   return extendedCells;
 }
 
-std::vector<ND::TTPCHitPad*> ND::TTPCPathVolume::GetHits(){
+std::vector<trex::TTPCHitPad*> trex::TTPCPathVolume::GetHits(){
   
-  std::vector<ND::TTPCHitPad*> output;
+  std::vector<trex::TTPCHitPad*> output;
   // cells whos hits to add
-  std::vector<ND::TTPCUnitVolume*> volsToAdd = GetExtendedCell();
+  std::vector<trex::TTPCUnitVolume*> volsToAdd = GetExtendedCell();
   
-  for(std::vector<ND::TTPCUnitVolume*>::iterator volIt = volsToAdd.begin(); volIt != volsToAdd.end(); ++volIt){
-    ND::TTPCUnitVolume* vol = *volIt;
+  for(std::vector<trex::TTPCUnitVolume*>::iterator volIt = volsToAdd.begin(); volIt != volsToAdd.end(); ++volIt){
+    trex::TTPCUnitVolume* vol = *volIt;
     if(!vol) continue;
 
-    std::vector< ND::TTPCHitPad* > hits;
+    std::vector< trex::TTPCHitPad* > hits;
     hits = vol->GetHits();
-    for(std::vector< ND::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
-      ND::TTPCHitPad* nhit = *hitIt;
+    for(std::vector< trex::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
+      trex::TTPCHitPad* nhit = *hitIt;
       if (nhit)
         output.push_back(nhit);
       else
@@ -58,28 +58,28 @@ std::vector<ND::TTPCHitPad*> ND::TTPCPathVolume::GetHits(){
   return output;
 }
 
-void ND::TTPCPathVolume::MarkFriend(std::vector<ND::TTPCUnitVolume*>::iterator focusFriendIt){
+void trex::TTPCPathVolume::MarkFriend(std::vector<trex::TTPCUnitVolume*>::iterator focusFriendIt){
   fClosed = false;
   *focusFriendIt = 0;
 }
-void ND::TTPCPathVolume::ClearMarked(){
-  std::vector<ND::TTPCUnitVolume*>::iterator reaper;
+void trex::TTPCPathVolume::ClearMarked(){
+  std::vector<trex::TTPCUnitVolume*>::iterator reaper;
   reaper = fFriends.begin();
   while(reaper != fFriends.end()){
     if(!(*reaper)) fFriends.erase(reaper);
     else(reaper++);
   };
 }
-void ND::TTPCPathVolume::ClearFriends(){
+void trex::TTPCPathVolume::ClearFriends(){
   fFriends.empty();
 }
 
-TVector3 ND::TTPCPathVolume::GetAvgPosXYZ(){
+TVector3 trex::TTPCPathVolume::GetAvgPosXYZ(){
   TVector3 avgPosXYZ (0., 0., 0.);
   int norm = 0;
 
-  for(std::vector<ND::TTPCUnitVolume*>::iterator friendVolIt = fFriends.begin(); friendVolIt != fFriends.end(); ++friendVolIt){
-    ND::TTPCUnitVolume* friendVol = *friendVolIt;
+  for(std::vector<trex::TTPCUnitVolume*>::iterator friendVolIt = fFriends.begin(); friendVolIt != fFriends.end(); ++friendVolIt){
+    trex::TTPCUnitVolume* friendVol = *friendVolIt;
 
     int weight = friendVol->size();
     norm += weight;
@@ -90,7 +90,7 @@ TVector3 ND::TTPCPathVolume::GetAvgPosXYZ(){
   return avgPosXYZ;
 }
 
-void ND::TTPCPathVolume::Close(){
+void trex::TTPCPathVolume::Close(){
   if(fClosed) return;
 
   fXMin = +999999;
@@ -104,8 +104,8 @@ void ND::TTPCPathVolume::Close(){
   fAveragePos = TVector3(0., 0., 0.);
   fAveragePosXYZ = TVector3(0., 0., 0.);
   int norm = 0;
-  for(std::vector<ND::TTPCUnitVolume*>::iterator friendIt = fFriends.begin(); friendIt != fFriends.end(); ++friendIt){
-    ND::TTPCUnitVolume* frnd = *friendIt;
+  for(std::vector<trex::TTPCUnitVolume*>::iterator friendIt = fFriends.begin(); friendIt != fFriends.end(); ++friendIt){
+    trex::TTPCUnitVolume* frnd = *friendIt;
 
     fXMin = std::min(fXMin, frnd->GetX());
     fXMax = std::max(fXMax, frnd->GetX());
@@ -130,10 +130,10 @@ void ND::TTPCPathVolume::Close(){
   fClosed = true;
 }
 
-void ND::TTPCPathVolume::PrintPositions(bool showOrientation){
+void trex::TTPCPathVolume::PrintPositions(bool showOrientation){
   std::cout << "( ";
-  for(std::vector<ND::TTPCUnitVolume*>::iterator friendIt = fFriends.begin(); friendIt != fFriends.end(); ++friendIt){
-    ND::TTPCUnitVolume* frnd = *friendIt;
+  for(std::vector<trex::TTPCUnitVolume*>::iterator friendIt = fFriends.begin(); friendIt != fFriends.end(); ++friendIt){
+    trex::TTPCUnitVolume* frnd = *friendIt;
     std::cout << frnd->GetX() << "," << frnd->GetY() << "," << frnd->GetZ() << " ";
   };
   std::cout << ")";
@@ -143,23 +143,23 @@ void ND::TTPCPathVolume::PrintPositions(bool showOrientation){
   };
   std::cout << std::endl;
 }
-void ND::TTPCPathVolume::CheckHits(){
+void trex::TTPCPathVolume::CheckHits(){
   // cells whos hits to check
-  std::vector<ND::TTPCUnitVolume*> volsToCheck = GetExtendedCell();
+  std::vector<trex::TTPCUnitVolume*> volsToCheck = GetExtendedCell();
 
-  for(std::vector<ND::TTPCUnitVolume*>::iterator volIt = volsToCheck.begin(); volIt != volsToCheck.end(); ++volIt){
-    ND::TTPCUnitVolume* vol = *volIt;
+  for(std::vector<trex::TTPCUnitVolume*>::iterator volIt = volsToCheck.begin(); volIt != volsToCheck.end(); ++volIt){
+    trex::TTPCUnitVolume* vol = *volIt;
     if(!vol){
-      std::cout << "WARNING:  empty ND::TTPCUnitVolume* found in TTPCPathVolume" << std::endl;
+      std::cout << "WARNING:  empty trex::TTPCUnitVolume* found in TTPCPathVolume" << std::endl;
     }
     else{
-      std::cout << "Attempting to access ND::TTPCUnitVolume hits…" << std::endl;
-      std::vector< ND::TTPCHitPad* > hits = vol->GetHits();
+      std::cout << "Attempting to access trex::TTPCUnitVolume hits…" << std::endl;
+      std::vector< trex::TTPCHitPad* > hits = vol->GetHits();
       std::cout << "…success!" << std::endl;
-      for(std::vector< ND::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
-        ND::TTPCHitPad* nhit = *hitIt;
+      for(std::vector< trex::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
+        trex::TTPCHitPad* nhit = *hitIt;
         if (!nhit){
-          std::cout << "WARNING:  non ND::TTPCHitPad hit found in TTPCPathVolume" << std::endl;
+          std::cout << "WARNING:  non trex::TTPCHitPad hit found in TTPCPathVolume" << std::endl;
         }
       }
     }

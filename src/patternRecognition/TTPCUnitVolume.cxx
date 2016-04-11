@@ -1,13 +1,13 @@
 // eddy
 #include "TTPCUnitVolume.hxx"
 
-const int ND::TTPCUnitVolume::scNTPC = 3;
-const int ND::TTPCUnitVolume::scNHalf = 2;
-const int ND::TTPCUnitVolume::scNMM = 12;
-const int ND::TTPCUnitVolume::scNFEC = 6;
-const int ND::TTPCUnitVolume::scNASIC = 4;
+const int trex::TTPCUnitVolume::scNTPC = 3;
+const int trex::TTPCUnitVolume::scNHalf = 2;
+const int trex::TTPCUnitVolume::scNMM = 12;
+const int trex::TTPCUnitVolume::scNFEC = 6;
+const int trex::TTPCUnitVolume::scNASIC = 4;
 
-ND::TTPCUnitVolume::TTPCUnitVolume(){
+trex::TTPCUnitVolume::TTPCUnitVolume(){
   fID = 0;
   fTPC = 0;
   fHalf = 0;
@@ -41,10 +41,10 @@ ND::TTPCUnitVolume::TTPCUnitVolume(){
 
 }
 
-ND::TTPCUnitVolume::~TTPCUnitVolume(){
+trex::TTPCUnitVolume::~TTPCUnitVolume(){
 }
 
-void ND::TTPCUnitVolume::SetCell(int x, int y, int z, int edgeX, int edgeY, int edgeZ, long id){
+void trex::TTPCUnitVolume::SetCell(int x, int y, int z, int edgeX, int edgeY, int edgeZ, long id){
   // set cell x, y and z id
   fX = x;
   fY = y;
@@ -59,36 +59,36 @@ void ND::TTPCUnitVolume::SetCell(int x, int y, int z, int edgeX, int edgeY, int 
   fID = id;
 }
 
-void ND::TTPCUnitVolume::SetAux(int segX, int segY, int segZ){
+void trex::TTPCUnitVolume::SetAux(int segX, int segY, int segZ){
   // set cell x, y and z id
   fSegX = segX;
   fSegY = segY;
   fSegZ = segZ;
 }
 
-void ND::TTPCUnitVolume::SetRegion(int asicRegionY, int asicRegionZ){
+void trex::TTPCUnitVolume::SetRegion(int asicRegionY, int asicRegionZ){
   fASICRegionY = asicRegionY;
   fASICRegionZ = asicRegionZ;
 }
 
-void ND::TTPCUnitVolume::AddCharge(double q){
+void trex::TTPCUnitVolume::AddCharge(double q){
   // increment cell charge
   fQ += q;
   fQMax = std::max(fQMax, q);
 }
 
-void ND::TTPCUnitVolume::AddHit(ND::TTPCHitPad* hit){
+void trex::TTPCUnitVolume::AddHit(trex::TTPCHitPad* hit){
   // add to list of hits
   fHits.push_back(hit);
 }
 
-void ND::TTPCUnitVolume::AddHits(std::vector< ND::TTPCHitPad* > hits){
+void trex::TTPCUnitVolume::AddHits(std::vector< trex::TTPCHitPad* > hits){
   // associate multiple hits with this event
-  for(std::vector< ND::TTPCHitPad* >::iterator hit = hits.begin(); hit != hits.end(); ++hit)
+  for(std::vector< trex::TTPCHitPad* >::iterator hit = hits.begin(); hit != hits.end(); ++hit)
     AddHit(*hit);
 }
 
-void ND::TTPCUnitVolume::AddEvent(ND::TTPCHitPad* hit){
+void trex::TTPCUnitVolume::AddEvent(trex::TTPCHitPad* hit){
   // position, charge and time
   TVector3 pos = hit->GetPosition();
   double q = hit->GetCharge();
@@ -148,15 +148,15 @@ void ND::TTPCUnitVolume::AddEvent(ND::TTPCHitPad* hit){
   fHasPos = true;
 }
 
-void ND::TTPCUnitVolume::GetEdges(int& edgeX, int& edgeY, int& edgeZ){
+void trex::TTPCUnitVolume::GetEdges(int& edgeX, int& edgeY, int& edgeZ){
   // return cell x, y and z edge status
   edgeX = fEdgeX;
   edgeY = fEdgeY;
   edgeZ = fEdgeZ;
 }
 
-ND::TTPCCellInfo3D ND::TTPCUnitVolume::GetCellInfo3D(){
-  ND::TTPCCellInfo3D padInfo;
+trex::TTPCCellInfo3D trex::TTPCUnitVolume::GetCellInfo3D(){
+  trex::TTPCCellInfo3D padInfo;
   padInfo.x = fX;
   padInfo.y = fY;
   padInfo.z = fZ;
@@ -167,40 +167,40 @@ ND::TTPCCellInfo3D ND::TTPCUnitVolume::GetCellInfo3D(){
   return padInfo;
 }
 
-int ND::TTPCUnitVolume::GetNPeaksSum(){
+int trex::TTPCUnitVolume::GetNPeaksSum(){
   unsigned int peaksSum=0;
-  for(std::vector< ND::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    ND::TTPCHitPad* hitPad = *hitIt;
+  for(std::vector< trex::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
+    trex::TTPCHitPad* hitPad = *hitIt;
     peaksSum += hitPad->GetNumberPeaks();
   }
   return (int)peaksSum;
 }
-int ND::TTPCUnitVolume::GetNPeaksMax(){
+int trex::TTPCUnitVolume::GetNPeaksMax(){
   unsigned int peaksSum=0;
-  for(std::vector< ND::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    ND::TTPCHitPad* hitPad = *hitIt;
+  for(std::vector< trex::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
+    trex::TTPCHitPad* hitPad = *hitIt;
     peaksSum = std::max(peaksSum, hitPad->GetNumberPeaks());
   }
   return (int)peaksSum;
 }
-int ND::TTPCUnitVolume::GetNSaturated(){
+int trex::TTPCUnitVolume::GetNSaturated(){
   int nSat=0;
-  for(std::vector< ND::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    ND::TTPCHitPad* hitPad = *hitIt;
+  for(std::vector< trex::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
+    trex::TTPCHitPad* hitPad = *hitIt;
     nSat += (int)(hitPad->Saturation() > 1);
   };
   return nSat;
 }
-int ND::TTPCUnitVolume::GetSaturation(){
+int trex::TTPCUnitVolume::GetSaturation(){
   int satSum=0;
-  for(std::vector< ND::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    ND::TTPCHitPad* hitPad = *hitIt;
+  for(std::vector< trex::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
+    trex::TTPCHitPad* hitPad = *hitIt;
     satSum += hitPad->Saturation();
   };
   return satSum;
 }
 
-void ND::TTPCUnitVolume::DefineUniqueASICID(){
+void trex::TTPCUnitVolume::DefineUniqueASICID(){
   long tpcPart = scNASIC * scNFEC * scNMM * scNHalf * fTPC;
   long halfPart = scNASIC * scNFEC * scNMM * fHalf;
   long mmPart = scNASIC * scNFEC * fMM;

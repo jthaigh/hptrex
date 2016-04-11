@@ -1,13 +1,13 @@
 // eddy
 #include "TTPCVolGroup.hxx"
 
-ClassImp(ND::TTPCVolGroup);
-ND::TTPCVolGroup::~TTPCVolGroup(){;}
+ClassImp(trex::TTPCVolGroup);
+trex::TTPCVolGroup::~TTPCVolGroup(){;}
 
-unsigned int ND::TTPCVolGroup::sMaxID = 0;
+unsigned int trex::TTPCVolGroup::sMaxID = 0;
 
-ND::TTPCVolGroup::TTPCVolGroup(ND::TTPCLayout* layout, unsigned int id){
-  fHitMap = std::map<long, ND::TTPCUnitVolume*>();
+trex::TTPCVolGroup::TTPCVolGroup(trex::TTPCLayout* layout, unsigned int id){
+  fHitMap = std::map<long, trex::TTPCUnitVolume*>();
 
   fXLean = 0;
   fYLean = 0;
@@ -25,7 +25,7 @@ ND::TTPCVolGroup::TTPCVolGroup(ND::TTPCLayout* layout, unsigned int id){
 
   fAveragePosition = TVector3();
   fAverageTime = 0.;
-  fAveragePad = ND::TTPCCellInfo3D();
+  fAveragePad = trex::TTPCCellInfo3D();
   fSigmaPadX = 0.;
   fSigmaPadY = 0.;
   fSigmaPadZ = 0.;
@@ -38,42 +38,42 @@ ND::TTPCVolGroup::TTPCVolGroup(ND::TTPCLayout* layout, unsigned int id){
   fID = id;
 }
 
-void ND::TTPCVolGroup::AddHitMap(std::map<long, ND::TTPCUnitVolume*> hitMap){
+void trex::TTPCVolGroup::AddHitMap(std::map<long, trex::TTPCUnitVolume*> hitMap){
   // add map of hits to event
   fIsClosed = false;
-  fHitMap = std::map<long, ND::TTPCUnitVolume*>(hitMap);
+  fHitMap = std::map<long, trex::TTPCUnitVolume*>(hitMap);
 }
-void ND::TTPCVolGroup::AddHits(std::map<long, ND::TTPCUnitVolume*> hitMap){
+void trex::TTPCVolGroup::AddHits(std::map<long, trex::TTPCUnitVolume*> hitMap){
   // insert hits from input map to this group's map
   fIsClosed = false;
   fHitMap.insert(hitMap.begin(), hitMap.end());
 }
-void ND::TTPCVolGroup::AddHits(std::vector<ND::TTPCUnitVolume*> hitList){
+void trex::TTPCVolGroup::AddHits(std::vector<trex::TTPCUnitVolume*> hitList){
   fIsClosed = false;
   AddHits(hitList.begin(), hitList.end());
 }
-void ND::TTPCVolGroup::AddHits(std::vector<ND::TTPCUnitVolume*>::iterator hitListBegin, std::vector<ND::TTPCUnitVolume*>::iterator hitListEnd){
+void trex::TTPCVolGroup::AddHits(std::vector<trex::TTPCUnitVolume*>::iterator hitListBegin, std::vector<trex::TTPCUnitVolume*>::iterator hitListEnd){
   fIsClosed = false;
-  for(std::vector<ND::TTPCUnitVolume*>::iterator volIt = hitListBegin; volIt != hitListEnd; ++volIt){
-    ND::TTPCUnitVolume* vol = *volIt;
+  for(std::vector<trex::TTPCUnitVolume*>::iterator volIt = hitListBegin; volIt != hitListEnd; ++volIt){
+    trex::TTPCUnitVolume* vol = *volIt;
     fHitMap[vol->GetID()] = vol;
   };
 }
-void ND::TTPCVolGroup::AddHits(ND::TTPCVolGroup& hits){
+void trex::TTPCVolGroup::AddHits(trex::TTPCVolGroup& hits){
   fIsClosed = false;
   // insert all hits in input group's map into this group's map
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator el = hits.begin(); el != hits.end(); ++el){
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator el = hits.begin(); el != hits.end(); ++el){
     fHitMap[el->first] = el->second;
   };
 }
-void ND::TTPCVolGroup::AddHits(std::map<long, ND::TTPCUnitVolume*>::iterator hitMapBegin, std::map<long, ND::TTPCUnitVolume*>::iterator hitMapEnd){
+void trex::TTPCVolGroup::AddHits(std::map<long, trex::TTPCUnitVolume*>::iterator hitMapBegin, std::map<long, trex::TTPCUnitVolume*>::iterator hitMapEnd){
   fIsClosed = false;
   // insert all hits between iterators into this group's map
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator el = hitMapBegin; el != hitMapEnd; ++el){
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator el = hitMapBegin; el != hitMapEnd; ++el){
     fHitMap[el->first] = el->second;
   };
 }
-bool ND::TTPCVolGroup::AddHit(ND::TTPCUnitVolume* hit, bool safe){
+bool trex::TTPCVolGroup::AddHit(trex::TTPCUnitVolume* hit, bool safe){
   fIsClosed = false;
   if (!hit) return false;
   // get hit id 
@@ -91,25 +91,25 @@ bool ND::TTPCVolGroup::AddHit(ND::TTPCUnitVolume* hit, bool safe){
   return false;
 }
 
-bool ND::TTPCVolGroup::RemoveHit(long id){
+bool trex::TTPCVolGroup::RemoveHit(long id){
   fIsClosed = false;
   // try to find cell in current map
-  std::map<long, ND::TTPCUnitVolume*>::iterator el = fHitMap.find(id);
+  std::map<long, trex::TTPCUnitVolume*>::iterator el = fHitMap.find(id);
   if (el == fHitMap.end()) return false;
   // if found, remove it
   fHitMap.erase(el);
   return true;
 }
 
-void ND::TTPCVolGroup::MarkHit(long id){
+void trex::TTPCVolGroup::MarkHit(long id){
   fIsClosed = false;
   fHitMap[id] = 0;
 }
 
-void ND::TTPCVolGroup::ClearMarked(){
+void trex::TTPCVolGroup::ClearMarked(){
   fIsClosed = false;
   std::vector<long> keysToDelete = std::vector<long>();
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator hitEl = fHitMap.begin(); hitEl != fHitMap.end(); ++hitEl){
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator hitEl = fHitMap.begin(); hitEl != fHitMap.end(); ++hitEl){
     if(!hitEl->second) keysToDelete.push_back(hitEl->first);
   };
   for(std::vector<long>::iterator keyIt = keysToDelete.begin(); keyIt != keysToDelete.end(); ++keyIt){
@@ -117,10 +117,10 @@ void ND::TTPCVolGroup::ClearMarked(){
   };
 }
 
-void ND::TTPCVolGroup::MergeHits(ND::TTPCVolGroup& hits){
+void trex::TTPCVolGroup::MergeHits(trex::TTPCVolGroup& hits){
   fIsClosed = false;
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator el = hits.begin(); el != hits.end(); ++el){
-    std::map<long, ND::TTPCUnitVolume*>::iterator id = fHitMap.find(el->first);
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator el = hits.begin(); el != hits.end(); ++el){
+    std::map<long, trex::TTPCUnitVolume*>::iterator id = fHitMap.find(el->first);
     // if cell isn't found, add it to this map
     if (id == fHitMap.end()) fHitMap[el->first] = el->second;
     // if it is, add it's charge to the corresponding cell in this group's map
@@ -128,11 +128,11 @@ void ND::TTPCVolGroup::MergeHits(ND::TTPCVolGroup& hits){
   };
 }
 
-long ND::TTPCVolGroup::GetNearestHit(int x, int y, int z, int maxDist){
+long trex::TTPCVolGroup::GetNearestHit(int x, int y, int z, int maxDist){
   int minDist = 999999;
   long id = -1;
   // loop over map looking for minimum distance
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator it = fHitMap.begin(); it != fHitMap.end(); ++it){
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator it = fHitMap.begin(); it != fHitMap.end(); ++it){
     int dX = it->second->GetX() - x;
     int dY = it->second->GetY() - y;
     int dZ = it->second->GetZ() - z;
@@ -147,7 +147,7 @@ long ND::TTPCVolGroup::GetNearestHit(int x, int y, int z, int maxDist){
   return id;
 }
 
-TVector3 ND::TTPCVolGroup::GetNearestHitPos(int x, int y, int z, int maxDist){
+TVector3 trex::TTPCVolGroup::GetNearestHitPos(int x, int y, int z, int maxDist){
   // find nearest hit
   long id = GetNearestHit(x, y, z, maxDist);
   // if unfound return default vector
@@ -156,30 +156,30 @@ TVector3 ND::TTPCVolGroup::GetNearestHitPos(int x, int y, int z, int maxDist){
   return fHitMap[id]->GetPos(); 
 }
 
-std::vector<ND::TTPCHitPad*> ND::TTPCVolGroup::GetHits(){
-  std::vector<ND::TTPCHitPad*> outHits;
+std::vector<trex::TTPCHitPad*> trex::TTPCVolGroup::GetHits(){
+  std::vector<trex::TTPCHitPad*> outHits;
 
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator el = fHitMap.begin(); el != fHitMap.end(); ++el){
-    std::vector< ND::TTPCHitPad* > hits = el->second->GetHits();
-    for(std::vector< ND::TTPCHitPad* >::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
-      ND::TTPCHitPad* hit = *hitIt;
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator el = fHitMap.begin(); el != fHitMap.end(); ++el){
+    std::vector< trex::TTPCHitPad* > hits = el->second->GetHits();
+    for(std::vector< trex::TTPCHitPad* >::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
+      trex::TTPCHitPad* hit = *hitIt;
       outHits.push_back(hit);
     }
   }
   return std::move(outHits);
 }
 
-bool ND::TTPCVolGroup::Contains(long id){
+bool trex::TTPCVolGroup::Contains(long id){
   // search this group for the provided id
-  std::map<long, ND::TTPCUnitVolume*>::iterator el = fHitMap.find(id);
+  std::map<long, trex::TTPCUnitVolume*>::iterator el = fHitMap.find(id);
   return (el != fHitMap.end());
 }
 
-bool ND::TTPCVolGroup::Contains(TTPCUnitVolume* vol){
+bool trex::TTPCVolGroup::Contains(TTPCUnitVolume* vol){
   return Contains(vol->GetID());
 }
 
-bool ND::TTPCVolGroup::GetLeanValid(ND::TTPCUnitVolume* vol){
+bool trex::TTPCVolGroup::GetLeanValid(trex::TTPCUnitVolume* vol){
   Close();
   if(fXLean != 0 && vol->GetX() != fAveragePad.x) return false;
   if(fYLean != 0 && vol->GetY() != fAveragePad.y) return false;
@@ -187,10 +187,10 @@ bool ND::TTPCVolGroup::GetLeanValid(ND::TTPCUnitVolume* vol){
   return true;
 }
 
-ND::TTPCUnitVolume* ND::TTPCVolGroup::GetHit(long id, bool safe){
+trex::TTPCUnitVolume* trex::TTPCVolGroup::GetHit(long id, bool safe){
   safe = true;
   // try to find cell in current map
-  std::map<long, ND::TTPCUnitVolume*>::iterator el;
+  std::map<long, trex::TTPCUnitVolume*>::iterator el;
   if(safe){
     // check if exists in hit map
     el = fHitMap.find(id);
@@ -199,7 +199,7 @@ ND::TTPCUnitVolume* ND::TTPCVolGroup::GetHit(long id, bool safe){
   return fHitMap[id];
 }
 
-void ND::TTPCVolGroup::Close(){
+void trex::TTPCVolGroup::Close(){
   if(fIsClosed) return;
   if(fHitMap.size() < 1) return;
 
@@ -209,7 +209,7 @@ void ND::TTPCVolGroup::Close(){
   fYMax = -9999;
   fZMin = +9999;
   fZMax = -9999;
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator vol = fHitMap.begin(); vol != fHitMap.end(); ++vol){
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator vol = fHitMap.begin(); vol != fHitMap.end(); ++vol){
     fXMin = std::min(fXMin, vol->second->GetX());
     fXMax = std::max(fXMax, vol->second->GetX());
     fYMin = std::min(fYMin, vol->second->GetY());
@@ -230,13 +230,13 @@ void ND::TTPCVolGroup::Close(){
   fIsClosed = true;
 }
 
-void ND::TTPCVolGroup::FindSigmaPads(){
-  ND::TTPCCellInfo3D avgPos = fAveragePad;
+void trex::TTPCVolGroup::FindSigmaPads(){
+  trex::TTPCCellInfo3D avgPos = fAveragePad;
   // initialise sum of squared of differences to zero
   double sigmaSumX = 0.;
   double sigmaSumY = 0.;
   double sigmaSumZ = 0.;
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator it = fHitMap.begin(); it != fHitMap.end(); ++it){
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator it = fHitMap.begin(); it != fHitMap.end(); ++it){
     // get position difference in x, y or z
     int xDiff = avgPos.x - it->second->GetX();
     int yDiff = avgPos.y - it->second->GetY();
@@ -253,7 +253,7 @@ void ND::TTPCVolGroup::FindSigmaPads(){
   fSigmaPadY = std::sqrt( sizeMult * sigmaSumY );
   fSigmaPadZ = std::sqrt( sizeMult * sigmaSumZ );
 }
-void ND::TTPCVolGroup::FindAveragePadPosID(){
+void trex::TTPCVolGroup::FindAveragePadPosID(){
   // find averages in all co-ordinates
   int avgX = 0;
   int avgY = 0;
@@ -262,7 +262,7 @@ void ND::TTPCVolGroup::FindAveragePadPosID(){
 
   // iterate with progressively easier lean conditions (one iteration should usually be enough)
   for(int iter=4; iter > 0; iter--){
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator padEl = fHitMap.begin(); padEl != fHitMap.end(); ++padEl){
+    for(std::map<long, trex::TTPCUnitVolume*>::iterator padEl = fHitMap.begin(); padEl != fHitMap.end(); ++padEl){
       // ignore if one of the lean filters is transgressed
       if(iter > 1){
         // try x first since most awkward conflicts come from spirals
@@ -295,7 +295,7 @@ void ND::TTPCVolGroup::FindAveragePadPosID(){
   double minDist2 = 99999999.;
   // iterate with progressively easier lean conditions (one iteration should usually be enough)
   for(int iter=4; iter > 0; iter--){
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator padEl = fHitMap.begin(); padEl != fHitMap.end(); ++padEl){
+    for(std::map<long, trex::TTPCUnitVolume*>::iterator padEl = fHitMap.begin(); padEl != fHitMap.end(); ++padEl){
       if(iter > 1){
         if(fZLean < 0 && padEl->second->GetZ() > fZMin) continue;
         if(fZLean > 0 && padEl->second->GetZ() < fZMax) continue;
@@ -325,10 +325,10 @@ void ND::TTPCVolGroup::FindAveragePadPosID(){
     if(minDist2 < 9999.) break;
   };
 }
-void ND::TTPCVolGroup::FindCharge(){
+void trex::TTPCVolGroup::FindCharge(){
   // initialise sum to zero
   float qSum = 0; 
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator el = fHitMap.begin(); el != fHitMap.end(); ++el){
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator el = fHitMap.begin(); el != fHitMap.end(); ++el){
     // add charge of every element in group
     qSum += el->second->GetQ();
   };
@@ -341,13 +341,13 @@ void ND::TTPCVolGroup::FindCharge(){
 //MDH
 //Under new scheme (HitSel->vector of TTPCHitPad) this is redundant
 /*
-ND::THitSelection* ND::TTPCVolGroup::GetHitSelection(){
-  ND::THitSelection* allHits = new ND::THitSelection();
+trex::THitSelection* trex::TTPCVolGroup::GetHitSelection(){
+  trex::THitSelection* allHits = new trex::THitSelection();
 
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator el = fHitMap.begin(); el != fHitMap.end(); ++el){
-    std::vector< ND::THandle<ND::TTPCHitPad> > hits = el->second->GetHits();
-    for(std::vector< ND::THandle<ND::TTPCHitPad> >::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
-      ND::THandle<ND::TTPCHitPad> hit = *hitIt;
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator el = fHitMap.begin(); el != fHitMap.end(); ++el){
+    std::vector< trex::THandle<trex::TTPCHitPad> > hits = el->second->GetHits();
+    for(std::vector< trex::THandle<trex::TTPCHitPad> >::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
+      trex::THandle<trex::TTPCHitPad> hit = *hitIt;
 
       allHits->AddHit(hit);
     };
@@ -356,7 +356,7 @@ ND::THitSelection* ND::TTPCVolGroup::GetHitSelection(){
   return allHits;
   }*/
 
-void ND::TTPCVolGroup::SetLean(int& leanVar, int leanVal, bool force){
+void trex::TTPCVolGroup::SetLean(int& leanVar, int leanVal, bool force){
   if(leanVar == leanVal) return;
   fIsClosed = false;
   // if conflict exists, revert to zero; otherwise overwrite
@@ -368,21 +368,21 @@ void ND::TTPCVolGroup::SetLean(int& leanVar, int leanVal, bool force){
   };
 }
 
-void ND::TTPCVolGroup::CheckHits(){
+void trex::TTPCVolGroup::CheckHits(){
   // cells whos hits to check
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator volEl = fHitMap.begin(); volEl != fHitMap.end(); ++volEl){
-    ND::TTPCUnitVolume* vol = volEl->second;
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator volEl = fHitMap.begin(); volEl != fHitMap.end(); ++volEl){
+    trex::TTPCUnitVolume* vol = volEl->second;
     if(!vol){
-      std::cout << "WARNING:  empty ND::TTPCUnitVolume* found in TTPCVolGroup" << std::endl;
+      std::cout << "WARNING:  empty trex::TTPCUnitVolume* found in TTPCVolGroup" << std::endl;
     }
     else{
-      std::cout << "  Attempting to access ND::TTPCUnitVolume hits…" << std::endl;
-      std::vector< ND::TTPCHitPad* > hits = vol->GetHits();
+      std::cout << "  Attempting to access trex::TTPCUnitVolume hits…" << std::endl;
+      std::vector< trex::TTPCHitPad* > hits = vol->GetHits();
       std::cout << "  …success!" << std::endl;
-      for(std::vector< ND::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
-        ND::TTPCHitPad* nhit = *hitIt;
+      for(std::vector< trex::TTPCHitPad* >::iterator hitIt = vol->GetHitsBegin(); hitIt != vol->GetHitsEnd(); ++hitIt){
+        trex::TTPCHitPad* nhit = *hitIt;
         if (!nhit){
-          std::cout << "WARNING:  non ND::TTPCHitPad hit found in TTPCPathVolume" << std::endl;
+          std::cout << "WARNING:  non trex::TTPCHitPad hit found in TTPCPathVolume" << std::endl;
         }
       }
     }
@@ -392,19 +392,19 @@ void ND::TTPCVolGroup::CheckHits(){
 //MDH
 //Not used - just as well since these create new TTPCUnitVolumes which would need to be managed...
 /*
-void ND::TTPCVolGroup::AddPseudoHit(ND::TTPCUnitVolume* hit){
+void trex::TTPCVolGroup::AddPseudoHit(trex::TTPCUnitVolume* hit){
   fIsClosed = false;
   // add cell to map
   fHitMap[hit->GetID()] = hit;
 }
-void ND::TTPCVolGroup::AddNewPseudoHit(int x, int y, int z, float q){
+void trex::TTPCVolGroup::AddNewPseudoHit(int x, int y, int z, float q){
   fIsClosed = false;
   // get cell's id
   long id = fLayout->Mash(x, y, z);
-  std::map<long, ND::TTPCUnitVolume*>::iterator el = fHitMap.find(id);
+  std::map<long, trex::TTPCUnitVolume*>::iterator el = fHitMap.find(id);
   if (el == fHitMap.end()){
     // if it doesn't already exist, make a new cell at specified x, y and z id with specified charge
-    ND::TTPCUnitVolume* cHit = new ND::TTPCUnitVolume();
+    trex::TTPCUnitVolume* cHit = new trex::TTPCUnitVolume();
     cHit->SetCell(x, y, z, -3, -3, -3, id);
     cHit->AddCharge(q);
 
@@ -415,7 +415,7 @@ void ND::TTPCVolGroup::AddNewPseudoHit(int x, int y, int z, float q){
     el->second->AddCharge(q);
   };
 }
-void ND::TTPCVolGroup::AddNewPseudoGauss(int x, int y, int z, float q, int axis, float sigmaX, float sigmaY, float sigmaZ){
+void trex::TTPCVolGroup::AddNewPseudoGauss(int x, int y, int z, float q, int axis, float sigmaX, float sigmaY, float sigmaZ){
   fIsClosed = false;
   float sigmaI=1.;
   float sigmaJ=1.;

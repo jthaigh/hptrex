@@ -15,7 +15,7 @@
 // eddy
 #include "TTPCLayout.hxx"
 
-namespace ND{
+namespace trex{
   /// Class for individual volume elements used in both feature finding and path finding
   class TTPCUnitVolume{
     public:
@@ -34,15 +34,15 @@ namespace ND{
       /// Add a charge to the total charge of this cell
       void AddCharge(double q);
       /// Associate another hit with this cell
-      void AddHit(ND::TTPCHitPad* hit);
+      void AddHit(trex::TTPCHitPad* hit);
       /// Associate multiple hits with this event
-      void AddHits(std::vector< ND::TTPCHitPad* > hits);
+      void AddHits(std::vector< trex::TTPCHitPad* > hits);
       /// Add an event to this cell, charge weighted averaging position and incrementing charge
-      void AddEvent(ND::TTPCHitPad* hit);
+      void AddEvent(trex::TTPCHitPad* hit);
       /// Get edge status of this cell in x, y and z - -1 for a lower edge of a MM volume, 1 for an upper edge, -2 for a dead region
       void GetEdges(int& edgeX, int& edgeY, int& edgeZ);
       /// Summarise position and edge status in one struct
-      ND::TTPCCellInfo3D GetCellInfo3D();
+      trex::TTPCCellInfo3D GetCellInfo3D();
 
       /// Get total number of peaks
       int GetNPeaksSum();
@@ -85,11 +85,11 @@ namespace ND{
       double GetTimeMax(){ return fTimeMax;}
 
       /// Get hits associated with this cell
-      std::vector< ND::TTPCHitPad* > GetHits(){ return fHits;}
+      std::vector< trex::TTPCHitPad* > GetHits(){ return fHits;}
       /// Get iterator to beginning of hits associated with this cell
-      std::vector< ND::TTPCHitPad* >::iterator GetHitsBegin(){ return fHits.begin();}
+      std::vector< trex::TTPCHitPad* >::iterator GetHitsBegin(){ return fHits.begin();}
       /// Get iterator to end of hits associated with this cell
-      std::vector< ND::TTPCHitPad* >::iterator GetHitsEnd(){ return fHits.end();}
+      std::vector< trex::TTPCHitPad* >::iterator GetHitsEnd(){ return fHits.end();}
       /// Get size of list of hits associated with this cell
       unsigned int size(){ return fHits.size();}
 
@@ -217,7 +217,7 @@ namespace ND{
       double fTimeMax;
 
       /// Hits associated with this cell
-      std::vector< ND::TTPCHitPad* > fHits;
+      std::vector< trex::TTPCHitPad* > fHits;
 
       /// Cell x edge status
       int fEdgeX;

@@ -1,11 +1,11 @@
 // eddy
 #include "TTPCAStar.hxx"
 
-ND::TTPCAStar::TTPCAStar(ND::TTPCLayout* layout){
+trex::TTPCAStar::TTPCAStar(trex::TTPCLayout* layout){
   fLayout = layout;
 
-  fAStarPoints = std::vector<ND::TTPCAStarPoint*>();
-  fHitMap = std::map<long, ND::TTPCUnitVolume*>();
+  fAStarPoints = std::vector<trex::TTPCAStarPoint*>();
+  fHitMap = std::map<long, trex::TTPCUnitVolume*>();
 
   // defualt scales and heuristic factor
   fXScale = fLayout->GetAStarXScale();
@@ -14,23 +14,23 @@ ND::TTPCAStar::TTPCAStar(ND::TTPCLayout* layout){
 
   fHeuristicFactor = fLayout->GetAStarHeuristicFactor();
 }
-ND::TTPCAStar::~TTPCAStar(){
+trex::TTPCAStar::~TTPCAStar(){
   // delete all A* points
-  for(std::vector<ND::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
+  for(std::vector<trex::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
     delete *pnt;
   };
 }
 
-void ND::TTPCAStar::AddHits(ND::TTPCVolGroupMan* volGroupMan, std::map<long, ND::TTPCUnitVolume*> hitMap, bool extendMode){
+void trex::TTPCAStar::AddHits(trex::TTPCVolGroupMan* volGroupMan, std::map<long, trex::TTPCUnitVolume*> hitMap, bool extendMode){
   // add hit map
   fHitMap = hitMap;
 
   // set up vector of points
-  fAStarPoints = std::vector<ND::TTPCAStarPoint*>();
+  fAStarPoints = std::vector<trex::TTPCAStarPoint*>();
 
   // add all hits to list
-  for(std::map<long, ND::TTPCUnitVolume*>::iterator hitEl = hitMap.begin(); hitEl != hitMap.end(); hitEl++){
-    ND::TTPCAStarPoint* pnt = new ND::TTPCAStarPoint();
+  for(std::map<long, trex::TTPCUnitVolume*>::iterator hitEl = hitMap.begin(); hitEl != hitMap.end(); hitEl++){
+    trex::TTPCAStarPoint* pnt = new trex::TTPCAStarPoint();
 
     pnt->vol = hitEl->second;
 
@@ -38,39 +38,39 @@ void ND::TTPCAStar::AddHits(ND::TTPCVolGroupMan* volGroupMan, std::map<long, ND:
     pnt->y = hitEl->second->GetY();
     pnt->z = hitEl->second->GetZ();
 
-    pnt->aStarFriends = std::map<ND::TTPCAStarPoint*, float>();
+    pnt->aStarFriends = std::map<trex::TTPCAStarPoint*, float>();
     pnt->aStarHasFriends = false;
 
     fAStarPoints.push_back(pnt);
   };
 
-  for(std::vector<ND::TTPCAStarPoint*>::iterator pointIt = fAStarPoints.begin(); pointIt != fAStarPoints.end(); ++pointIt){
-    ND::TTPCAStarPoint* point = *pointIt;
+  for(std::vector<trex::TTPCAStarPoint*>::iterator pointIt = fAStarPoints.begin(); pointIt != fAStarPoints.end(); ++pointIt){
+    trex::TTPCAStarPoint* point = *pointIt;
     // build connections now and share friends backwards to avoid asymmetries
     GetNearHitConnections(volGroupMan, point, extendMode);
-    for(std::map<ND::TTPCAStarPoint*, float>::iterator fr = point->aStarFriends.begin(); fr != point->aStarFriends.end(); ++fr){
+    for(std::map<trex::TTPCAStarPoint*, float>::iterator fr = point->aStarFriends.begin(); fr != point->aStarFriends.end(); ++fr){
       fr->first->aStarFriends[point] = fr->second;
     };
   };
 }
 
-void ND::TTPCAStar::AddHits(ND::TTPCAStar* prevAStar, std::map<long, ND::TTPCUnitVolume*> hitMap){
+void trex::TTPCAStar::AddHits(trex::TTPCAStar* prevAStar, std::map<long, trex::TTPCUnitVolume*> hitMap){
   // add hit map
   fHitMap = hitMap;
 
   // set up vector of points
-  fAStarPoints = std::vector<ND::TTPCAStarPoint*>();
+  fAStarPoints = std::vector<trex::TTPCAStarPoint*>();
 
   // map to help copying points over
-  std::map<ND::TTPCAStarPoint*, ND::TTPCAStarPoint*> oldNewMap;
+  std::map<trex::TTPCAStarPoint*, trex::TTPCAStarPoint*> oldNewMap;
   // copy hits that are in both the previous A* container and the map
-  for(std::vector<ND::TTPCAStarPoint*>::iterator oldPntIt = prevAStar->begin(); oldPntIt != prevAStar->end(); ++oldPntIt){
+  for(std::vector<trex::TTPCAStarPoint*>::iterator oldPntIt = prevAStar->begin(); oldPntIt != prevAStar->end(); ++oldPntIt){
     // make sure point is inside map
-    ND::TTPCAStarPoint* oldPnt = *oldPntIt;
+    trex::TTPCAStarPoint* oldPnt = *oldPntIt;
     long id = oldPnt->vol->GetID();
 
     if(hitMap.find(id) != hitMap.end()){
-      ND::TTPCAStarPoint* pnt = new ND::TTPCAStarPoint();
+      trex::TTPCAStarPoint* pnt = new trex::TTPCAStarPoint();
 
       pnt->vol = oldPnt->vol;
 
@@ -78,21 +78,21 @@ void ND::TTPCAStar::AddHits(ND::TTPCAStar* prevAStar, std::map<long, ND::TTPCUni
       pnt->y = oldPnt->y;
       pnt->z = oldPnt->z;
 
-      pnt->aStarFriends = std::map<ND::TTPCAStarPoint*, float>();
+      pnt->aStarFriends = std::map<trex::TTPCAStarPoint*, float>();
 
       oldNewMap[oldPnt] = pnt;
     }
   };
 
   // now add friends
-  for(std::vector<ND::TTPCAStarPoint*>::iterator oldPntIt = prevAStar->begin(); oldPntIt != prevAStar->end(); ++oldPntIt){
-    ND::TTPCAStarPoint* oldPnt = *oldPntIt;
+  for(std::vector<trex::TTPCAStarPoint*>::iterator oldPntIt = prevAStar->begin(); oldPntIt != prevAStar->end(); ++oldPntIt){
+    trex::TTPCAStarPoint* oldPnt = *oldPntIt;
     long id = oldPnt->vol->GetID();
 
     if(hitMap.find(id) != hitMap.end()){
-      ND::TTPCAStarPoint* pnt = oldNewMap.at(oldPnt);
+      trex::TTPCAStarPoint* pnt = oldNewMap.at(oldPnt);
       // copy valid friends over too
-      for(std::map<ND::TTPCAStarPoint*, float>::iterator fr = oldPnt->aStarFriends.begin(); fr != oldPnt->aStarFriends.end(); ++fr){
+      for(std::map<trex::TTPCAStarPoint*, float>::iterator fr = oldPnt->aStarFriends.begin(); fr != oldPnt->aStarFriends.end(); ++fr){
         long id = oldPnt->vol->GetID();
         if(hitMap.find(id) != hitMap.end()){
           pnt->aStarFriends[ oldNewMap.at(fr->first) ] = fr->second;
@@ -109,15 +109,15 @@ void ND::TTPCAStar::AddHits(ND::TTPCAStar* prevAStar, std::map<long, ND::TTPCUni
 //MDH
 //Not used
 /*
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ConnectVertexGroups(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > vertices, std::vector< ND::THandle<ND::TTPCVolGroup> > edges, int maxNo){
-  std::vector< ND::THandle<ND::TTPCVolGroup> > connections;
+std::vector< trex::THandle<trex::TTPCVolGroup> > trex::TTPCAStar::ConnectVertexGroups(trex::TTPCVolGroupMan* volGroupMan, std::vector< trex::THandle<trex::TTPCVolGroup> > vertices, std::vector< trex::THandle<trex::TTPCVolGroup> > edges, int maxNo){
+  std::vector< trex::THandle<trex::TTPCVolGroup> > connections;
   // find ordered sets of connections between the groups
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > orderedConnections = ConnectVertexGroupsOrdered(volGroupMan, vertices, edges, maxNo);
+  std::vector< trex::THandle<trex::TTPCOrderedVolGroup> > orderedConnections = ConnectVertexGroupsOrdered(volGroupMan, vertices, edges, maxNo);
 
   // convert the ordered groups to unordered groups
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator path = orderedConnections.begin(); path != orderedConnections.end(); ++path){
-    ND::THandle<ND::TTPCVolGroup> connection(new ND::TTPCVolGroup(fLayout));
-    for(std::vector<ND::TTPCPathVolume*>::iterator cell = (*path)->begin(); cell != (*path)->end(); ++cell){
+  for(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> >::iterator path = orderedConnections.begin(); path != orderedConnections.end(); ++path){
+    trex::THandle<trex::TTPCVolGroup> connection(new trex::TTPCVolGroup(fLayout));
+    for(std::vector<trex::TTPCPathVolume*>::iterator cell = (*path)->begin(); cell != (*path)->end(); ++cell){
       connection->AddHit((*cell)->GetUnitVolume());
     };
     connections.push_back(connection);
@@ -127,13 +127,13 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ConnectVertexGroups(
 }
 */
 
-void ND::TTPCAStar::ConnectVertexGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& vertices, std::vector< ND::TTPCVolGroup >& edges, std::vector< ND::TTPCOrderedVolGroup >& connections, int maxNo){
+void trex::TTPCAStar::ConnectVertexGroupsOrdered(trex::TTPCVolGroupMan* volGroupMan, std::vector< trex::TTPCVolGroup >& vertices, std::vector< trex::TTPCVolGroup >& edges, std::vector< trex::TTPCOrderedVolGroup >& connections, int maxNo){
 
   // keep track of number of iterations to break when exceeded
   int i=0;
   // loop over each vertex and each edge
-  for(std::vector< ND::TTPCVolGroup >::iterator ver = vertices.begin(); ver != vertices.end(); ++ver){
-    for(std::vector< ND::TTPCVolGroup >::iterator grp = edges.begin(); grp != edges.end(); ++grp){
+  for(std::vector< trex::TTPCVolGroup >::iterator ver = vertices.begin(); ver != vertices.end(); ++ver){
+    for(std::vector< trex::TTPCVolGroup >::iterator grp = edges.begin(); grp != edges.end(); ++grp){
       // add connection between the groups to set of connections
       connections.push_back(fLayout);
       ConnectGroupPair(*ver,*grp,connections.back(), true,false);
@@ -146,10 +146,10 @@ void ND::TTPCAStar::ConnectVertexGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan,
   };
 
   // connect vertices to each other as well
-  std::vector< ND::TTPCOrderedVolGroup > vertexConnections;
+  std::vector< trex::TTPCOrderedVolGroup > vertexConnections;
   ConnectGroupsOrdered(volGroupMan, vertices, vertexConnections, true, false, maxNo);
   // add inter-vertex connections to group
-  for(std::vector< ND::TTPCOrderedVolGroup >::iterator it = vertexConnections.begin(); it != vertexConnections.end(); ++it){
+  for(std::vector< trex::TTPCOrderedVolGroup >::iterator it = vertexConnections.begin(); it != vertexConnections.end(); ++it){
     connections.push_back(*it);
   };
 
@@ -158,15 +158,15 @@ void ND::TTPCAStar::ConnectVertexGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan,
 //MDH
 //Not used
 /*
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ConnectGroups(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::THandle<ND::TTPCVolGroup> > groups, bool allConnections, int maxNo){
-  std::vector< ND::THandle<ND::TTPCVolGroup> > connections;
+std::vector< trex::THandle<trex::TTPCVolGroup> > trex::TTPCAStar::ConnectGroups(trex::TTPCVolGroupMan* volGroupMan, std::vector< trex::THandle<trex::TTPCVolGroup> > groups, bool allConnections, int maxNo){
+  std::vector< trex::THandle<trex::TTPCVolGroup> > connections;
   // find ordered sets of connections between the groups
-  std::vector< ND::THandle<ND::TTPCOrderedVolGroup> > orderedConnections = ConnectGroupsOrdered(volGroupMan, groups, false, allConnections, maxNo);
+  std::vector< trex::THandle<trex::TTPCOrderedVolGroup> > orderedConnections = ConnectGroupsOrdered(volGroupMan, groups, false, allConnections, maxNo);
 
   // convert the ordered groups to unordered groups
-  for(std::vector< ND::THandle<ND::TTPCOrderedVolGroup> >::iterator path = orderedConnections.begin(); path != orderedConnections.end(); ++path){
-    ND::THandle<ND::TTPCVolGroup> connection(new ND::TTPCVolGroup(fLayout));
-    for(std::vector<ND::TTPCPathVolume*>::iterator cell = (*path)->begin(); cell != (*path)->end(); ++cell){
+  for(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> >::iterator path = orderedConnections.begin(); path != orderedConnections.end(); ++path){
+    trex::THandle<trex::TTPCVolGroup> connection(new trex::TTPCVolGroup(fLayout));
+    for(std::vector<trex::TTPCPathVolume*>::iterator cell = (*path)->begin(); cell != (*path)->end(); ++cell){
       connection->AddHit((*cell)->GetUnitVolume());
     };
     connections.push_back(connection);
@@ -176,15 +176,15 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::ConnectGroups(ND::TT
 }
 */
 
-void ND::TTPCAStar::ConnectGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, std::vector< ND::TTPCOrderedVolGroup >& connections, bool vertices, bool allConnections, int maxNo){
+void trex::TTPCAStar::ConnectGroupsOrdered(trex::TTPCVolGroupMan* volGroupMan, std::vector< trex::TTPCVolGroup >& groups, std::vector< trex::TTPCOrderedVolGroup >& connections, bool vertices, bool allConnections, int maxNo){
 
   // keep track of number of iterations to break when exceeded
   int i=0;
   // loop over each pair of groups once
-  for(std::vector< ND::TTPCVolGroup >::iterator grp1 = groups.begin(); grp1 != groups.end(); ++grp1){
-    std::vector< ND::TTPCVolGroup >::iterator grp2Begin = allConnections ? groups.begin() : grp1+1;
-    std::vector< ND::TTPCVolGroup >::iterator grp2End = groups.end();
-    for(std::vector< ND::TTPCVolGroup >::iterator grp2 = grp2Begin; grp2 != grp2End; ++grp2){
+  for(std::vector< trex::TTPCVolGroup >::iterator grp1 = groups.begin(); grp1 != groups.end(); ++grp1){
+    std::vector< trex::TTPCVolGroup >::iterator grp2Begin = allConnections ? groups.begin() : grp1+1;
+    std::vector< trex::TTPCVolGroup >::iterator grp2End = groups.end();
+    for(std::vector< trex::TTPCVolGroup >::iterator grp2 = grp2Begin; grp2 != grp2End; ++grp2){
       if(grp1 == grp2) continue;
       i++;
       // add connection between the groups to set of connections
@@ -201,17 +201,17 @@ void ND::TTPCAStar::ConnectGroupsOrdered(ND::TTPCVolGroupMan* volGroupMan, std::
 
 //Ok this needs a bit of work. For now only changed the signature
 //so that this will be an in-place cleanup
-void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& groups, int maxNo){
+void trex::TTPCAStar::ClearRedundancies(trex::TTPCVolGroupMan* volGroupMan, std::vector< trex::TTPCVolGroup >& groups, int maxNo){
   // the next block of code is pretty ugly but needed to remove bugs in some very specific topologies
   // first, merge groups which are too close together
 
-  std::vector< ND::TTPCVolGroup > mergedGroups;
+  std::vector< trex::TTPCVolGroup > mergedGroups;
 
   while(groups.size()){
     // copy id of merge from first inGroup for consistency
     unsigned int id = (*groups.begin()).GetID();
 
-    std::vector< std::vector< ND::TTPCVolGroup >::iterator > mergeIts;
+    std::vector< std::vector< trex::TTPCVolGroup >::iterator > mergeIts;
     mergeIts.push_back(groups.begin());
 
     // stop only when all groups overlapping are merged
@@ -221,22 +221,22 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
 
       // add all groups overlapping with one in the 'to merge' list
       if(groups.size() > 1)
-      for(std::vector< std::vector< ND::TTPCVolGroup >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
-        std::vector< ND::TTPCVolGroup >::iterator mergeIt = *mergeItIt;
-        ND::TTPCVolGroup& merge = *mergeIt;
+      for(std::vector< std::vector< trex::TTPCVolGroup >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
+        std::vector< trex::TTPCVolGroup >::iterator mergeIt = *mergeItIt;
+        trex::TTPCVolGroup& merge = *mergeIt;
 
-        for(std::vector< ND::TTPCVolGroup >::iterator inGroupIt = groups.begin(); inGroupIt != groups.end(); ++inGroupIt){
-          ND::TTPCVolGroup& inGroup = *inGroupIt;
+        for(std::vector< trex::TTPCVolGroup >::iterator inGroupIt = groups.begin(); inGroupIt != groups.end(); ++inGroupIt){
+          trex::TTPCVolGroup& inGroup = *inGroupIt;
 
           bool alreadyAdded = false;
-          for(std::vector< std::vector< ND::TTPCVolGroup >::iterator >::iterator mergeItIt2 = mergeIts.begin(); mergeItIt2 != mergeIts.end(); ++mergeItIt2)
+          for(std::vector< std::vector< trex::TTPCVolGroup >::iterator >::iterator mergeItIt2 = mergeIts.begin(); mergeItIt2 != mergeIts.end(); ++mergeItIt2)
           if(*mergeItIt2 == inGroupIt){
             alreadyAdded = true;
             break;
           };
           if(alreadyAdded) continue;
 
-          if( volGroupMan->GetGroupGroupOverlap(inGroup, merge, ND::TTPCConnection::edgeMerge, true) ){
+          if( volGroupMan->GetGroupGroupOverlap(inGroup, merge, trex::TTPCConnection::edgeMerge, true) ){
             mergeIts.push_back(inGroupIt);
             furtherMerges = true;
             if(furtherMerges) break;
@@ -248,12 +248,12 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
   
     // set new group with the ID of the first of the merges
     mergedGroups.emplace_back(fLayout,id);
-    ND::TTPCVolGroup& groupOut = mergedGroups.back();
-    std::vector< std::vector<ND::TTPCVolGroup>::iterator > delGroups;
+    trex::TTPCVolGroup& groupOut = mergedGroups.back();
+    std::vector< std::vector<trex::TTPCVolGroup>::iterator > delGroups;
 
-    for(std::vector< std::vector< ND::TTPCVolGroup >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
-      std::vector< ND::TTPCVolGroup >::iterator mergeIt = *mergeItIt;
-      ND::TTPCVolGroup& merge = *mergeIt;
+    for(std::vector< std::vector< trex::TTPCVolGroup >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
+      std::vector< trex::TTPCVolGroup >::iterator mergeIt = *mergeItIt;
+      trex::TTPCVolGroup& merge = *mergeIt;
 
       groupOut.AddHits(merge);
       groupOut.SetXLean(merge.GetXLean());
@@ -263,8 +263,8 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
       delGroups.push_back(mergeIt);
     };
 
-    std::vector< ND::TTPCVolGroup > newInGroups;
-    for(std::vector< ND::TTPCVolGroup >::iterator grpIt = groups.begin(); grpIt != groups.end(); ++grpIt){
+    std::vector< trex::TTPCVolGroup > newInGroups;
+    for(std::vector< trex::TTPCVolGroup >::iterator grpIt = groups.begin(); grpIt != groups.end(); ++grpIt){
       if(std::find(delGroups.begin(),delGroups.end(),grpIt)==delGroups.end()){
       newInGroups.push_back(*grpIt);
     }
@@ -274,7 +274,7 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
 
   // parallel arrays for groups and list of groups they overlap
   std::vector< std::vector<int> > connectedGroups;
-  for(std::vector< ND::TTPCVolGroup >::iterator grpIt = mergedGroups.begin(); grpIt != mergedGroups.end(); ++grpIt){
+  for(std::vector< trex::TTPCVolGroup >::iterator grpIt = mergedGroups.begin(); grpIt != mergedGroups.end(); ++grpIt){
     connectedGroups.emplace_back();
   }
   std::vector<bool> groupsMaySurvive (mergedGroups.size(), true);
@@ -286,16 +286,16 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
   // loop over each pair of groups once
   for(int i=0; i<nGroups; ++i){
     for(int j=i+1; j<nGroups; ++j){
-      ND::TTPCVolGroup& grp1 = mergedGroups[i];
-      ND::TTPCVolGroup& grp2 = mergedGroups[j];
+      trex::TTPCVolGroup& grp1 = mergedGroups[i];
+      trex::TTPCVolGroup& grp2 = mergedGroups[j];
       // add connection between the groups to set of connections
-      ND::TTPCOrderedVolGroup path(fLayout);
+      trex::TTPCOrderedVolGroup path(fLayout);
       ConnectGroupPair(grp1, grp2,path);
       // kill any groups associated with this path other than its direct ends
       for(int k=0; k<nGroups; ++k){
         if(k == i) continue;
         if(k == j) continue;
-        ND::TTPCVolGroup& grp3 = mergedGroups[k];
+        trex::TTPCVolGroup& grp3 = mergedGroups[k];
         if(volGroupMan->GetPathVolOverlap(path, grp3.GetAverageVol())){
           if(std::find(connectedGroups[i].begin(), connectedGroups[i].end(), k) == connectedGroups[i].end()) connectedGroups[i].push_back(k);
           if(std::find(connectedGroups[j].begin(), connectedGroups[j].end(), k) == connectedGroups[j].end()) connectedGroups[j].push_back(k);
@@ -309,7 +309,7 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
   };
 
   // build surviving groups
-  std::vector< ND::TTPCVolGroup > survivors;
+  std::vector< trex::TTPCVolGroup > survivors;
 
   // first, add all totally safe groups
   for(int i=0; i<nGroups; ++i){
@@ -373,13 +373,13 @@ void ND::TTPCAStar::ClearRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vec
   groups=std::move(survivors);
 }
 
-void ND::TTPCAStar::ClearVertexConnectionRedundancies(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCOrderedVolGroup >& paths, std::vector< ND::TTPCVolGroup >& vertices){
-  std::vector< ND::TTPCOrderedVolGroup > outPaths;
+void trex::TTPCAStar::ClearVertexConnectionRedundancies(trex::TTPCVolGroupMan* volGroupMan, std::vector< trex::TTPCOrderedVolGroup >& paths, std::vector< trex::TTPCVolGroup >& vertices){
+  std::vector< trex::TTPCOrderedVolGroup > outPaths;
 
-  for(std::vector< ND::TTPCOrderedVolGroup >::iterator path = paths.begin(); path != paths.end(); ++path){
+  for(std::vector< trex::TTPCOrderedVolGroup >::iterator path = paths.begin(); path != paths.end(); ++path){
     bool redundancy = false;
-    for(std::vector< ND::TTPCVolGroup >::iterator vert = vertices.begin(); vert != vertices.end(); ++vert){
-      if(volGroupMan->GetPathVolOverlap(*path, vert->GetAverageVol(), ND::TTPCConnection::vertexPath)){
+    for(std::vector< trex::TTPCVolGroup >::iterator vert = vertices.begin(); vert != vertices.end(); ++vert){
+      if(volGroupMan->GetPathVolOverlap(*path, vert->GetAverageVol(), trex::TTPCConnection::vertexPath)){
 	redundancy=true;
         break;
       }
@@ -393,11 +393,11 @@ void ND::TTPCAStar::ClearVertexConnectionRedundancies(ND::TTPCVolGroupMan* volGr
   
 }
 
-void ND::TTPCAStar::ConnectGroupPair(ND::TTPCVolGroup& group1, ND::TTPCVolGroup& group2, ND::TTPCOrderedVolGroup& connection, bool vertexGroup1, bool vertexGroup2, bool fullASICPenalty, bool extendMode){
+void trex::TTPCAStar::ConnectGroupPair(trex::TTPCVolGroup& group1, trex::TTPCVolGroup& group2, trex::TTPCOrderedVolGroup& connection, bool vertexGroup1, bool vertexGroup2, bool fullASICPenalty, bool extendMode){
 
   // get unique ids and A* indices
-  ND::TTPCUnitVolume* startCell = group1.GetAverageVol();
-  ND::TTPCUnitVolume* endCell = group2.GetAverageVol();
+  trex::TTPCUnitVolume* startCell = group1.GetAverageVol();
+  trex::TTPCUnitVolume* endCell = group2.GetAverageVol();
 
   if(!startCell || !endCell) return;
 
@@ -405,9 +405,9 @@ void ND::TTPCAStar::ConnectGroupPair(ND::TTPCVolGroup& group1, ND::TTPCVolGroup&
   RebootHits();
 
   // assign A* points based on these
-  ND::TTPCAStarPoint* startPoint=0;
-  ND::TTPCAStarPoint* endPoint=0;
-  for(std::vector<ND::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
+  trex::TTPCAStarPoint* startPoint=0;
+  trex::TTPCAStarPoint* endPoint=0;
+  for(std::vector<trex::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
     if((*pnt)->vol == startCell) startPoint = *pnt;
     if((*pnt)->vol == endCell) endPoint = *pnt;
   };
@@ -426,12 +426,12 @@ void ND::TTPCAStar::ConnectGroupPair(ND::TTPCVolGroup& group1, ND::TTPCVolGroup&
   connection.SetBackIsVertex(vertexGroup2);
 
   // start at end index and add the chain of cells connecting it from the start to the connection
-  ND::TTPCAStarPoint* curPoint = endPoint;
+  trex::TTPCAStarPoint* curPoint = endPoint;
   int nPoints = fAStarPoints.size();
   for(int i=0; i < nPoints; i++){
     connection.AddCell(curPoint->vol);
 
-    ND::TTPCAStarPoint* nextPoint = curPoint->aStarParent;
+    trex::TTPCAStarPoint* nextPoint = curPoint->aStarParent;
     if(!nextPoint) break; 
     curPoint = nextPoint;
   };
@@ -440,18 +440,18 @@ void ND::TTPCAStar::ConnectGroupPair(ND::TTPCVolGroup& group1, ND::TTPCVolGroup&
 
 }
 
-float ND::TTPCAStar::FindConnectionCost(ND::TTPCVolGroup& group1, ND::TTPCVolGroup& group2, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
-  ND::TTPCUnitVolume* vol1 = group1.GetAverageVol();
-  ND::TTPCUnitVolume* vol2 = group2.GetAverageVol();
+float trex::TTPCAStar::FindConnectionCost(trex::TTPCVolGroup& group1, trex::TTPCVolGroup& group2, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
+  trex::TTPCUnitVolume* vol1 = group1.GetAverageVol();
+  trex::TTPCUnitVolume* vol2 = group2.GetAverageVol();
 
   return FindConnectionCost(vol1, vol2, fullASICPenalty, extendMode, reduced, maxCost);
 }
-float ND::TTPCAStar::FindConnectionCost(ND::TTPCVolGroup& group, ND::TTPCUnitVolume* vol, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
-  ND::TTPCUnitVolume* groupVol = group.GetAverageVol();
+float trex::TTPCAStar::FindConnectionCost(trex::TTPCVolGroup& group, trex::TTPCUnitVolume* vol, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
+  trex::TTPCUnitVolume* groupVol = group.GetAverageVol();
 
   return FindConnectionCost(groupVol, vol, fullASICPenalty, extendMode, reduced, maxCost);
 }
-float ND::TTPCAStar::FindConnectionCost(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVolume* vol2, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
+float trex::TTPCAStar::FindConnectionCost(trex::TTPCUnitVolume* vol1, trex::TTPCUnitVolume* vol2, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
   float cost = -1.;
   if(!vol1 || !vol2) return cost;
 
@@ -463,9 +463,9 @@ float ND::TTPCAStar::FindConnectionCost(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVo
   RebootHits();
 
   // assign A* points based on these
-  ND::TTPCAStarPoint* startPoint=0;
-  ND::TTPCAStarPoint* endPoint=0;
-  for(std::vector<ND::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
+  trex::TTPCAStarPoint* startPoint=0;
+  trex::TTPCAStarPoint* endPoint=0;
+  for(std::vector<trex::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
     if((*pnt)->vol == vol1) startPoint = *pnt;
     if((*pnt)->vol == vol2) endPoint = *pnt;
   };
@@ -483,7 +483,7 @@ float ND::TTPCAStar::FindConnectionCost(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVo
       int nPHits = 0;
       int nNHits = 0;
       // start at end index and add the chain of cells connecting it from the start to the connection
-      ND::TTPCAStarPoint* curPoint = endPoint;
+      trex::TTPCAStarPoint* curPoint = endPoint;
       int nPoints = fAStarPoints.size();
       for(int i=0; i < nPoints; i++){
         nHits++;
@@ -494,7 +494,7 @@ float ND::TTPCAStar::FindConnectionCost(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVo
           nNHits++;
         };
 
-        ND::TTPCAStarPoint* nextPoint = curPoint->aStarParent;
+        trex::TTPCAStarPoint* nextPoint = curPoint->aStarParent;
         if(!nextPoint) break;
         curPoint = nextPoint;
       };
@@ -512,18 +512,18 @@ float ND::TTPCAStar::FindConnectionCost(ND::TTPCUnitVolume* vol1, ND::TTPCUnitVo
   return cost;
 }
 
-void ND::TTPCAStar::AssociateBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCOrderedVolGroup >& inPaths, bool fullASICPenalty, bool extendMode, float maxCost){
+void trex::TTPCAStar::AssociateBestHits(trex::TTPCVolGroupMan* volGroupMan, std::vector< trex::TTPCOrderedVolGroup >& inPaths, bool fullASICPenalty, bool extendMode, float maxCost){
   // add hits in path to group, making sure the same isn't added twice
-  std::vector< ND::TTPCVolGroup > hitsGroups;
-  std::set<ND::TTPCUnitVolume*> volsAdded;
-  for(std::vector< ND::TTPCOrderedVolGroup >::iterator inPathIt = inPaths.begin(); inPathIt != inPaths.end(); ++inPathIt){
-    ND::TTPCOrderedVolGroup& inPath = *inPathIt;
+  std::vector< trex::TTPCVolGroup > hitsGroups;
+  std::set<trex::TTPCUnitVolume*> volsAdded;
+  for(std::vector< trex::TTPCOrderedVolGroup >::iterator inPathIt = inPaths.begin(); inPathIt != inPaths.end(); ++inPathIt){
+    trex::TTPCOrderedVolGroup& inPath = *inPathIt;
 
     hitsGroups.emplace_back(fLayout);
-    ND::TTPCVolGroup& hitsGroup = hitsGroups.back();
-    for(std::vector<ND::TTPCPathVolume*>::iterator pathVolIt = inPath.begin(); pathVolIt != inPath.end(); ++pathVolIt){
-      ND::TTPCPathVolume* pathVol = *pathVolIt;
-      ND::TTPCUnitVolume* vol = pathVol->GetUnitVolume();
+    trex::TTPCVolGroup& hitsGroup = hitsGroups.back();
+    for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = inPath.begin(); pathVolIt != inPath.end(); ++pathVolIt){
+      trex::TTPCPathVolume* pathVol = *pathVolIt;
+      trex::TTPCUnitVolume* vol = pathVol->GetUnitVolume();
 
       if(!volsAdded.count(vol)){
         hitsGroup.AddHit(vol);
@@ -538,8 +538,8 @@ void ND::TTPCAStar::AssociateBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vec
 
   // add merged hits to appropriate paths
   for(unsigned int i=0; i<inPaths.size(); ++i){
-    ND::TTPCOrderedVolGroup& inPath = inPaths.at(i);
-    ND::TTPCVolGroup& hitsGroup = hitsGroups.at(i);
+    trex::TTPCOrderedVolGroup& inPath = inPaths.at(i);
+    trex::TTPCVolGroup& hitsGroup = hitsGroups.at(i);
 
     inPath.AddExtendedHits(hitsGroup);
   };
@@ -548,30 +548,30 @@ void ND::TTPCAStar::AssociateBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vec
 //MDH
 //Not used
 /*
-void ND::TTPCAStar::MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, ND::THandle<ND::TTPCVolGroup> inGroup, bool fullASICPenalty, bool extendMode, float maxCost){
-  std::vector< ND::THandle<ND::TTPCVolGroup> > dummyVector;
+void trex::TTPCAStar::MergeBestHits(trex::TTPCVolGroupMan* volGroupMan, trex::THandle<trex::TTPCVolGroup> inGroup, bool fullASICPenalty, bool extendMode, float maxCost){
+  std::vector< trex::THandle<trex::TTPCVolGroup> > dummyVector;
   dummyVector.push_back(inGroup);
 
   MergeBestHits(volGroupMan, dummyVector, fullASICPenalty, extendMode, maxCost);
 }
 */
 
-void ND::TTPCAStar::MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector< ND::TTPCVolGroup >& inGroups, bool fullASICPenalty, bool extendMode, float maxCost){
+void trex::TTPCAStar::MergeBestHits(trex::TTPCVolGroupMan* volGroupMan, std::vector< trex::TTPCVolGroup >& inGroups, bool fullASICPenalty, bool extendMode, float maxCost){
   // reset hits
   RebootHits();
 
   // define container of all near hits currently under consideration, starting with path hits
-  std::vector<ND::TTPCAStarPoint*> openSet;
-  std::vector<ND::TTPCAStarPoint*> definingSet (inGroups.size(), 0);
+  std::vector<trex::TTPCAStarPoint*> openSet;
+  std::vector<trex::TTPCAStarPoint*> definingSet (inGroups.size(), 0);
   int nGroup = 0;
-  for(std::vector< ND::TTPCVolGroup >::iterator groupIt = inGroups.begin(); groupIt != inGroups.end(); ++groupIt){
-    ND::TTPCVolGroup& group = *groupIt;
+  for(std::vector< trex::TTPCVolGroup >::iterator groupIt = inGroups.begin(); groupIt != inGroups.end(); ++groupIt){
+    trex::TTPCVolGroup& group = *groupIt;
 
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator hitEl = group.begin(); hitEl != group.end(); ++hitEl){
-      ND::TTPCUnitVolume* vol = hitEl->second;
+    for(std::map<long, trex::TTPCUnitVolume*>::iterator hitEl = group.begin(); hitEl != group.end(); ++hitEl){
+      trex::TTPCUnitVolume* vol = hitEl->second;
 
-      for(std::vector<ND::TTPCAStarPoint*>::iterator pntIt = fAStarPoints.begin(); pntIt != fAStarPoints.end(); ++pntIt){
-        ND::TTPCAStarPoint* pnt = *pntIt;
+      for(std::vector<trex::TTPCAStarPoint*>::iterator pntIt = fAStarPoints.begin(); pntIt != fAStarPoints.end(); ++pntIt){
+        trex::TTPCAStarPoint* pnt = *pntIt;
 
         if(pnt->vol == vol){
           if(!definingSet[nGroup]){
@@ -594,9 +594,9 @@ void ND::TTPCAStar::MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector<
     if(!openSet.size()) break;
 
     // copy current open set over from old one
-    std::vector<ND::TTPCAStarPoint*> curOpenSet;
-    for(std::vector<ND::TTPCAStarPoint*>::iterator pntIt = openSet.begin(); pntIt != openSet.end(); ++pntIt){
-      ND::TTPCAStarPoint* pnt = *pntIt;
+    std::vector<trex::TTPCAStarPoint*> curOpenSet;
+    for(std::vector<trex::TTPCAStarPoint*>::iterator pntIt = openSet.begin(); pntIt != openSet.end(); ++pntIt){
+      trex::TTPCAStarPoint* pnt = *pntIt;
 
       if(!pnt->aStarClosed){
         curOpenSet.push_back(*pntIt);
@@ -605,13 +605,13 @@ void ND::TTPCAStar::MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector<
     openSet.clear();
 
     // loop once over current set
-    for(std::vector<ND::TTPCAStarPoint*>::iterator pntIt = curOpenSet.begin(); pntIt != curOpenSet.end(); ++pntIt){
-      ND::TTPCAStarPoint* pnt = *pntIt;
+    for(std::vector<trex::TTPCAStarPoint*>::iterator pntIt = curOpenSet.begin(); pntIt != curOpenSet.end(); ++pntIt){
+      trex::TTPCAStarPoint* pnt = *pntIt;
 
       int nUncheckedFriends = 0;
       // add friends of all surviving hits
-      for(std::map<ND::TTPCAStarPoint*, float>::iterator frEl = pnt->aStarFriends.begin(); frEl != pnt->aStarFriends.end(); ++frEl){
-        ND::TTPCAStarPoint* curPnt = frEl->first;
+      for(std::map<trex::TTPCAStarPoint*, float>::iterator frEl = pnt->aStarFriends.begin(); frEl != pnt->aStarFriends.end(); ++frEl){
+        trex::TTPCAStarPoint* curPnt = frEl->first;
 
         float incCost = GetModifiedCost(frEl->second, pnt, curPnt, fullASICPenalty, extendMode);
         float curCost = pnt->aStarCost + incCost;
@@ -648,14 +648,14 @@ void ND::TTPCAStar::MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector<
 
   // now add all hits associated with the given group to that group
   nGroup = 0;
-  for(std::vector< ND::TTPCVolGroup >::iterator groupIt = inGroups.begin(); groupIt != inGroups.end(); ++groupIt){
-    ND::TTPCVolGroup& group = *groupIt;
-    ND::TTPCAStarPoint* definingPoint = definingSet[nGroup];
+  for(std::vector< trex::TTPCVolGroup >::iterator groupIt = inGroups.begin(); groupIt != inGroups.end(); ++groupIt){
+    trex::TTPCVolGroup& group = *groupIt;
+    trex::TTPCAStarPoint* definingPoint = definingSet[nGroup];
     ++nGroup;
 
     if(definingPoint != 0){
-      for(std::vector<ND::TTPCAStarPoint*>::iterator pntIt = fAStarPoints.begin(); pntIt != fAStarPoints.end(); ++pntIt){
-        ND::TTPCAStarPoint* pnt = *pntIt;
+      for(std::vector<trex::TTPCAStarPoint*>::iterator pntIt = fAStarPoints.begin(); pntIt != fAStarPoints.end(); ++pntIt){
+        trex::TTPCAStarPoint* pnt = *pntIt;
 
         // check if associated with this path
         if(pnt->aStarParent == definingPoint){
@@ -667,21 +667,21 @@ void ND::TTPCAStar::MergeBestHits(ND::TTPCVolGroupMan* volGroupMan, std::vector<
   };
 }
 
-void ND::TTPCAStar::GetNearHitConnections(ND::TTPCVolGroupMan* volGroupMan, ND::TTPCAStarPoint* point, bool extendMode){
+void trex::TTPCAStar::GetNearHitConnections(trex::TTPCVolGroupMan* volGroupMan, trex::TTPCAStarPoint* point, bool extendMode){
   // only search for friends if none are already found
   if(!point->aStarHasFriends){
     // volume group to check for nearby hits
-    ND::TTPCVolGroup volCheck(fLayout);
+    trex::TTPCVolGroup volCheck(fLayout);
     volCheck.AddHitMap(fHitMap);
 
     // find near hits and (friends)
-    ND::TTPCVolGroup nearHits(fLayout);
-    volGroupMan->GetNearHits(volCheck, nearHits, point->vol, ND::TTPCConnection::path);
+    trex::TTPCVolGroup nearHits(fLayout);
+    volGroupMan->GetNearHits(volCheck, nearHits, point->vol, trex::TTPCConnection::path);
 
     // save cost of connecting to each of those friends
-    for(std::map<long, ND::TTPCUnitVolume*>::iterator it = nearHits.begin(); it != nearHits.end(); ++it){
-      ND::TTPCAStarPoint* newPoint = 0;
-      for(std::vector<ND::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
+    for(std::map<long, trex::TTPCUnitVolume*>::iterator it = nearHits.begin(); it != nearHits.end(); ++it){
+      trex::TTPCAStarPoint* newPoint = 0;
+      for(std::vector<trex::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
         if((*pnt)->vol == it->second){
           newPoint = *pnt;
           break;
@@ -695,7 +695,7 @@ void ND::TTPCAStar::GetNearHitConnections(ND::TTPCVolGroupMan* volGroupMan, ND::
   };
 }
 
-float ND::TTPCAStar::GetConnectionCost(ND::TTPCAStarPoint* point1, ND::TTPCAStarPoint* point2, bool penalty){
+float trex::TTPCAStar::GetConnectionCost(trex::TTPCAStarPoint* point1, trex::TTPCAStarPoint* point2, bool penalty){
   // work out distances in x, y and z
   int diffX = std::abs(point1->x - point2->x);
   int diffY = std::abs(point1->y - point2->y);
@@ -734,7 +734,7 @@ float ND::TTPCAStar::GetConnectionCost(ND::TTPCAStarPoint* point1, ND::TTPCAStar
 
   return result;
 }
-float ND::TTPCAStar::GetHeuristicCost(ND::TTPCAStarPoint* point1, ND::TTPCAStarPoint* target){
+float trex::TTPCAStar::GetHeuristicCost(trex::TTPCAStarPoint* point1, trex::TTPCAStarPoint* target){
   // work out distance between point and targer in x, y and z
   float dX = (float)std::abs(point1->x - target->x) / fXScale;
   float dY = (float)std::abs(point1->y - target->y) / fYScale;
@@ -743,12 +743,12 @@ float ND::TTPCAStar::GetHeuristicCost(ND::TTPCAStarPoint* point1, ND::TTPCAStarP
   return std::sqrt(dX*dX + dY*dY + dZ*dZ);
 }
 
-int ND::TTPCAStar::DoConnection(ND::TTPCAStarPoint* pathVolStart, ND::TTPCAStarPoint* pathVolEnd, bool fullASICPenalty, bool extendMode, float maxCost){
+int trex::TTPCAStar::DoConnection(trex::TTPCAStarPoint* pathVolStart, trex::TTPCAStarPoint* pathVolEnd, bool fullASICPenalty, bool extendMode, float maxCost){
   // return if not found
   if(!pathVolStart || !pathVolEnd) return 1;
 
   // define set of points to be considered at this stage in the algorithm
-  std::vector<ND::TTPCAStarPoint*> openSet;
+  std::vector<trex::TTPCAStarPoint*> openSet;
   // add the start point to the openSet
 
   // start point has a cumulative connection cost of 0 and is the only element in the open set
@@ -761,12 +761,12 @@ int ND::TTPCAStar::DoConnection(ND::TTPCAStarPoint* pathVolStart, ND::TTPCAStarP
 
   for(int i=0; i < nPoints; i++){
     // look for the next cheapest cell by minimising cost while varying id
-    ND::TTPCAStarPoint* curPoint = 0;
+    trex::TTPCAStarPoint* curPoint = 0;
     float curCost = 999999999.;
 
     if(openSet.size() == 0) break;
-    for(std::vector<ND::TTPCAStarPoint*>::iterator pointIt = openSet.begin(); pointIt != openSet.end(); ++pointIt){
-      ND::TTPCAStarPoint* point = *pointIt;
+    for(std::vector<trex::TTPCAStarPoint*>::iterator pointIt = openSet.begin(); pointIt != openSet.end(); ++pointIt){
+      trex::TTPCAStarPoint* point = *pointIt;
       // if cell has already been closed, ignore it
       if(point->aStarClosed) continue;
 
@@ -793,8 +793,8 @@ int ND::TTPCAStar::DoConnection(ND::TTPCAStarPoint* pathVolStart, ND::TTPCAStarP
     openSet.erase( std::find(openSet.begin(), openSet.end(), curPoint) );
 
     // consider all of the current cell's friends
-    for(std::map<ND::TTPCAStarPoint*, float>::iterator fr = curPoint->aStarFriends.begin(); fr != curPoint->aStarFriends.end(); ++fr){
-      ND::TTPCAStarPoint* frCell = fr->first;
+    for(std::map<trex::TTPCAStarPoint*, float>::iterator fr = curPoint->aStarFriends.begin(); fr != curPoint->aStarFriends.end(); ++fr){
+      trex::TTPCAStarPoint* frCell = fr->first;
 
       if(frCell == curPoint) continue;
       if(frCell->aStarClosed) continue;
@@ -823,12 +823,12 @@ int ND::TTPCAStar::DoConnection(ND::TTPCAStarPoint* pathVolStart, ND::TTPCAStarP
   };
 
   /*int j=0;
-  for(std::vector<ND::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
+  for(std::vector<trex::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
     ND280Debug("End point " << j << " open? " << (*pnt)->aStarOpen << ", closed? " << (*pnt)->aStarClosed);
     ND280Debug("--> getting hit connections for " << (*pnt)->vol->GetID() << ":");
     ND280Debug(" -> edge (" << (*pnt)->vol->GetEdgeX() << "," << (*pnt)->vol->GetEdgeY() << "," << (*pnt)->vol->GetEdgeZ() << ")");
     // consider all of the current cell's friends
-    for(std::map<ND::TTPCAStarPoint*, int>::iterator fr = (*pnt)->aStarFriends.begin(); fr != (*pnt)->aStarFriends.end(); ++fr){
+    for(std::map<trex::TTPCAStarPoint*, int>::iterator fr = (*pnt)->aStarFriends.begin(); fr != (*pnt)->aStarFriends.end(); ++fr){
       ND280Debug(" `-> " << fr->first->vol->GetID());
     };
     j++;
@@ -847,14 +847,14 @@ int ND::TTPCAStar::DoConnection(ND::TTPCAStarPoint* pathVolStart, ND::TTPCAStarP
 //MDH
 //Not used
 /*
-std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::MergeGroupsAStar(std::vector< ND::THandle<ND::TTPCVolGroup> > groups, float mergeDist){
-  std::vector< ND::THandle<ND::TTPCVolGroup> > inGroups = groups;
-  std::vector< ND::THandle<ND::TTPCVolGroup> > mergedGroups;
+std::vector< trex::THandle<trex::TTPCVolGroup> > trex::TTPCAStar::MergeGroupsAStar(std::vector< trex::THandle<trex::TTPCVolGroup> > groups, float mergeDist){
+  std::vector< trex::THandle<trex::TTPCVolGroup> > inGroups = groups;
+  std::vector< trex::THandle<trex::TTPCVolGroup> > mergedGroups;
   while(inGroups.size()){
     // copy id of merge from first inGroup for consistency
     unsigned int id = (*inGroups.begin())->GetID();
 
-    std::vector< std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator > mergeIts;
+    std::vector< std::vector< trex::THandle<trex::TTPCVolGroup> >::iterator > mergeIts;
     mergeIts.push_back(inGroups.begin());
 
     // stop only when all groups overlapping are merged
@@ -864,15 +864,15 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::MergeGroupsAStar(std
 
       // add all groups overlapping with one in the 'to merge' list
       if(inGroups.size() > 1)
-      for(std::vector< std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
-        std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator mergeIt = *mergeItIt;
-        ND::THandle<ND::TTPCVolGroup> merge = *mergeIt;
+      for(std::vector< std::vector< trex::THandle<trex::TTPCVolGroup> >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
+        std::vector< trex::THandle<trex::TTPCVolGroup> >::iterator mergeIt = *mergeItIt;
+        trex::THandle<trex::TTPCVolGroup> merge = *mergeIt;
 
-        for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator inGroupIt = inGroups.begin()+1; inGroupIt != inGroups.end(); ++inGroupIt){
-          ND::THandle<ND::TTPCVolGroup> inGroup = *inGroupIt;
+        for(std::vector< trex::THandle<trex::TTPCVolGroup> >::iterator inGroupIt = inGroups.begin()+1; inGroupIt != inGroups.end(); ++inGroupIt){
+          trex::THandle<trex::TTPCVolGroup> inGroup = *inGroupIt;
 
           bool alreadyAdded = false;
-          for(std::vector< std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator >::iterator mergeItIt2 = mergeIts.begin(); mergeItIt2 != mergeIts.end(); ++mergeItIt2)
+          for(std::vector< std::vector< trex::THandle<trex::TTPCVolGroup> >::iterator >::iterator mergeItIt2 = mergeIts.begin(); mergeItIt2 != mergeIts.end(); ++mergeItIt2)
           if(**mergeItIt2 == inGroup){
             alreadyAdded = true;
             break;
@@ -890,11 +890,11 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::MergeGroupsAStar(std
     };
 
     // set new group with the ID of the first of the merges
-    ND::THandle<ND::TTPCVolGroup> groupOut (new ND::TTPCVolGroup(fLayout, id));
+    trex::THandle<trex::TTPCVolGroup> groupOut (new trex::TTPCVolGroup(fLayout, id));
 
-    for(std::vector< std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
-      std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator mergeIt = *mergeItIt;
-      ND::THandle<ND::TTPCVolGroup> merge = *mergeIt;
+    for(std::vector< std::vector< trex::THandle<trex::TTPCVolGroup> >::iterator >::iterator mergeItIt = mergeIts.begin(); mergeItIt != mergeIts.end(); ++mergeItIt){
+      std::vector< trex::THandle<trex::TTPCVolGroup> >::iterator mergeIt = *mergeItIt;
+      trex::THandle<trex::TTPCVolGroup> merge = *mergeIt;
 
       groupOut->AddHits(merge);
       groupOut->SetXLean(merge->GetXLean());
@@ -902,12 +902,12 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::MergeGroupsAStar(std
       groupOut->SetZLean(merge->GetZLean());
 
       // set to zero
-      *mergeIt = ND::THandle<ND::TTPCVolGroup>();
+      *mergeIt = trex::THandle<trex::TTPCVolGroup>();
     };
 
-    std::vector< ND::THandle<ND::TTPCVolGroup> > newInGroups;
-    for(std::vector< ND::THandle<ND::TTPCVolGroup> >::iterator grpIt = inGroups.begin(); grpIt != inGroups.end(); ++grpIt){
-      ND::THandle<ND::TTPCVolGroup> grp = *grpIt;
+    std::vector< trex::THandle<trex::TTPCVolGroup> > newInGroups;
+    for(std::vector< trex::THandle<trex::TTPCVolGroup> >::iterator grpIt = inGroups.begin(); grpIt != inGroups.end(); ++grpIt){
+      trex::THandle<trex::TTPCVolGroup> grp = *grpIt;
       if(grp) newInGroups.push_back(grp);
     };
     inGroups = newInGroups;
@@ -918,7 +918,7 @@ std::vector< ND::THandle<ND::TTPCVolGroup> > ND::TTPCAStar::MergeGroupsAStar(std
   return mergedGroups;
   }*/
 
-float ND::TTPCAStar::GetModifiedCost(float cost, ND::TTPCAStarPoint* point1, ND::TTPCAStarPoint* point2, bool fullASICPenalty, bool extendMode){
+float trex::TTPCAStar::GetModifiedCost(float cost, trex::TTPCAStarPoint* point1, trex::TTPCAStarPoint* point2, bool fullASICPenalty, bool extendMode){
   float penaltyVal = fLayout->GetAStarAssociatePathologyPenalty();
   float modifiedCost = cost;
 
@@ -934,9 +934,9 @@ float ND::TTPCAStar::GetModifiedCost(float cost, ND::TTPCAStarPoint* point1, ND:
   return modifiedCost;
 }
 
-void ND::TTPCAStar::RebootHits(){
+void trex::TTPCAStar::RebootHits(){
   // reset each individual point
-  for(std::vector<ND::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
+  for(std::vector<trex::TTPCAStarPoint*>::iterator pnt = fAStarPoints.begin(); pnt != fAStarPoints.end(); ++pnt){
     (*pnt)->aStarClosed = false;
     (*pnt)->aStarOpen = false;
     (*pnt)->aStarCost = -1.;
