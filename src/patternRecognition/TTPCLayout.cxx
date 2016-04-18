@@ -7,17 +7,6 @@ trex::TTPCLayout::TTPCLayout(){
   //This all needs reimplementing, and we need to think about if we really need
   //all these parameters...
   /*
-  // values for cuts on charge
-  fChargeCut = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.ChargeCut");
-  fEarlyNegativePeakCut = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.EarlyNegativePeakCut");
-  fLateNegativePeakCut = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.LateNegativePeakCut");
-  fASICSaturationCut = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.ASICSaturationCut");
-  fASICSubOccupancyCut = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.ASICSubOccupancyCut");
-  fASICOccupancyCut = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.ASICOccupancyCut");
-  fASICSatExpansion = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.ASICSatExpansion");
-  fASICOccExpansion = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.ASICOccExpansion");
-  fASICSplittingY = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.ASICSplittingY");
-  fASICSplittingZ = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.ASICSplittingZ");
 
   // sampling time and drift speeds
   fDriftSpeed = trex::tpcCalibration().GetDriftVelocity();
@@ -56,9 +45,6 @@ trex::TTPCLayout::TTPCLayout(){
   // set useable pattern and path sizes
   fMinPatternPads = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.MinPatternPads");
   fMinPathClusters = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.MinPathClusters");
-
-  // set variables for preliminary delta ray search
-  fDeltaSpreadRate = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.DeltaSpreadRate");
 
   // set variables for primary track edge search
   fUseIndirectEdges = (bool)trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.UseIndirectEdges");
@@ -201,55 +187,6 @@ void trex::TTPCLayout::SetRanges(int minX,int maxX, int minY,int maxY, int minZ,
   fSizeY = fMaxY - fMinY + 1;
   fSizeZ = fMaxZ - fMinZ + 1;
 }
-void trex::TTPCLayout::GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int& sizeZ,int& minZ,int& maxZ){
-  // get x, y and z minima, maxima and sizes
-  sizeX = fSizeX;
-  minX = fMinX;
-  maxX = fMaxX;
-
-  sizeY = fSizeY;
-  minY = fMinY;
-  maxY = fMaxY;
-
-  sizeZ = fSizeZ;
-  minZ = fMinZ;
-  maxZ = fMaxZ;
-}
-void trex::TTPCLayout::GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int axis){
-  // get 2D minima, maxima and sizes in x, y or z view (with axis of 1, 2 or 3 respectively)
-  switch(axis){
-    case 1:
-      sizeX = fSizeZ;
-      minX = fMinZ;
-      maxX = fMaxZ;
-
-      sizeY = fSizeY;
-      minY = fMinY;
-      maxY = fMaxY;
-
-      break;
-    case 2:
-      sizeX = fSizeZ;
-      minX = fMinZ;
-      maxX = fMaxZ;
-
-      sizeY = fSizeX;
-      minY = fMinX;
-      maxY = fMaxX;
-
-      break;
-    case 3:
-      sizeX = fSizeY;
-      minX = fMinY;
-      maxX = fMaxY;
-
-      sizeY = fSizeX;
-      minY = fMinX;
-      maxY = fMaxX;
-
-      break;
-  };
-}
 
 long trex::TTPCLayout::Mash(int x, int y, int z){
   // convert x, y and z id to unique id
@@ -258,12 +195,7 @@ long trex::TTPCLayout::Mash(int x, int y, int z){
   long valZ = long(z - fMinZ);
   return (valZ * fSizeX * fSizeY) + (valY * fSizeX) + valX;
 }
-long trex::TTPCLayout::MashYZ(int y, int z){
-  // convert x, y and z id to unique id
-  long valY = long(y - fMinY);
-  long valZ = long(z - fMinZ);
-  return (valZ * fSizeY) + valY;
-}
+
 long trex::TTPCLayout::SafeMash(int x, int y, int z){
   // return -1 if x, y or z id are invalid
   if (x < fMinX || x > fMaxX) return -1;
@@ -272,22 +204,7 @@ long trex::TTPCLayout::SafeMash(int x, int y, int z){
   // convert x, y and z id to unique id
   return Mash(x, y, z);
 }
-trex::TTPCCell3D trex::TTPCLayout::UnMash(long id){
-  // convert unique id to x, y and z id
-  trex::TTPCCell3D cell;
 
-  cell.x = id % fSizeX;
-  id = (id - cell.x) / fSizeX;
-  cell.y = id % fSizeY;
-  id = (id - cell.y) / fSizeY;
-  cell.z = id;
-
-  cell.x += fMinX;
-  cell.y += fMinY;
-  cell.z += fMinZ;
-
-  return cell;
-}
 
 trex::TTPCPadStruct trex::TTPCLayout::GlobalXYZToPos(TVector3 pos){
   trex::TTPCPadStruct padStruct;
@@ -488,3 +405,79 @@ void trex::TTPCLayout::GetTypeDistances(int& distX, int& distY, int& distZ, trex
     distZ = fStructDistZ * fClusterMergeStructDist;
   };
 }
+
+//MDH
+//Not used
+/*void trex::TTPCLayout::GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int& sizeZ,int& minZ,int& maxZ){
+  // get x, y and z minima, maxima and sizes
+  sizeX = fSizeX;
+  minX = fMinX;
+  maxX = fMaxX;
+
+  sizeY = fSizeY;
+  minY = fMinY;
+  maxY = fMaxY;
+
+  sizeZ = fSizeZ;
+  minZ = fMinZ;
+  maxZ = fMaxZ;
+}
+void trex::TTPCLayout::GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int axis){
+  // get 2D minima, maxima and sizes in x, y or z view (with axis of 1, 2 or 3 respectively)
+  switch(axis){
+    case 1:
+      sizeX = fSizeZ;
+      minX = fMinZ;
+      maxX = fMaxZ;
+
+      sizeY = fSizeY;
+      minY = fMinY;
+      maxY = fMaxY;
+
+      break;
+    case 2:
+      sizeX = fSizeZ;
+      minX = fMinZ;
+      maxX = fMaxZ;
+
+      sizeY = fSizeX;
+      minY = fMinX;
+      maxY = fMaxX;
+
+      break;
+    case 3:
+      sizeX = fSizeY;
+      minX = fMinY;
+      maxX = fMaxY;
+
+      sizeY = fSizeX;
+      minY = fMinX;
+      maxY = fMaxX;
+
+      break;
+  };
+}
+
+
+long trex::TTPCLayout::MashYZ(int y, int z){
+  // convert x, y and z id to unique id
+  long valY = long(y - fMinY);
+  long valZ = long(z - fMinZ);
+  return (valZ * fSizeY) + valY;
+}
+trex::TTPCCell3D trex::TTPCLayout::UnMash(long id){
+  // convert unique id to x, y and z id
+  trex::TTPCCell3D cell;
+
+  cell.x = id % fSizeX;
+  id = (id - cell.x) / fSizeX;
+  cell.y = id % fSizeY;
+  id = (id - cell.y) / fSizeY;
+  cell.z = id;
+
+  cell.x += fMinX;
+  cell.y += fMinY;
+  cell.z += fMinZ;
+
+  return cell;
+  }*/

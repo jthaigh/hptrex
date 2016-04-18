@@ -222,66 +222,6 @@ namespace trex{
       bool HitTest(trex::TTPCUnitVolume* vol1, trex::TTPCUnitVolume* vol2, trex::TTPCConnection::Type type);
       /// Check if two unit volumes are within a given distance of each other
       bool HitTest(trex::TTPCUnitVolume* vol1, trex::TTPCUnitVolume* vol2, int xDist, int yDist, int zDist);
-
-  public:
-    //MDH
-    //Not used
-    /// Separate an input into its delta and non-delta hits
-      //void GetDeltaNonDelta(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> >& nonDelta, std::vector< trex::THandle<trex::TTPCOrderedVolGroup> >& delta, trex::THandle<trex::TTPCOrderedVolGroup> input);
-      /// Break long junctions into x-paths
-      //void BreakLongJunctions(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> >& paths);
-
-      /// Count any duplicated hits in paths and junctions
-      //std::pair<std::pair<int, int>, std::pair<int, int> > CountDuplicates(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> > paths);
-
-      /// Get iterable vector to ids in 3D spheroid of hits in map, given input connection scheme
-      //std::vector<long> SpheroidIterable(trex::TTPCCell3D cell, trex::TTPCConnection::Type type);
-      /// Get iterable vector to ids in 3D spheroid of hits in map, given input dimensions in x, y and z
-      //std::vector<long> SpheroidIterable(trex::TTPCCell3D cell, int diffX, int diffY, int diffZ);
-    /// Debugging function to check overlap between path extended hits
-    //      void CheckExtendedHitOverlap(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> > paths);
-
-    //MDH
-    //Not used
-      /// Try to fill in gaps between MM volumes with pseudo-hits to tape over difficulties in pattern recognition
-      //trex::THandle<trex::TTPCVolGroup> GetGapFillHits(trex::THandle<trex::TTPCVolGroup> in);
-      /// Extrapolate this group of hits in a particular direction based on larger set of reference hits
-      //trex::THandle<trex::TTPCVolGroup> GetGapProjections(trex::THandle<trex::TTPCVolGroup> in, int dirX, int dirY, int dirZ, std::map<long, trex::TTPCUnitVolume*> refHits);
-
-      /// Find the nearest group of hits to the provided one along a given axis
-      //trex::THandle<trex::TTPCVolGroup> GetNearestGroup(trex::THandle<trex::TTPCVolGroup> in, int x, int y, int z, int axis, int maxDist=100);
-      /// Find group containing just nearest hit to a given x, y and z from input
-      //trex::THandle<trex::TTPCVolGroup> GetNearestHitGroup(trex::THandle<trex::TTPCVolGroup> in, int x, int y, int z, int maxDist=100);
-
-      /// Find group representing portion of a pair of groups which overlaps (or doesn't if swap=true)
-      //trex::THandle<trex::TTPCVolGroup> GetOverlap(trex::THandle<trex::TTPCVolGroup> grp1, trex::THandle<trex::TTPCVolGroup> grp2, bool swap=false);
-    //MDH
-    //Not used
-      /// Find one point along set of paths at which they start to diverge (the most significant)
-      //trex::THandle<trex::TTPCVolGroup> GetFocus(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> > paths);
-
-    //MDH
-    //Not used
-      /// Find points along set of paths which could be track ends
-      //std::vector< trex::THandle<trex::TTPCVolGroup> > GetFarHits(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> > paths, bool tryChargeCut=false);
-
-    //MDH
-    //Not used
-      /// Merge input tracks which severely overlap 
-      //std::vector< trex::THandle<trex::TTPCVolGroup> > GetFilteredPaths(std::vector< trex::THandle<trex::TTPCVolGroup> > inPaths);
-
-    //MDH
-    //Not used
-      /// Get extended unordered group corresponding to hits in given group
-      //trex::THandle<trex::TTPCVolGroup> GetExtendedUnorderedGroup(trex::THandle<trex::TTPCOrderedVolGroup> in);
-
-  private:
-
-    //MDH
-    //Not used
-    /// Get list of connected cells within a certain distance of a specified list recursively
-    //void FriendConnect(trex::THandle<trex::TTPCOrderedVolGroup> inList, trex::THandle<trex::TTPCVolGroup> inField);
-
   };
 }
 

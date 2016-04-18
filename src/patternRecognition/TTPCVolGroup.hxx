@@ -252,7 +252,7 @@ class trex::TTPCVolGroup : public TObject {
     void Close();
 
     /// Export class for ROOT
-    ClassDef(TTPCVolGroup, 1);
+  //    ClassDef(TTPCVolGroup, 1);
 };
 
 #endif

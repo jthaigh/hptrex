@@ -1,14 +1,16 @@
 #include "TTPCHitPad.hxx"
-#include <TGraph.h>
-#include <TF1.h>
 
-
-ClassImp(trex::TTPCHitPad);
+//ClassImp(trex::TTPCHitPad);
 
 //typedef std::vector< trex::THandle< trex::TSingleHit > >::const_iterator timebin;
 
-trex::TTPCHitPad::TTPCHitPad(){
-  InitParameters();
+trex::TTPCHitPad::TTPCHitPad(double eDep, TLorentzVector pos4){
+
+  fChargeFit=eDep;
+  fPosition=pos4.Vect();
+  fTimeFit=pos4.T();
+  
+//InitParameters();
 }
 
 

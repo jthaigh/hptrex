@@ -1,6 +1,6 @@
 #include "TTPCOrderedVolGroup.hxx"
 
-ClassImp(trex::TTPCOrderedVolGroup);
+//ClassImp(trex::TTPCOrderedVolGroup);
 //trex::TTPCOrderedVolGroup::TTPCOrderedVolGroup(){
 //  SetUp();
 //}

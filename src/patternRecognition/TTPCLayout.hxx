@@ -89,9 +89,9 @@ namespace trex{
       /// Set cell id ranges in x, y and z
       void SetRanges(int minX,int maxX, int minY,int maxY, int minZ,int maxZ);
       /// Get cell id ranges in x, y and z
-      void GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int& minZ,int& maxZ,int& sizeZ);
+      //void GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int& minZ,int& maxZ,int& sizeZ);
       /// Get 2D cell ranges in x view, y view or z view, at axis of 1, 2 or 3 respectively
-      void GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int axis=1);
+      //void GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int axis=1);
 
       /// Get cell id in x, y and z based on a 3D position
       trex::TTPCCellInfo3D GetPadPosID(TVector3 pos, double time, int tpcMask=-1);
@@ -99,11 +99,11 @@ namespace trex{
       /// Convert cell id in x, y and z to a single unique long integer
       long Mash(int x, int y, int z);
       /// Convert cell id in y and z to a single unique long integer
-      long MashYZ(int y, int z);
+      //long MashYZ(int y, int z);
       /// Convert cell id in x, y and z to a single unique long integer, returning -1 if bad ids are supplied
       long SafeMash(int x, int y, int z);
       /// Convert a single unique long integer into a cell id in x, y and z
-      trex::TTPCCell3D UnMash(long id);
+      //trex::TTPCCell3D UnMash(long id);
 
       /// Get converts a 3D position into MM pad information
       trex::TTPCPadStruct GlobalXYZToPos(TVector3 pos);
@@ -112,7 +112,7 @@ namespace trex{
       void GetTypeDistances(int& distX, int& distY, int& distZ, trex::TTPCConnection::Type type);
 
       /// Get absolute cut for minimum charge on cells going into pattern recognition
-      double GetChargeCut(){ return fChargeCut; }
+    /*      double GetChargeCut(){ return fChargeCut; }
       /// Get cut on charge ratio for negative peak arriving before the main one
       double GetEarlyNegativePeakCut(){ return fEarlyNegativePeakCut; }
       /// Get cut on charge ratio for negative peak arriving after the main one
@@ -131,7 +131,7 @@ namespace trex{
       double GetASICSplittingY(){ return fASICSplittingY; }
       /// Get empirical number of z pads in sub region of ASIC with overflowing charge
       double GetASICSplittingZ(){ return fASICSplittingZ; }
-
+    */
       /// Get drift speed
       double GetDriftSpeed(){ return fDriftSpeed; }
 
@@ -143,64 +143,17 @@ namespace trex{
       double GetTPMin(){ return fTPMin; }
       /// Get maximum hit time in positive half
       double GetTPMax(){ return fTPMax; }
-      /// Get number of bins in negative half
-      int GetNegativeBins(){ return fTNegativeBins; }
-      /// Get number of bins in positibe half
-      int GetPositiveBins(){ return fTPositiveBins; }
-      /// Get total number of time bins
-      int GetTBins(){ return fTBins; }
 
-      /// Get gap between MM pads
-      double GetPadGap(){ return fPadGap; }
       /// Get distance between MM pad centres in y direction
       double GetPadPitchY(){ return fPadPitchY; }
       /// Get distance between MM pad centres in z direction
       double GetPadPitchZ(){ return fPadPitchZ; }
 
       /// Get wheter a track in this event crosses the central cathode
-      bool GetXCathodeCross(){ return fXCathodeCross; }
+    //      bool GetXCathodeCross(){ return fXCathodeCross; }
 
       /// Get size of an individual x cell
       double GetXCellSize(){ return fXCellSize; }
-      /// Get time bin size
-      double GetTWidth(){ return fTWidth; }
-
-      /// Get number of MM pads
-      int GetMMPads(){ return fMMPads; }
-      /// Get number of MM pads in y direction
-      int GetYPads(){ return fYPads; }
-      /// Get number of MM pads in z direction
-      int GetZPads(){ return fZPads; }
-
-      /// Get increase in x id Getrom crossing central cathode
-      int GetXShiftFromC(){ return fXShiftFromC; }
-      /// Get increase in y id Getrom crossing between two MM columns
-      int GetYShiftFromXZ(){ return fYShiftFromXZ; }
-      /// Get increase in y id Getrom moving to the next MM volume in y direction
-      int GetYShiftFromMM(){ return fYShiftFromMM; }
-      /// Get increase in z id Getrom moving to the next MM volume in z direction
-      int GetZShiftFromMM(){ return fZShiftFromMM; }
-      /// Get increase in z id Getrom moving to the next TPC
-      int GetZShiftFromTPC(){ return fZShiftFromTPC; }
-
-      /// Get minimum x id in event
-      int GetMinX(){ return fMinX; }
-      /// Get minimum y id in event
-      int GetMinY(){ return fMinY; }
-      /// Get minimum z id in event
-      int GetMinZ(){ return fMinZ; }
-      /// Get maximum x id in event
-      int GetMaxX(){ return fMaxX; }
-      /// Get maximum y id in event
-      int GetMaxY(){ return fMaxY; }
-      /// Get maximum z id in event
-      int GetMaxZ(){ return fMaxZ; }
-      /// Get number of x ids in event
-      int GetSizeX(){ return fSizeX; }
-      /// Get number of y ids in event
-      int GetSizeY(){ return fSizeY; }
-      /// Get number of z ids in event
-      int GetSizeZ(){ return fSizeZ; }
 
       /// Get whether MM gaps can be crossed in x
       bool GetJumpX(){ return fJumpX; }
@@ -223,26 +176,10 @@ namespace trex{
       /// Get minimum number of clusters constituting a useful path
       int GetMinPathClusters(){ return fMinPathClusters; }
 
-      /// Get rate at which delta search radius spreads out
-      double GetDeltaSpreadRate(){ return fDeltaSpreadRate; }
-
       /// Get whether to use hits not on direct edge of an MM volume when looking for edges
       bool GetUseIndirectEdges(){ return fUseIndirectEdges; }
       /// Get number of layers at edge of sub event to search for track ends
       int GetEdgeLayers(){ return fEdgeLayers; }
-
-      /// Default A* scale for one cell apart connection in x direction
-      float fAStarXScale;
-      /// Default A* scale for one cell apart connection in y direction
-      float fAStarYScale;
-      /// Default A* scale for one cell apart connection in z direction
-      float fAStarZScale;
-      /// Factor to weight A* heuristic by, to alter the performance and effectiveness of the algorithm
-      float fAStarHeuristicFactor;
-      /// Multiplicative penalty term to scale costs of connections breaking charge cut by
-      float fAStarPathologyPenalty;
-      /// Multiplicative penalty term to scale costs of connections breaking charge cut by, for associating hits when looking for edges only
-      float fAStarAssociatePathologyPenalty;
 
       /// Default A* scale for one cell apart connection in x direction
       float GetAStarXScale(){ return fAStarXScale; }
@@ -289,15 +226,6 @@ namespace trex{
       /// Get distance for merging two nearby clusters into a vetex
       int GetClusterMergeStructDist(){ return fClusterMergeStructDist; }
 
-      /// Get A* cost for associating hits with a path
-      float GetAltPathHitConnectDist(){ return fAltPathHitConnectDist; }
-      /// Get A* cost for identifying extra hits by distance from an existing path
-      float GetAltExtraHitConnectDist(){ return fAltExtraHitConnectDist; }
-      /// Get A* cost for removing redundant edges by distance from an existing path
-      float GetAltEdgeHitConnectDist(){ return fAltEdgeHitConnectDist; }
-      /// Get A* cost for removing redundant vertices by distance from an existing vertex
-      float GetAltVertexHitConnectDist(){ return fAltVertexHitConnectDist; }
-
       /// Get maximum extent in MM pads for a path counted as an x-path
       int GetXPathMaxPads(){ return fXPathMaxPads; }
       /// Get minimum ratio between x end-start position and y-z end-start position for a path counted as an x-path
@@ -328,23 +256,12 @@ namespace trex{
       int GetHVClusterExtrapolateLimit(){ return fHVClusterExtrapolateLimit; }
       /// Get distance for connecting hits when forming clusters
       int GetClusterConnectDist(){ return fClusterConnectDist; }
-      /// Get number of horizontal or vertial cells required in a row for categorising HV clusters
-      int GetMergeDist(){ return fMergeDist; }
       /// Get maximum number of isolated horizontal or vertical cells at the edge of a HV cluster
       int GetHVEdgeDist(){ return fHVEdgeDist; }
-      /// Get distance in cells either side to sample when classifying HV clusters
-      int GetThresholdAngleRange(){ return fThresholdAngleRange; }
       /// Get angle for discriminating between horizontal and vertical clusters
       float GetThresholdAngle(){ return fThresholdAngle; }
       /// Get minimum points along path segment required when establishing angle from dichotomy technique
       int GetDichotomyCutoff(){ return fDichotomyCutoff; }
-
-      /// Get minumum x-extent to break up a junction
-      int GetXSizeThreshold(){ return fXSizeThreshold; }
-      /// Get minumum path size to form from breaking up a junction
-      int GetPathSizeThreshold(){ return fPathSizeThreshold; }
-      /// Get whether to allow breaking long junctions between connecting paths as well as at edges facing away from them
-      bool GetBreakInMiddle(){ return fBreakInMiddle; }
 
       /// Get distance to check when cleaning up anomalous hits near the junction
       int GetAnomCheckDist(){ return fAnomCheckDist; }
@@ -364,7 +281,7 @@ namespace trex{
     private:
 
       /// Absolute cut for minimum charge on cells going into pattern recognition
-      double fChargeCut;
+    /*      double fChargeCut;
       /// Cut on charge ratio for negative peak arriving before the main one
       double fEarlyNegativePeakCut;
       /// Cut on charge ratio for negative peak arriving after the main one
@@ -383,7 +300,7 @@ namespace trex{
       double fASICSplittingY;
       /// Empirical number of z pads in sub region of ASIC with overflowing charge
       double fASICSplittingZ;
-
+    */
       /// Drift speed
       double fDriftSpeed;
 
@@ -402,12 +319,23 @@ namespace trex{
       /// Total number of time bins
       int fTBins;
 
-      /// Gap between MM pads
-      double fPadGap;
       /// Distance between MM pad centres in y direction
       double fPadPitchY;
-      /// Distance between MM pad centres in z direction
+      // Distance between MM pad centres in z direction
       double fPadPitchZ;
+
+      /// Default A* scale for one cell apart connection in x direction
+      float fAStarXScale;
+      /// Default A* scale for one cell apart connection in y direction
+      float fAStarYScale;
+      /// Default A* scale for one cell apart connection in z direction
+      float fAStarZScale;
+      /// Factor to weight A* heuristic by, to alter the performance and effectiveness of the algorithm
+      float fAStarHeuristicFactor;
+      /// Multiplicative penalty term to scale costs of connections breaking charge cut by
+      float fAStarPathologyPenalty;
+      /// Multiplicative penalty term to scale costs of connections breaking charge cut by, for associating hits when looking for edges only
+      float fAStarAssociatePathologyPenalty;
 
       /// Wheter a track in this event crosses the central cathode
       bool fXCathodeCross;
@@ -475,7 +403,7 @@ namespace trex{
       int fMinPathClusters;
 
       /// Rate at which delta search radius spreads out
-      double fDeltaSpreadRate;
+    //      double fDeltaSpreadRate;
 
       /// Whether to use hits not on direct edge of an MM volume when looking for edges
       bool fUseIndirectEdges;
@@ -514,15 +442,6 @@ namespace trex{
       int fVertexPathStructDist;
       /// Distance for merging two nearby clusters into a vetex
       int fClusterMergeStructDist;
-
-      /// A* cost for associating hits with a path
-      float fAltPathHitConnectDist;
-      /// A* cost for identifying extra hits by distance from an existing path
-      float fAltExtraHitConnectDist;
-      /// A* cost for removing redundant edges by distance from an existing path
-      float fAltEdgeHitConnectDist;
-      /// A* cost for removing redundant vertices by distance from an existing vertex
-      float fAltVertexHitConnectDist;
 
       /// Maximum extent in MM pads for a path counted as an x-path
       int fXPathMaxPads;

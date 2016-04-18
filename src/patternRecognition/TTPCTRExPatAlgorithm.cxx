@@ -168,22 +168,6 @@ void trex::TTPCTRExPatAlgorithm::PrepareHits(std::vector<trex::TTPCHitPad*>& hit
   };
 }
 
-//MDH
-//Not used
-/*
-void trex::TTPCTRExPatAlgorithm::PopulateDeltaHits(){
-  trex::TTPCVolGroup deltaHits;
-
-  for(std::map<long, trex::TTPCUnitVolume>::iterator vol = fMasterHitMap.begin(); vol != fMasterHitMap.end(); ++vol){
-    int nPeaks = vol->second->GetNPeaksSum();
-    if(nPeaks != 1) deltaHits.AddHit(vol->second);
-  };
-
-  fDeltaHits=fMasterVolGroupMan->GroupDeltaHits(deltaHits);
-
-}
-*/
-
 //Output - reimplement
 /*
 void trex::TTPCTRExPatAlgorithm::GetPatterns(trex::TReconObjectContainer *foundPatterns){

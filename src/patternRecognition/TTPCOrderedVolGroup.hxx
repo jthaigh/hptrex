@@ -263,7 +263,7 @@ class trex::TTPCOrderedVolGroup : public TObject {
     void Close();
 
     /// Export class for ROOT
-    ClassDef(TTPCOrderedVolGroup, 1);
+  //    ClassDef(TTPCOrderedVolGroup, 1);
 };
 
 #endif

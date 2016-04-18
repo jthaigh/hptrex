@@ -44,7 +44,7 @@ namespace trex{
       /// Get drift speed for internal main algorithm
       double GetDriftSpeed(){ return fMasterLayout->GetDriftSpeed(); }
       /// Get x cathode crossing for internal main algorithm
-      bool GetXCathodeCross(){ return fMasterLayout->GetXCathodeCross(); }
+    //      bool GetXCathodeCross(){ return fMasterLayout->GetXCathodeCross(); }
 
       /// Current processing pattern recognition
     void Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused);

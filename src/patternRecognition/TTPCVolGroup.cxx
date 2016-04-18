@@ -1,7 +1,7 @@
 // eddy
 #include "TTPCVolGroup.hxx"
 
-ClassImp(trex::TTPCVolGroup);
+//ClassImp(trex::TTPCVolGroup);
 trex::TTPCVolGroup::~TTPCVolGroup(){;}
 
 unsigned int trex::TTPCVolGroup::sMaxID = 0;

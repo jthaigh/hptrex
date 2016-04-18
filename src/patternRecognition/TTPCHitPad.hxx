@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "TVector3.h"
+#include "TLorentzVector.h"
 
 /// Possible sources of the T0
 enum {kWFPEAKNOFIT = 0, kWFPEAKANALYTICFIT, kWFPEAKROOTGAUSSFIT};
@@ -16,7 +17,7 @@ namespace trex {
 /// to be split into individual waveforms.
 class trex::TTPCHitPad {
 public:
-  TTPCHitPad();
+  TTPCHitPad(double eDep, TLorentzVector pos4);
   /// Returns a vector with the charge of each one the peaks in the waveform.
   /// If there is only one peak, the given charge is the same as GetCharge().
   std::vector<double> GetPeakCharges();
