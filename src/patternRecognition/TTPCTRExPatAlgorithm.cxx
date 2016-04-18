@@ -39,7 +39,6 @@ void trex::TTPCTRExPatAlgorithm::CleanUp(){
     fMasterVolGroupMan = 0;
   }
 
-  fDeltaHits.clear();
   fHits.clear();
 }
 
@@ -158,10 +157,7 @@ void trex::TTPCTRExPatAlgorithm::PrepareHits(std::vector<trex::TTPCHitPad*>& hit
     unsigned int half = trex::TGeomInfo::Get().TPC().GeomIdToHalf(geomId);
     unsigned int mm = trex::TGeomInfo::Get().TPC().GeomIdToMM(geomId);
     curVol.SetMMLoc(tpc, half, mm);
-      curVol.SetFECASIC(fec, asic);
-      curVol.SetRegion(asicRegionY, asicRegionZ);
       */
-
     };
     // increment charge and average position at this cell
     fMasterHitMap[id]->AddEvent(hit);

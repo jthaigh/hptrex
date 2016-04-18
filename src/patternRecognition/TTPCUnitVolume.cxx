@@ -4,19 +4,12 @@
 const int trex::TTPCUnitVolume::scNTPC = 3;
 const int trex::TTPCUnitVolume::scNHalf = 2;
 const int trex::TTPCUnitVolume::scNMM = 12;
-const int trex::TTPCUnitVolume::scNFEC = 6;
-const int trex::TTPCUnitVolume::scNASIC = 4;
 
 trex::TTPCUnitVolume::TTPCUnitVolume(){
   fID = 0;
   fTPC = 0;
   fHalf = 0;
   fMM = 0;
-  fFEC = 0;
-  fASIC = 0;
-  fASICRegionY = -1;
-  fASICRegionZ = -1;
-  fUniqueASICID = -1;
 
   // initialise charge, hits and position to zero
   fSegX = fSegY = fSegZ = 0;
@@ -24,13 +17,6 @@ trex::TTPCUnitVolume::TTPCUnitVolume(){
   fNegativePeakLate = 0.;
   fQ = 0.;
   fQMax = 0.;
-
-  fDeltaTagged = false;
-  fLowChargeTagged = false;
-  fEarlyNegativeTagged = false;
-  fLateNegativeTagged = false;
-  fFullASICTagged = false;
-  fSatASICTagged = false;
 
   fTime = 0.;
   fTimeNom = 0.;
@@ -64,11 +50,6 @@ void trex::TTPCUnitVolume::SetAux(int segX, int segY, int segZ){
   fSegX = segX;
   fSegY = segY;
   fSegZ = segZ;
-}
-
-void trex::TTPCUnitVolume::SetRegion(int asicRegionY, int asicRegionZ){
-  fASICRegionY = asicRegionY;
-  fASICRegionZ = asicRegionZ;
 }
 
 void trex::TTPCUnitVolume::AddCharge(double q){
@@ -200,12 +181,3 @@ int trex::TTPCUnitVolume::GetSaturation(){
   return satSum;
 }
 
-void trex::TTPCUnitVolume::DefineUniqueASICID(){
-  long tpcPart = scNASIC * scNFEC * scNMM * scNHalf * fTPC;
-  long halfPart = scNASIC * scNFEC * scNMM * fHalf;
-  long mmPart = scNASIC * scNFEC * fMM;
-  long fecPart = scNASIC * fFEC;
-  long asicPart = fASIC;
-
-  fUniqueASICID = tpcPart + halfPart + mmPart + fecPart + asicPart;
-}

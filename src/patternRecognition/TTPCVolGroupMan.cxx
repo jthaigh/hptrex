@@ -12,9 +12,7 @@ void trex::TTPCVolGroupMan::AddPrimaryHits(std::map<long, trex::TTPCUnitVolume*>
 
 std::vector<trex::TTPCVolGroup> trex::TTPCVolGroupMan::GetAllEdgeGroups(){
   std::vector< trex::TTPCVolGroup > allGroups;
-  std::vector< trex::TTPCVolGroup > deltaGroups; 
   std::vector< trex::TTPCVolGroup > nonDeltaGroups;
-  GetConnectedHits(deltaGroups,trex::TTPCConnection::path, trex::TTPCHitGroupings::delta);
   GetConnectedHits(nonDeltaGroups,trex::TTPCConnection::path, trex::TTPCHitGroupings::nonDelta);
 
   // add the non-delta groups as one group
@@ -25,9 +23,6 @@ std::vector<trex::TTPCVolGroup> trex::TTPCVolGroupMan::GetAllEdgeGroups(){
   }
 
   std::vector<trex::TTPCVolGroup> output;
-
-  // add all of the delta groups individually
-  for(std::vector< trex::TTPCVolGroup >::iterator grpIt = deltaGroups.begin(); grpIt != deltaGroups.end(); ++grpIt) allGroups.push_back(*grpIt);
 
   for(std::vector< trex::TTPCVolGroup >::iterator groupIt = allGroups.begin(); groupIt != allGroups.end(); ++groupIt){
     std::vector< trex::TTPCVolGroup > edgeGroups = GetEdgeGroups(*groupIt, true);
@@ -557,7 +552,7 @@ void trex::TTPCVolGroupMan::CleanUpVertices(std::vector< trex::TTPCVolGroup >& e
   };
 }
 
-void trex::TTPCVolGroupMan::GetFarHitsPreGroup(trex::TTPCOrderedVolGroup& path, trex::TTPCVolGroup& hits, bool tryChargeCut){
+void trex::TTPCVolGroupMan::GetFarHitsPreGroup(trex::TTPCOrderedVolGroup& path, trex::TTPCVolGroup& hits){
   double edgePreDist = fLayout->GetEdgePreDist();
   double edgePreDist2 = edgePreDist*edgePreDist;
   double edgePreAng = fLayout->GetEdgePreAng();
@@ -619,7 +614,7 @@ void trex::TTPCVolGroupMan::GetFarHitsPreGroup(trex::TTPCOrderedVolGroup& path, 
 
 }
 
-void trex::TTPCVolGroupMan::GetFarHitsGroup(trex::TTPCOrderedVolGroup& path, trex::TTPCVolGroup& hits, bool tryChargeCut){
+void trex::TTPCVolGroupMan::GetFarHitsGroup(trex::TTPCOrderedVolGroup& path, trex::TTPCVolGroup& hits){
   trex::TTPCPathVolume* startVol = *(path.begin());
   trex::TTPCPathVolume* endVol = *(path.rbegin());
 
@@ -638,18 +633,7 @@ void trex::TTPCVolGroupMan::GetFarHitsGroup(trex::TTPCOrderedVolGroup& path, tre
   };
   // build group to look along when finding maximum hit
   trex::TTPCVolGroup extendedGroup(fLayout);
-  if(tryChargeCut){
-
-    trex::TTPCVolGroup& extendedGroupAll = path.GetExtendedHits();
-    for(std::map<long, trex::TTPCUnitVolume*>::iterator el = extendedGroupAll.begin(); el != extendedGroupAll.end(); ++el){
-      if(!el->second->GetPathology()){
-        extendedGroup.AddHit(el->second);
-      };
-    };
-  }
-  else{
-    extendedGroup = path.GetExtendedHits();
-  };
+  extendedGroup = path.GetExtendedHits();
 
   // find single path max dist
   float maxDist2 = -1.;
@@ -908,7 +892,7 @@ void trex::TTPCVolGroupMan::FindDiscontinuity(float& pos, float& step, float siz
   delete fitStep;
 }
 
-void trex::TTPCVolGroupMan::BreakPathsAboutKinks(std::vector< trex::TTPCOrderedVolGroup >& paths, bool tryChargeCut){
+void trex::TTPCVolGroupMan::BreakPathsAboutKinks(std::vector< trex::TTPCOrderedVolGroup >& paths){
   std::vector< trex::TTPCVolGroup > inVertices = GetJunctionsFromPaths(paths);
   std::vector< trex::TTPCOrderedVolGroup > outPaths;
 
@@ -922,9 +906,9 @@ void trex::TTPCVolGroupMan::BreakPathsAboutKinks(std::vector< trex::TTPCOrderedV
     trex::TTPCOrderedVolGroup& outPath2=outPaths.back();
 
     trex::TTPCVolGroup kinkGroup(fLayout);
-    GetFarHitsPreGroup(path, kinkGroup, tryChargeCut);
+    GetFarHitsPreGroup(path, kinkGroup);
     if(!kinkGroup.size()){
-      GetFarHitsGroup(path, kinkGroup, tryChargeCut);
+      GetFarHitsGroup(path, kinkGroup);
     }
 
     TVector3 kinkPosXYZ = kinkGroup.GetAveragePosXYZ();
@@ -1999,19 +1983,7 @@ void trex::TTPCVolGroupMan::GetConnectedHits(trex::TTPCVolGroup& in, std::vector
 
   // make dummy group of all cells
   trex::TTPCVolGroup conHits(fLayout);
-  if(typeFilter == trex::TTPCHitGroupings::delta){
-    for(std::map<long, trex::TTPCUnitVolume*>::iterator hitEl = in.begin(); hitEl != in.end(); ++hitEl){
-      if(hitEl->second->GetDeltaTagged()) conHits.AddHit(hitEl->second);
-    };
-  }
-  else if(typeFilter == trex::TTPCHitGroupings::nonDelta){
-    for(std::map<long, trex::TTPCUnitVolume*>::iterator hitEl = in.begin(); hitEl != in.end(); ++hitEl){
-      if(!hitEl->second->GetDeltaTagged()) conHits.AddHit(hitEl->second);
-    };
-  }
-  else{
     conHits.AddHitMap(in.GetHitMap());
-  };
 
   for(int i=0; i<9999; i++){
     // break out of loop if dummy becomes empty
@@ -2150,11 +2122,6 @@ void trex::TTPCVolGroupMan::GetNearHits(trex::TTPCVolGroup& in, trex::TTPCVolGro
         if(newID < 0) continue;
         trex::TTPCUnitVolume* newHit = in.GetHit(newID);
         if (!newHit) continue;
-
-        // filter hits based on input requirements
-        if(typeFilter == trex::TTPCHitGroupings::diff){
-          if(newHit->GetDeltaTagged() != vol->GetDeltaTagged()) continue;
-        };
 
         // veto cells on far side of cathode if x jump is disabled
         if(!fLayout->GetJumpX()){

@@ -83,9 +83,9 @@ namespace trex{
       double GetMinDistance(trex::TTPCOrderedVolGroup& path, trex::TTPCUnitVolume* vol);
 
       /// Get preliminary group of hits which could be a track end
-      void GetFarHitsPreGroup(trex::TTPCOrderedVolGroup& path, trex::TTPCVolGroup& hits, bool tryChargeCut=false);
+      void GetFarHitsPreGroup(trex::TTPCOrderedVolGroup& path, trex::TTPCVolGroup& hits);
       /// Get group of hits which could be a track end
-      void GetFarHitsGroup(trex::TTPCOrderedVolGroup& path, trex::TTPCVolGroup& hits, bool tryChargeCut=false);
+      void GetFarHitsGroup(trex::TTPCOrderedVolGroup& path, trex::TTPCVolGroup& hits);
       /// Find one point along set of paths at which discontinuities occur (the most significant)
       void GetDiscontinuity(std::vector< trex::TTPCOrderedVolGroup >& paths, trex::TTPCVolGroup& point);
       /// Find points along set of paths at which discontinuities occur
@@ -109,7 +109,7 @@ namespace trex{
       void BulkGroups(std::vector< trex::TTPCVolGroup >& groups);
 
       /// Break input tracks around any kinks found inside them
-      void BreakPathsAboutKinks(std::vector< trex::TTPCOrderedVolGroup >& paths, bool tryChargeCut=false);
+      void BreakPathsAboutKinks(std::vector< trex::TTPCOrderedVolGroup >& paths);
 
       /// Get a pointer to the main group of hits associated with this manager
       trex::TTPCVolGroup& GetPrimaryHits(){ return fPrimaryHits; }

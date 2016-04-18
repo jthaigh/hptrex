@@ -393,7 +393,7 @@ void trex::TTPCAStar::ClearVertexConnectionRedundancies(trex::TTPCVolGroupMan* v
   
 }
 
-void trex::TTPCAStar::ConnectGroupPair(trex::TTPCVolGroup& group1, trex::TTPCVolGroup& group2, trex::TTPCOrderedVolGroup& connection, bool vertexGroup1, bool vertexGroup2, bool fullASICPenalty, bool extendMode){
+void trex::TTPCAStar::ConnectGroupPair(trex::TTPCVolGroup& group1, trex::TTPCVolGroup& group2, trex::TTPCOrderedVolGroup& connection, bool vertexGroup1, bool vertexGroup2, bool extendMode){
 
   // get unique ids and A* indices
   trex::TTPCUnitVolume* startCell = group1.GetAverageVol();
@@ -413,7 +413,7 @@ void trex::TTPCAStar::ConnectGroupPair(trex::TTPCVolGroup& group1, trex::TTPCVol
   };
 
   // set up the A* variables chaining start point to end point
-  int connectionReturnCode = DoConnection(startPoint, endPoint, fullASICPenalty, extendMode);
+  int connectionReturnCode = DoConnection(startPoint, endPoint, extendMode);
   if(connectionReturnCode){
     return;
   };
@@ -440,24 +440,20 @@ void trex::TTPCAStar::ConnectGroupPair(trex::TTPCVolGroup& group1, trex::TTPCVol
 
 }
 
-float trex::TTPCAStar::FindConnectionCost(trex::TTPCVolGroup& group1, trex::TTPCVolGroup& group2, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
+float trex::TTPCAStar::FindConnectionCost(trex::TTPCVolGroup& group1, trex::TTPCVolGroup& group2, bool extendMode, bool reduced, float maxCost){
   trex::TTPCUnitVolume* vol1 = group1.GetAverageVol();
   trex::TTPCUnitVolume* vol2 = group2.GetAverageVol();
 
-  return FindConnectionCost(vol1, vol2, fullASICPenalty, extendMode, reduced, maxCost);
+  return FindConnectionCost(vol1, vol2, extendMode, reduced, maxCost);
 }
-float trex::TTPCAStar::FindConnectionCost(trex::TTPCVolGroup& group, trex::TTPCUnitVolume* vol, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
+float trex::TTPCAStar::FindConnectionCost(trex::TTPCVolGroup& group, trex::TTPCUnitVolume* vol, bool extendMode, bool reduced, float maxCost){
   trex::TTPCUnitVolume* groupVol = group.GetAverageVol();
 
-  return FindConnectionCost(groupVol, vol, fullASICPenalty, extendMode, reduced, maxCost);
+  return FindConnectionCost(groupVol, vol, extendMode, reduced, maxCost);
 }
-float trex::TTPCAStar::FindConnectionCost(trex::TTPCUnitVolume* vol1, trex::TTPCUnitVolume* vol2, bool fullASICPenalty, bool extendMode, bool reduced, float maxCost){
+float trex::TTPCAStar::FindConnectionCost(trex::TTPCUnitVolume* vol1, trex::TTPCUnitVolume* vol2, bool extendMode, bool reduced, float maxCost){
   float cost = -1.;
   if(!vol1 || !vol2) return cost;
-
-  if(reduced){
-    maxCost *= fLayout->GetAStarPathologyPenalty();
-  }
 
   // reset relevant variables each time a connection needs to be made
   RebootHits();
@@ -470,40 +466,13 @@ float trex::TTPCAStar::FindConnectionCost(trex::TTPCUnitVolume* vol1, trex::TTPC
     if((*pnt)->vol == vol2) endPoint = *pnt;
   };
 
-  int connectionReturnCode = DoConnection(startPoint, endPoint, fullASICPenalty, extendMode, maxCost);
+  int connectionReturnCode = DoConnection(startPoint, endPoint, extendMode, maxCost);
   if(connectionReturnCode){
     return cost;
   }
   else{
     cost = endPoint->aStarCost;
 
-    if(reduced){
-      // reduce cost depending on number of pathological hits in the path
-      int nHits = 0;
-      int nPHits = 0;
-      int nNHits = 0;
-      // start at end index and add the chain of cells connecting it from the start to the connection
-      trex::TTPCAStarPoint* curPoint = endPoint;
-      int nPoints = fAStarPoints.size();
-      for(int i=0; i < nPoints; i++){
-        nHits++;
-        if(curPoint->vol->GetPathology()){
-          nPHits++;
-        }
-        else{
-          nNHits++;
-        };
-
-        trex::TTPCAStarPoint* nextPoint = curPoint->aStarParent;
-        if(!nextPoint) break;
-        curPoint = nextPoint;
-      };
-
-      if(nHits > 0){
-        float reduceFactor = ((float)nNHits/(float)nHits) + (((float)nPHits/(float)nHits) / fLayout->GetAStarPathologyPenalty());
-        cost *= reduceFactor;
-      };
-    };
     if(cost <= 0.){
       cost = maxCost;
     };
@@ -512,7 +481,7 @@ float trex::TTPCAStar::FindConnectionCost(trex::TTPCUnitVolume* vol1, trex::TTPC
   return cost;
 }
 
-void trex::TTPCAStar::AssociateBestHits(trex::TTPCVolGroupMan* volGroupMan, std::vector< trex::TTPCOrderedVolGroup >& inPaths, bool fullASICPenalty, bool extendMode, float maxCost){
+void trex::TTPCAStar::AssociateBestHits(trex::TTPCVolGroupMan* volGroupMan, std::vector< trex::TTPCOrderedVolGroup >& inPaths, bool extendMode, float maxCost){
   // add hits in path to group, making sure the same isn't added twice
   std::vector< trex::TTPCVolGroup > hitsGroups;
   std::set<trex::TTPCUnitVolume*> volsAdded;
@@ -534,7 +503,7 @@ void trex::TTPCAStar::AssociateBestHits(trex::TTPCVolGroupMan* volGroupMan, std:
   };
 
   // merge best hits in groups
-  MergeBestHits(volGroupMan, hitsGroups, fullASICPenalty, extendMode, maxCost);
+  MergeBestHits(volGroupMan, hitsGroups, extendMode, maxCost);
 
   // add merged hits to appropriate paths
   for(unsigned int i=0; i<inPaths.size(); ++i){
@@ -556,7 +525,7 @@ void trex::TTPCAStar::MergeBestHits(trex::TTPCVolGroupMan* volGroupMan, trex::TH
 }
 */
 
-void trex::TTPCAStar::MergeBestHits(trex::TTPCVolGroupMan* volGroupMan, std::vector< trex::TTPCVolGroup >& inGroups, bool fullASICPenalty, bool extendMode, float maxCost){
+void trex::TTPCAStar::MergeBestHits(trex::TTPCVolGroupMan* volGroupMan, std::vector< trex::TTPCVolGroup >& inGroups, bool extendMode, float maxCost){
   // reset hits
   RebootHits();
 
@@ -613,7 +582,7 @@ void trex::TTPCAStar::MergeBestHits(trex::TTPCVolGroupMan* volGroupMan, std::vec
       for(std::map<trex::TTPCAStarPoint*, float>::iterator frEl = pnt->aStarFriends.begin(); frEl != pnt->aStarFriends.end(); ++frEl){
         trex::TTPCAStarPoint* curPnt = frEl->first;
 
-        float incCost = GetModifiedCost(frEl->second, pnt, curPnt, fullASICPenalty, extendMode);
+        float incCost = GetModifiedCost(frEl->second, pnt, curPnt, extendMode);
         float curCost = pnt->aStarCost + incCost;
 
         // veto friends that are already closed
@@ -695,7 +664,7 @@ void trex::TTPCAStar::GetNearHitConnections(trex::TTPCVolGroupMan* volGroupMan, 
   };
 }
 
-float trex::TTPCAStar::GetConnectionCost(trex::TTPCAStarPoint* point1, trex::TTPCAStarPoint* point2, bool penalty){
+float trex::TTPCAStar::GetConnectionCost(trex::TTPCAStarPoint* point1, trex::TTPCAStarPoint* point2){
   // work out distances in x, y and z
   int diffX = std::abs(point1->x - point2->x);
   int diffY = std::abs(point1->y - point2->y);
@@ -725,13 +694,6 @@ float trex::TTPCAStar::GetConnectionCost(trex::TTPCAStarPoint* point1, trex::TTP
   float dTotal2 = dX*dX + dY*dY + dZ*dZ;
   float result = dTotal2*dTotal2;
 
-  // if demmanding a low charge penalty or a pathology penalty, add it in
-  if(penalty){
-    int nPathology = (int)point1->vol->GetPathology() + (int)point2->vol->GetPathology();
-    float penaltyVal = fLayout->GetAStarPathologyPenalty() * (float)nPathology;
-    result *= penaltyVal;
-  };
-
   return result;
 }
 float trex::TTPCAStar::GetHeuristicCost(trex::TTPCAStarPoint* point1, trex::TTPCAStarPoint* target){
@@ -743,7 +705,7 @@ float trex::TTPCAStar::GetHeuristicCost(trex::TTPCAStarPoint* point1, trex::TTPC
   return std::sqrt(dX*dX + dY*dY + dZ*dZ);
 }
 
-int trex::TTPCAStar::DoConnection(trex::TTPCAStarPoint* pathVolStart, trex::TTPCAStarPoint* pathVolEnd, bool fullASICPenalty, bool extendMode, float maxCost){
+int trex::TTPCAStar::DoConnection(trex::TTPCAStarPoint* pathVolStart, trex::TTPCAStarPoint* pathVolEnd, bool extendMode, float maxCost){
   // return if not found
   if(!pathVolStart || !pathVolEnd) return 1;
 
@@ -800,7 +762,7 @@ int trex::TTPCAStar::DoConnection(trex::TTPCAStarPoint* pathVolStart, trex::TTPC
       if(frCell->aStarClosed) continue;
 
       // cost is the cost of the current cell plus the connection cost to the friend being considered
-      float incCost = GetModifiedCost(fr->second, frCell, curPoint, fullASICPenalty, extendMode);
+      float incCost = GetModifiedCost(fr->second, frCell, curPoint, extendMode);
       float tentativeCost = curPoint->aStarCost + incCost;
 
       // if this connection is the cheapest available to the friend, set the cost accordingly and set the current cell to be the friend's parent
@@ -918,17 +880,11 @@ std::vector< trex::THandle<trex::TTPCVolGroup> > trex::TTPCAStar::MergeGroupsASt
   return mergedGroups;
   }*/
 
-float trex::TTPCAStar::GetModifiedCost(float cost, trex::TTPCAStarPoint* point1, trex::TTPCAStarPoint* point2, bool fullASICPenalty, bool extendMode){
-  float penaltyVal = fLayout->GetAStarAssociatePathologyPenalty();
+float trex::TTPCAStar::GetModifiedCost(float cost, trex::TTPCAStarPoint* point1, trex::TTPCAStarPoint* point2, bool extendMode){
   float modifiedCost = cost;
 
   if(extendMode){
     modifiedCost = std::pow(cost, (float)0.25);
-  };
-  if(fullASICPenalty){
-    if(point1->vol->GetFullASICTagged() && point2->vol->GetFullASICTagged()){
-      modifiedCost *= penaltyVal;
-    };
   };
 
   return modifiedCost;

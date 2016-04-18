@@ -59,18 +59,10 @@ namespace trex{
       /// Get reference to feature finder contained by this object
       std::map<long, trex::TTPCUnitVolume*>& GetHitMap(){ return fMasterHitMap; }
 
-      /// Get object containing all attached groups of delta hits
-      std::vector< trex::TTPCVolGroup >& GetDeltaHits(){ return fDeltaHits; }
-
     private:
 
     /// Add a selection of hits for the first time and work out preliminary t0 and cathode crossing, and set up hits
     void PrepareHits(std::vector<trex::TTPCHitPad*>& hits);
-    /// Populate list of delta ray hits
-    
-    //MDH
-    //Not used
-//void PopulateDeltaHits();
 
       /// Master layout to use for this event
       trex::TTPCLayout* fMasterLayout;
@@ -85,8 +77,6 @@ namespace trex{
       /// Object containing all hit pads
       std::vector<trex::TTPCHitPad*> fHits;
       /// Object containing all sub-events
-      /// Object containing all attached groups of delta hits
-      std::vector< trex::TTPCVolGroup > fDeltaHits;
 
       /// Whether hits have been added
       bool fHasHits;

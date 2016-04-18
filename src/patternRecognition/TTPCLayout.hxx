@@ -111,27 +111,6 @@ namespace trex{
       /// Find appropriate distances for a given type of connection
       void GetTypeDistances(int& distX, int& distY, int& distZ, trex::TTPCConnection::Type type);
 
-      /// Get absolute cut for minimum charge on cells going into pattern recognition
-    /*      double GetChargeCut(){ return fChargeCut; }
-      /// Get cut on charge ratio for negative peak arriving before the main one
-      double GetEarlyNegativePeakCut(){ return fEarlyNegativePeakCut; }
-      /// Get cut on charge ratio for negative peak arriving after the main one
-      double GetLateNegativePeakCut(){ return fLateNegativePeakCut; }
-      /// Get absolute cut for maximum number of saturated hits in an ASIC before it's tagged
-      double GetASICSaturationCut(){ return fASICSaturationCut; }
-      /// Get absolute cut for maximum occupancy of a sub-region of an ASIC before its hits are tagged as dodgy
-      double GetASICSubOccupancyCut(){ return fASICSubOccupancyCut; }
-      /// Get absolute cut for maximum occupancy of an ASIC before its hits are tagged as dodgy
-      double GetASICOccupancyCut(){ return fASICOccupancyCut; }
-      /// Get distance for expanding from a dodgy ASIC to tag dodgy hits
-      double GetASICSatExpansion(){ return fASICSatExpansion; }
-      /// Get distance for expanding from a dodgy ASIC to tag dodgy hits
-      double GetASICOccExpansion(){ return fASICOccExpansion; }
-      /// Get empirical number of y pads in sub region of ASIC with overflowing charge
-      double GetASICSplittingY(){ return fASICSplittingY; }
-      /// Get empirical number of z pads in sub region of ASIC with overflowing charge
-      double GetASICSplittingZ(){ return fASICSplittingZ; }
-    */
       /// Get drift speed
       double GetDriftSpeed(){ return fDriftSpeed; }
 
@@ -189,10 +168,6 @@ namespace trex{
       float GetAStarZScale(){ return fAStarZScale; }
       /// Factor to weight A* heuristic by, to alter the performance and effectiveness of the algorithm
       float GetAStarHeuristicFactor(){ return fAStarHeuristicFactor; }
-      /// Get multiplicative penalty term to scale costs of connections breaking charge cut by
-      float GetAStarPathologyPenalty(){ return fAStarPathologyPenalty; }
-      /// Get multiplicative penalty term to scale costs of connections breaking charge cut by, for associating hits when looking for edges only
-      float GetAStarAssociatePathologyPenalty(){ return fAStarAssociatePathologyPenalty; }
 
       /// Get how close cells can be to connect for pattern recognition and path finding, in x
       int GetConnectDistX(){ return fConnectDistX; }
@@ -273,34 +248,8 @@ namespace trex{
       /// Get maximum isolated clusters at the start of a path before they're merged into a nearby vertex
       int GetHVClusterMaxIso(){ return fHVClusterMaxIso; }
 
-      /// Get minimum fraction of non-detla hits for avoiding delta classification
-      float GetNonDeltaFraction(){ return fNonDeltaFraction; }
-      /// Get minimum absolute non-detla hits for avoiding delta classification
-      int GetNonDelta(){ return fNonDelta; }
-
     private:
 
-      /// Absolute cut for minimum charge on cells going into pattern recognition
-    /*      double fChargeCut;
-      /// Cut on charge ratio for negative peak arriving before the main one
-      double fEarlyNegativePeakCut;
-      /// Cut on charge ratio for negative peak arriving after the main one
-      double fLateNegativePeakCut;
-      /// Absolute cut for maximum number of saturated hits in an ASIC before it's tagged
-      double fASICSaturationCut;
-      /// Absolute cut for maximum occupancy of a sub-region of an ASIC before its hits are tagged as dodgy
-      double fASICSubOccupancyCut;
-      /// Absolute cut for maximum occupancy of an ASIC before its hits are tagged as dodgy
-      double fASICOccupancyCut;
-      /// Distance for expanding from a dodgy ASIC to tag dodgy hits
-      double fASICSatExpansion;
-      /// Distance for expanding from a dodgy ASIC to tag dodgy hits
-      double fASICOccExpansion;
-      /// Empirical number of y pads in sub region of ASIC with overflowing charge
-      double fASICSplittingY;
-      /// Empirical number of z pads in sub region of ASIC with overflowing charge
-      double fASICSplittingZ;
-    */
       /// Drift speed
       double fDriftSpeed;
 
@@ -332,10 +281,6 @@ namespace trex{
       float fAStarZScale;
       /// Factor to weight A* heuristic by, to alter the performance and effectiveness of the algorithm
       float fAStarHeuristicFactor;
-      /// Multiplicative penalty term to scale costs of connections breaking charge cut by
-      float fAStarPathologyPenalty;
-      /// Multiplicative penalty term to scale costs of connections breaking charge cut by, for associating hits when looking for edges only
-      float fAStarAssociatePathologyPenalty;
 
       /// Wheter a track in this event crosses the central cathode
       bool fXCathodeCross;
@@ -401,9 +346,6 @@ namespace trex{
       int fMinPatternPads;
       /// Minimum useful size of path
       int fMinPathClusters;
-
-      /// Rate at which delta search radius spreads out
-    //      double fDeltaSpreadRate;
 
       /// Whether to use hits not on direct edge of an MM volume when looking for edges
       bool fUseIndirectEdges;
@@ -501,10 +443,6 @@ namespace trex{
       /// Maximum isolated clusters at the start of a path before they're merged into a nearby vertex
       int fHVClusterMaxIso;
 
-      /// Minimum fraction of non-detla hits for avoiding delta classification
-      float fNonDeltaFraction;
-      /// Minimum absolute non-detla hits for avoiding delta classification
-      int fNonDelta;
   };
 }
 

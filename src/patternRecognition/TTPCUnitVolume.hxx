@@ -28,8 +28,6 @@ namespace trex{
       void SetCell(int x, int y, int z, int edgeX, int edgeY, int edgeZ, long id);
       /// Set other useful information on TPC location of this cell
       void SetAux(int segX, int segY, int segZ);
-      /// Set unique region of ASIC for cell
-      void SetRegion(int asicRegionY, int asicRegionZ);
 
       /// Add a charge to the total charge of this cell
       void AddCharge(double q);
@@ -112,9 +110,6 @@ namespace trex{
       /// Get late peak before this hit
       double GetNegativePeakLate(){ return fNegativePeakLate; }
 
-      /// Get unique id for this cell's ASIC
-      long GetUniqueASICID(){ if(fUniqueASICID < 0) DefineUniqueASICID(); return fUniqueASICID; }
-
       /// Get cell unique id
       long GetID(){ return fID;}
       /// Get TPC for this cell
@@ -123,32 +118,9 @@ namespace trex{
       unsigned int GetHalf(){ return fHalf; }
       /// Get MicroMega for this cell
       unsigned int GetMM(){ return fMM; }
-      /// Get FEC for this cell
-      unsigned int GetFEC(){ return fFEC; }
-      /// Get ASIC for this cell
-      unsigned int GetASIC(){ return fASIC; }
-      /// Get y of unique region of ASIC where empiricly charges are known to cluster
-      int GetASICRegionY(){ return fASICRegionY; }
-      /// Get z of unique region of ASIC where empiricly charges are known to cluster
-      int GetASICRegionZ(){ return fASICRegionZ; }
 
       /// Get distance from focus for building list
       float GetFriendDist(){ return fFriendDist;}
-
-      /// Get status as a delta hit
-      bool GetDeltaTagged(){ return fDeltaTagged; }
-      /// Get status as a low charge hit
-      bool GetLowChargeTagged(){ return fLowChargeTagged; }
-      /// Get status as hit with early negative peak
-      bool GetEarlyNegativeTagged(){ return fEarlyNegativeTagged; }
-      /// Get status as hit with late negative peak
-      bool GetLateNegativeTagged(){ return fLateNegativeTagged; }
-      /// Get status as part of a saturated ASIC
-      bool GetFullASICTagged(){ return fFullASICTagged; }
-      /// Get status as part of an ASIC already containing above a threshold number of saturated hits
-      bool GetSatASICTagged(){ return fSatASICTagged; }
-      /// Get whether this volume contains any pathological behaviours
-      bool GetPathology(){ return (fLowChargeTagged && fSatASICTagged) || fEarlyNegativeTagged || fLateNegativeTagged; }
 
       // setters
       /// Set total charge in this cell
@@ -156,25 +128,10 @@ namespace trex{
       /// Set local time offset for x calculations
       void SetTimeOffset(double timeOffset){ fTimeOffset = timeOffset; }
       /// Set MM location
-      void SetMMLoc(unsigned int tpc, unsigned int half, unsigned int mm){ fUniqueASICID = -1; fTPC = tpc; fHalf = half; fMM = mm; }
-      /// Set FEC and ASIC
-      void SetFECASIC(unsigned int fec, unsigned int asic){ fUniqueASICID = -1; fFEC = fec; fASIC = asic; }
-
+      void SetMMLoc(unsigned int tpc, unsigned int half, unsigned int mm){ fTPC = tpc; fHalf = half; fMM = mm; }
       /// Set distance from focus for building list
       void SetFriendDist(float friendDist){ fFriendDist = friendDist;}
 
-      /// Set status as a delta hit
-      void SetDeltaTagged(bool deltaTagged){ fDeltaTagged = deltaTagged; }
-      /// Set status as a low charge hit
-      void SetLowChargeTagged(bool lowChargeTagged){ fLowChargeTagged = lowChargeTagged; }
-      /// Set status as part of an ASIC already containing above a threshold number of saturated hits
-      void SetSatASICTagged(bool satASICTagged){ fSatASICTagged = satASICTagged; }
-      /// Set status as hit with early negative peak
-      void SetEarlyNegativeTagged(bool earlyNegativeTagged){ fEarlyNegativeTagged = earlyNegativeTagged; }
-      /// Set status as hit with late negative peak
-      void SetLateNegativeTagged(bool lateNegativeTagged){ fLateNegativeTagged = lateNegativeTagged; }
-      /// Set status as part of an ASIC already filled with lots of hits
-      void SetFullASICTagged(bool fullASICTagged){ fFullASICTagged = fullASICTagged; }
 
     private:
       /// Total number of TPCs
@@ -183,10 +140,6 @@ namespace trex{
       static const int scNHalf;
       /// Total number of MMs
       static const int scNMM;
-      /// Total number of FECs
-      static const int scNFEC;
-      /// Total number of ASICs
-      static const int scNASIC;
 
       /// Local time offset for x calculations
       double fTimeOffset;
@@ -246,36 +199,9 @@ namespace trex{
       unsigned int fHalf;
       /// MicroMega for this cell
       unsigned int fMM;
-      /// FEC for this cell
-      unsigned int fFEC;
-      /// ASIC for this cell
-      unsigned int fASIC;
-      /// y of unique region of ASIC where empiricly charges are known to cluster
-      int fASICRegionY;
-      /// z of unique region of ASIC where empiricly charges are known to cluster
-      int fASICRegionZ;
-      /// Unique ID for this cell's ASIC
-      long fUniqueASICID;
 
       /// Distance from focus for building list
       float fFriendDist;
-
-      /// Status as a delta hit
-      bool fDeltaTagged;
-
-      /// Status as a low charge hit
-      bool fLowChargeTagged;
-      /// Status as part of an ASIC already containing above a threshold number of saturated hits
-      bool fSatASICTagged;
-      /// Status as hit with early negative peak
-      bool fEarlyNegativeTagged;
-      /// Status as hit with late negative peak
-      bool fLateNegativeTagged;
-      /// Status as part of an ASIC already filled with lots of hits
-      bool fFullASICTagged;
-
-      /// Define this cell's unique ASIC id
-      void DefineUniqueASICID();
   };
 }
 

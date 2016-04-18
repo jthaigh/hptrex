@@ -128,12 +128,6 @@ trex::TTPCLayout::TTPCLayout(){
   fAStarZScale = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AStarZScale");
 
   fAStarHeuristicFactor = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AStarHeuristicFactor");
-  fAStarPathologyPenalty = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AStarPathologyPenalty");
-  fAStarAssociatePathologyPenalty = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AStarAssociatePathologyPenalty");
-
-  // minimum fractional and absolute non-delta hits for avoiding EM classification
-  fNonDeltaFraction= trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.NonDeltaFraction");
-  fNonDelta = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.NonDelta");
   
   // other default values
   fTNMin = 0.;

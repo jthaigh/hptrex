@@ -900,29 +900,6 @@ void trex::TTPCOrderedVolGroup::OrderFromPosition(TVector3 pos){
   };
 }
 
-bool trex::TTPCOrderedVolGroup::GetDeltaCriteriaMet(){
-  float fractionNeeded = fLayout->GetNonDeltaFraction();
-  int minNonDelta = fLayout->GetNonDelta();
-
-  // loop over all hits making sure none is delta
-  int totalHits=0;
-  int totalNonDelta=0;
-  for(std::vector<trex::TTPCPathVolume*>::iterator pathVolIt = fHits.begin(); pathVolIt != fHits.end(); ++pathVolIt){
-    trex::TTPCPathVolume* pathVol = *pathVolIt;
-    for(std::vector<trex::TTPCUnitVolume*>::iterator volIt = pathVol->GetFriendsBegin(); volIt != pathVol->GetFriendsEnd(); ++volIt){
-      trex::TTPCUnitVolume* vol = *volIt;
-
-      totalHits++;
-      if( !vol->GetDeltaTagged() ) totalNonDelta++;
-    };
-  };
-  float fractionalNonDelta = (float)totalNonDelta / (float)totalHits;
-
-  if(fractionalNonDelta<fractionNeeded) return true;  // return true if fractional delta hits is too great
-  if( (totalNonDelta<totalHits) && (totalNonDelta<minNonDelta) ) return true;  // return true if there's at least one delta and not enough total hits
-
-  return false;  // otherwise return false
-}
 
 //MDH
 //This is a bit messy since it looks like the output object is getting pushed back with

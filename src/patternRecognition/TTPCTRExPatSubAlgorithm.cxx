@@ -27,7 +27,7 @@ trex::TTPCTRExPatSubAlgorithm::~TTPCTRExPatSubAlgorithm(){
 }
 
 void trex::TTPCTRExPatSubAlgorithm::SetUpHits(std::map<long, trex::TTPCUnitVolume*>& map, trex::TTPCAStar* aStarCopy){
-  // add new pattern recognition cells if the charge cut is met
+
   fHitMap=map;
   
   fHasHits = fHitMap.size() > 0;
@@ -36,31 +36,6 @@ void trex::TTPCTRExPatSubAlgorithm::SetUpHits(std::map<long, trex::TTPCUnitVolum
   // add map of hits to path finder
   fAStar->AddHits(fVolGroupMan, fHitMap);
 }
-
-//MDH
-//Appears not to be used anywhere and is problematic since it
-//creates/deletes TTPCUnitVolumes
-/*
-void trex::TTPCTRExPatSubAlgorithm::AbsorbCell(long id, trex::TTPCUnitVolume* cell){
-  // if cell doesn't already exist in map, create it; if it does, increment its charge by cell's charge
-  std::map<long, trex::TTPCUnitVolume*>::iterator el = fHitMap.find(id);
-  if(el == fHitMap.end()){
-    fHitMap[id] = cell;
-  }
-  else{
-    fHitMap[id]->AddCharge(cell->GetQ());
-    fHitMap[id]->AddHits(cell->GetHits());
-    delete cell;
-  };
-}
-
-void trex::TTPCTRExPatSubAlgorithm::AppendHits(trex::TTPCVolGroup& hits){
-  // loop over all cells in hit group and absorb each one into this
-  for(std::map<long, trex::TTPCUnitVolume*>::iterator it = hits->begin(); it != hits->end(); ++it){
-    AbsorbCell(it->first, it->second);
-  };
-}
-*/
 
 void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   // ignore if hits don't already exist
@@ -183,7 +158,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   }
 
   // look for kinks in paths
-  fVolGroupMan->BreakPathsAboutKinks(truePaths, true);
+  fVolGroupMan->BreakPathsAboutKinks(truePaths);
   
 
   for(std::vector< trex::TTPCOrderedVolGroup >::iterator brokenPathIt = truePaths.begin(); brokenPathIt != truePaths.end(); ++brokenPathIt){

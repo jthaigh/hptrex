@@ -136,8 +136,6 @@ class trex::TTPCOrderedVolGroup : public TObject {
     /// Order from position
     void OrderFromPosition(TVector3 pos);
 
-    /// Get whether the path meets criteria for delta ray tagging
-    bool GetDeltaCriteriaMet();
     /// Get list of all hits associated with elements of this group
   std::vector<trex::TTPCHitPad*> GetClusters();
 
