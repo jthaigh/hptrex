@@ -3,7 +3,6 @@
 
 trex::TTPCTRExPatAlgorithm::TTPCTRExPatAlgorithm() {
   // has no hits by default
-  fDriftVelocity = 0;
   fHasHits = false;
 
   // initial values
@@ -140,14 +139,13 @@ void trex::TTPCTRExPatAlgorithm::PrepareHits(std::vector<trex::TTPCHitPad*>& hit
       fMasterHitMap[id]=new trex::TTPCUnitVolume;
       trex::TTPCUnitVolume& curVol = *(fMasterHitMap[id]);
 
-      curVol.SetCell(cell.x, cell.y, cell.z, cell.edgeX, cell.edgeY, cell.edgeZ, id);
-      curVol.SetAux(cell.segX, cell.segY, cell.segZ);
-      if(cell.segX > 0){
-        curVol.SetTimeOffset(fMasterLayout->GetTPMin());
-      }
-      else{
-        curVol.SetTimeOffset(fMasterLayout->GetTNMin());
-      };
+      curVol.SetCell(cell.x, cell.y, cell.z, id);
+      //      if(cell.segX > 0){
+      curVol.SetTimeOffset(fMasterLayout->GetTPMin());
+	// }
+	//else{
+	//  curVol.SetTimeOffset(fMasterLayout->GetTNMin());
+	//};
 
       // get MM information
 
@@ -200,7 +198,6 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
   // master layout for all sub-events
   fMasterLayout = new trex::TTPCLayout();
-  fDriftVelocity = fMasterLayout->GetDriftSpeed();
 
   // reset group IDs
   trex::TTPCVolGroup::ResetFreeID();

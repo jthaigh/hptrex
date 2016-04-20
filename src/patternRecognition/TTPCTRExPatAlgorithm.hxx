@@ -41,11 +41,6 @@ namespace trex{
       /// Run the pattern recognition and return TTPCPattern containing result
       //void GetPatterns(TReconObjectContainer *foundPatterns);
 
-      /// Get drift speed for internal main algorithm
-      double GetDriftSpeed(){ return fMasterLayout->GetDriftSpeed(); }
-      /// Get x cathode crossing for internal main algorithm
-    //      bool GetXCathodeCross(){ return fMasterLayout->GetXCathodeCross(); }
-
       /// Current processing pattern recognition
     void Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused);
 
@@ -80,9 +75,6 @@ namespace trex{
 
       /// Whether hits have been added
       bool fHasHits;
-
-      /// Drift velocity
-      double fDriftVelocity;
 
       /// Set of sub-algorithms for sub-events in event
       std::vector<trex::TTPCTRExPatSubAlgorithm> fSubAlgorithms;

@@ -46,7 +46,6 @@ std::vector< trex::TTPCVolGroup > trex::TTPCVolGroupMan::GetEdgeGroups(){
 
 std::vector< trex::TTPCVolGroup > trex::TTPCVolGroupMan::GetEdgeGroups(trex::TTPCVolGroup& inGroup, bool fiddlyLeans){
   int layers = fLayout->GetEdgeLayers();
-  bool indirect = fLayout->GetUseIndirectEdges();
   trex::TTPCConnection::Type type = trex::TTPCConnection::path;
 
   int xLeanOverride = 0;
@@ -79,17 +78,14 @@ std::vector< trex::TTPCVolGroup > trex::TTPCVolGroupMan::GetEdgeGroups(trex::TTP
     int x = vol->second->GetX();
     int y = vol->second->GetY();
     int z = vol->second->GetZ();
-    int edgeX = vol->second->GetEdgeX();
-    int edgeY = vol->second->GetEdgeY();
-    int edgeZ = vol->second->GetEdgeZ();
 
     // add hits to relevant group, in x only in the case of deltas 
-    if((x > (inGroup.GetXMax() - layers) ) && (indirect || (edgeX==1 )) ) edgeHitsXHi.AddHit(vol->second);
-    if((x < (inGroup.GetXMin() + layers) ) && (indirect || (edgeX==-1)) ) edgeHitsXLo.AddHit(vol->second);
-    if((y > (inGroup.GetYMax() - layers) ) && (indirect || (edgeY==1 )) ) edgeHitsYHi.AddHit(vol->second);
-    if((y < (inGroup.GetYMin() + layers) ) && (indirect || (edgeY==-1)) ) edgeHitsYLo.AddHit(vol->second);
-    if((z > (inGroup.GetZMax() - layers) ) && (indirect || (edgeZ==1 )) ) edgeHitsZHi.AddHit(vol->second);
-    if((z < (inGroup.GetZMin() + layers) ) && (indirect || (edgeZ==-1)) ) edgeHitsZLo.AddHit(vol->second);
+    if(x > (inGroup.GetXMax() - layers) ) edgeHitsXHi.AddHit(vol->second);
+    if(x < (inGroup.GetXMin() + layers) ) edgeHitsXLo.AddHit(vol->second);
+    if(y > (inGroup.GetYMax() - layers) ) edgeHitsYHi.AddHit(vol->second);
+    if(y < (inGroup.GetYMin() + layers) ) edgeHitsYLo.AddHit(vol->second);
+    if(z > (inGroup.GetZMax() - layers) ) edgeHitsZHi.AddHit(vol->second);
+    if(z < (inGroup.GetZMin() + layers) ) edgeHitsZLo.AddHit(vol->second);
   };
 
   std::vector< trex::TTPCVolGroup > edgeGroups;
@@ -2036,13 +2032,6 @@ void trex::TTPCVolGroupMan::GetNearHits(trex::TTPCVolGroup& in, trex::TTPCVolGro
   int y = vol->GetY();
   int z = vol->GetZ();
 
-  int edgeX = 0;
-  int edgeY = 0;
-  int edgeZ = 0;
-  edgeX = vol->GetEdgeX();
-  edgeY = vol->GetEdgeY();
-  edgeZ = vol->GetEdgeZ();
-
   int distXP;
   int distYP;
   int distZP;
@@ -2052,34 +2041,6 @@ void trex::TTPCVolGroupMan::GetNearHits(trex::TTPCVolGroup& in, trex::TTPCVolGro
   fLayout->GetTypeDistances(distXP, distYP, distZP, type);
   fLayout->GetTypeDistances(distXN, distYN, distZN, type);
 
-  // expand possible connection distance if on an edge
-  if(edgeX != 0 && fLayout->GetJumpX()){
-    int incG = fLayout->GetGapOffsetX() * fLayout->GetGapOffsetAdjacent();
-    if(edgeX == 1) distXP += fLayout->GetGapOffsetX();
-    else if(edgeX == -1) distXN += fLayout->GetGapOffsetX();
-    distYP += incG;
-    distYN += incG;
-    distZP += incG;
-    distZN += incG;
-  };
-  if(edgeY != 0 && fLayout->GetJumpY()){
-    int incG = fLayout->GetGapOffsetY() * fLayout->GetGapOffsetAdjacent();
-    if(edgeY == 1) distYP += fLayout->GetGapOffsetY();
-    else if(edgeY == -1) distYN += fLayout->GetGapOffsetY();
-    distXP += incG;
-    distXN += incG;
-    distZP += incG;
-    distZN += incG;
-  };
-  if(edgeZ != 0 && fLayout->GetJumpZ()){
-    int incG = fLayout->GetGapOffsetZ() * fLayout->GetGapOffsetAdjacent();
-    if(edgeZ == 1) distZP += fLayout->GetGapOffsetZ();
-    else if(edgeZ == -1) distZN += fLayout->GetGapOffsetZ();
-    distXP += incG;
-    distXN += incG;
-    distYP += incG;
-    distYN += incG;
-  };
 
   // iterate over ellipsoid if needed
   for(int i=-distXN; i<=distXP; i++){
@@ -2122,19 +2083,6 @@ void trex::TTPCVolGroupMan::GetNearHits(trex::TTPCVolGroup& in, trex::TTPCVolGro
         if(newID < 0) continue;
         trex::TTPCUnitVolume* newHit = in.GetHit(newID);
         if (!newHit) continue;
-
-        // veto cells on far side of cathode if x jump is disabled
-        if(!fLayout->GetJumpX()){
-          if(vol->GetSegX() != newHit->GetSegX()) continue;
-        };
-        // veto cells on far side of y MM gap if y jump is disabled
-        if(!fLayout->GetJumpY()){
-          if(vol->GetSegY() != newHit->GetSegY()) continue;
-        };
-        // veto cells on far side of z MM gap if z jump is disabled
-        if(!fLayout->GetJumpZ()){
-          if(vol->GetSegZ() != newHit->GetSegZ()) continue;
-        };
 
         if (distFilter>-1. && distFilter>=newHit->GetFriendDist()) continue;
         if (distFilter>-1. && newHit->GetFriendDist() < 0) continue;
@@ -2345,12 +2293,13 @@ void trex::TTPCVolGroupMan::RecursiveFriendListSeek(long startID, trex::TTPCVolG
 }
 
 TVector3 trex::TTPCVolGroupMan::GetAvgPosRep(trex::TTPCPathVolume* vol){
-  double avgTime = vol->GetAverageTime();
+  //  double avgTime = vol->GetAverageTime();
   TVector3 avgPos = vol->GetAveragePos();
-  return TVector3(avgTime*fLayout->GetDriftSpeed(), avgPos.Y(), avgPos.Z());
+  //  return TVector3(avgTime*fLayout->GetDriftSpeed(), avgPos.Y(), avgPos.Z());
+  return avgPos;
 }
 TVector3 trex::TTPCVolGroupMan::GetAvgPosRep(trex::TTPCUnitVolume* vol, int sign){
-  double avgTime;
+  /*  double avgTime;
   if(sign < 0){
     avgTime = vol->GetTimeMin();
   }
@@ -2359,10 +2308,10 @@ TVector3 trex::TTPCVolGroupMan::GetAvgPosRep(trex::TTPCUnitVolume* vol, int sign
   }
   else{
     avgTime = vol->GetTime();
-  };
+    };*/
   TVector3 avgPos = vol->GetPos();
-
-  return TVector3(avgTime*fLayout->GetDriftSpeed(), avgPos.Y(), avgPos.Z());
+  return avgPos;
+  //return TVector3(avgTime*fLayout->GetDriftSpeed(), avgPos.Y(), avgPos.Z());
 }
 
 bool trex::TTPCVolGroupMan::IsInRange(trex::TTPCPathVolume* point1, trex::TTPCPathVolume* point2, int sizeX, int sizeY, int sizeZ){

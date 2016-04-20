@@ -1,18 +1,9 @@
 // eddy
 #include "TTPCUnitVolume.hxx"
 
-const int trex::TTPCUnitVolume::scNTPC = 3;
-const int trex::TTPCUnitVolume::scNHalf = 2;
-const int trex::TTPCUnitVolume::scNMM = 12;
-
 trex::TTPCUnitVolume::TTPCUnitVolume(){
-  fID = 0;
-  fTPC = 0;
-  fHalf = 0;
-  fMM = 0;
 
   // initialise charge, hits and position to zero
-  fSegX = fSegY = fSegZ = 0;
   fNegativePeakEarly = 0.;
   fNegativePeakLate = 0.;
   fQ = 0.;
@@ -30,26 +21,14 @@ trex::TTPCUnitVolume::TTPCUnitVolume(){
 trex::TTPCUnitVolume::~TTPCUnitVolume(){
 }
 
-void trex::TTPCUnitVolume::SetCell(int x, int y, int z, int edgeX, int edgeY, int edgeZ, long id){
+void trex::TTPCUnitVolume::SetCell(int x, int y, int z, long id){
   // set cell x, y and z id
   fX = x;
   fY = y;
   fZ = z;
 
-  // set cell x, y and z edge status
-  fEdgeX = edgeX;
-  fEdgeY = edgeY;
-  fEdgeZ = edgeZ;
-
   // set cell unique id
   fID = id;
-}
-
-void trex::TTPCUnitVolume::SetAux(int segX, int segY, int segZ){
-  // set cell x, y and z id
-  fSegX = segX;
-  fSegY = segY;
-  fSegZ = segZ;
 }
 
 void trex::TTPCUnitVolume::AddCharge(double q){
@@ -129,21 +108,12 @@ void trex::TTPCUnitVolume::AddEvent(trex::TTPCHitPad* hit){
   fHasPos = true;
 }
 
-void trex::TTPCUnitVolume::GetEdges(int& edgeX, int& edgeY, int& edgeZ){
-  // return cell x, y and z edge status
-  edgeX = fEdgeX;
-  edgeY = fEdgeY;
-  edgeZ = fEdgeZ;
-}
 
 trex::TTPCCellInfo3D trex::TTPCUnitVolume::GetCellInfo3D(){
   trex::TTPCCellInfo3D padInfo;
   padInfo.x = fX;
   padInfo.y = fY;
   padInfo.z = fZ;
-  padInfo.edgeX = fX;
-  padInfo.edgeY = fY;
-  padInfo.edgeZ = fZ;
 
   return padInfo;
 }

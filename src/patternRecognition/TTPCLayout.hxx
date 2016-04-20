@@ -30,50 +30,11 @@ namespace trex{
       clusterMerge
     };
   };
-  /// Structure for 2D cell with x and y id
-  struct TTPCCell2D{
-    int x;
-    int y;
-  };
   /// Structure for 3D cell with x, y and z id
-  struct TTPCCell3D{
-    int x;
-    int y;
-    int z;
-  };
-  /// Structure for 3D cell with x, y and z id and edge status
   struct TTPCCellInfo3D{
     int x;
     int y;
     int z;
-    int edgeX;
-    int edgeY;
-    int edgeZ;
-    int segX;
-    int segY;
-    int segZ;
-  };
-  /// Structure containing minima, maxima and ranges in x, y and z
-  struct TTPCCellRanges3D{
-    int minX;
-    int minY;
-    int minZ;
-
-    int maxX;
-    int maxY;
-    int maxZ;
-
-    int sizeX;
-    int sizeY;
-    int sizeZ;
-  };
-  /// Structure containing pad information
-  struct TTPCPadStruct{
-    int tpc;
-    int half;
-    int mm;
-    int pad;
-    int rawpad;
   };
 
   /// Class containing relevant information and methods for expressing 3D layout of hits in a way that makes sense to feature finding and path finding algorithms
@@ -105,9 +66,6 @@ namespace trex{
       /// Convert a single unique long integer into a cell id in x, y and z
       //trex::TTPCCell3D UnMash(long id);
 
-      /// Get converts a 3D position into MM pad information
-      trex::TTPCPadStruct GlobalXYZToPos(TVector3 pos);
-
       /// Find appropriate distances for a given type of connection
       void GetTypeDistances(int& distX, int& distY, int& distZ, trex::TTPCConnection::Type type);
 
@@ -134,29 +92,11 @@ namespace trex{
       /// Get size of an individual x cell
       double GetXCellSize(){ return fXCellSize; }
 
-      /// Get whether MM gaps can be crossed in x
-      bool GetJumpX(){ return fJumpX; }
-      /// Get whether MM gaps can be crossed in y
-      bool GetJumpY(){ return fJumpY; }
-      /// Get whether MM gaps can be crossed in z
-      bool GetJumpZ(){ return fJumpZ; }
-
-      /// Get offset added to x to effect a gap from crossing central cathode
-      int GetGapOffsetX(){ return fGapOffsetX; }
-      /// Get offset added to y to effect a gap from crossing between MM volumes in y direction 
-      int GetGapOffsetY(){ return fGapOffsetY; }
-      /// Get offset added to z to effect a gap from crossing between MM volumes in z direction
-      int GetGapOffsetZ(){ return fGapOffsetZ; }
-      /// Get multiplier for extra offsets applied to adjacent directions at a gap
-      int GetGapOffsetAdjacent(){ return fGapOffsetAdjacent; }
-
       /// Get minimum number of pads constituting a useful pattern
       int GetMinPatternPads(){ return fMinPatternPads; }
       /// Get minimum number of clusters constituting a useful path
       int GetMinPathClusters(){ return fMinPathClusters; }
 
-      /// Get whether to use hits not on direct edge of an MM volume when looking for edges
-      bool GetUseIndirectEdges(){ return fUseIndirectEdges; }
       /// Get number of layers at edge of sub event to search for track ends
       int GetEdgeLayers(){ return fEdgeLayers; }
 
@@ -282,30 +222,10 @@ namespace trex{
       /// Factor to weight A* heuristic by, to alter the performance and effectiveness of the algorithm
       float fAStarHeuristicFactor;
 
-      /// Wheter a track in this event crosses the central cathode
-      bool fXCathodeCross;
       /// Size of an individual x cell
       double fXCellSize;
       /// Time bin size
       double fTWidth;
-
-      /// Number of MM pads
-      int fMMPads;
-      /// Number of MM pads in y direction
-      int fYPads;
-      /// Number of MM pads in z direction
-      int fZPads;
-
-      /// Increase in x id from crossing central cathode
-      int fXShiftFromC;
-      /// Increase in y id from crossing between two MM columns
-      int fYShiftFromXZ;
-      /// Increase in y id from moving to the next MM volume in y direction
-      int fYShiftFromMM;
-      /// Increase in z id from moving to the next MM volume in z direction
-      int fZShiftFromMM;
-      /// Increase in z id from moving to the next TPC
-      int fZShiftFromTPC;
 
       /// Minimum x id in event
       int fMinX;
@@ -326,29 +246,11 @@ namespace trex{
       /// Number of z ids in event
       int fSizeZ;
 
-      /// Whether MM gaps can be crossed in x
-      bool fJumpX;
-      /// Whether MM gaps can be crossed in y
-      bool fJumpY;
-      /// Whether MM gaps can be crossed in z
-      bool fJumpZ;
-
-      /// Offset added to x to effect a gap from crossing central cathode
-      int fGapOffsetX;
-      /// Offset added to y to effect a gap from crossing between MM volumes in y direction 
-      int fGapOffsetY;
-      /// Offset added to z to effect a gap from crossing between MM volumes in z direction
-      int fGapOffsetZ;
-      /// Multiplier for extra offsets applied to adjacent directions at a gap
-      int fGapOffsetAdjacent;
-
       /// Minimum useful size of pattern
       int fMinPatternPads;
       /// Minimum useful size of path
       int fMinPathClusters;
 
-      /// Whether to use hits not on direct edge of an MM volume when looking for edges
-      bool fUseIndirectEdges;
       /// Number of layers at edge of sub event to use when looking for edges
       int fEdgeLayers;
 

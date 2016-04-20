@@ -67,13 +67,6 @@ namespace trex{
       /// Set minimum and maximum values
       void Close();
 
-      /// Get associated cell x edge status
-      int GetEdgeX(){ return fUnitVolume->GetEdgeX();}
-      /// Get associated cell y edge status
-      int GetEdgeY(){ return fUnitVolume->GetEdgeY();}
-      /// Get associated cell z edge status
-      int GetEdgeZ(){ return fUnitVolume->GetEdgeZ();}
-
       /// Get minimum x cell
       int GetXMin(){ Close(); return fXMin;}
       /// Get maximum x cell

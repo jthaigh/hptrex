@@ -670,17 +670,6 @@ float trex::TTPCAStar::GetConnectionCost(trex::TTPCAStarPoint* point1, trex::TTP
   int diffY = std::abs(point1->y - point2->y);
   int diffZ = std::abs(point1->z - point2->z);
 
-  // reduce costs if jumping gaps
-  if(point1->vol->GetSegX() != point2->vol->GetSegX()){
-    diffX -= fLayout->GetGapOffsetX();
-  };
-  if(point1->vol->GetSegY() != point2->vol->GetSegY()){
-    diffY -= fLayout->GetGapOffsetY();
-  };
-  if(point1->vol->GetSegZ() != point2->vol->GetSegZ()){
-    diffZ -= fLayout->GetGapOffsetZ();
-  };
-
   // set minimum to zero
   diffX = std::max(diffX, 0);
   diffY = std::max(diffY, 0);

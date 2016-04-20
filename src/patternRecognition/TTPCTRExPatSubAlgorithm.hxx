@@ -84,10 +84,6 @@ namespace trex{
       /// Get size of hit map
       int GetHitMapSize(){ return fHitMap.size(); }
 
-      /// Get drift speed for internal layout
-      double GetDriftSpeed(){ return fLayout->GetDriftSpeed(); }
-      /// Get x cathode crossing for internal layout
-    //      bool GetXCathodeCross(){ return fLayout->GetXCathodeCross(); }
       /// Get whether or not this sub group has valid paths
       bool GetHasValidPaths(){ return fHasValidPaths; }
       /// Get reference to layout contained by this object

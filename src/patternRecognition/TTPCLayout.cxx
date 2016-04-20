@@ -6,128 +6,90 @@ trex::TTPCLayout::TTPCLayout(){
   //MDH
   //This all needs reimplementing, and we need to think about if we really need
   //all these parameters...
-  /*
+  
 
+  //MDH
+  //PLACEHOLDER!!!
   // sampling time and drift speeds
-  fDriftSpeed = trex::tpcCalibration().GetDriftVelocity();
-
-  // set pre-defined geometry variables
-  fPadGap = trex::TGeomInfo::Get().TPC().GetPadGap();
-  fPadPitchY = trex::TGeomInfo::Get().TPC().GetPadYPitch();
-  fPadPitchZ = trex::TGeomInfo::Get().TPC().GetPadXPitch();
-
-  fMMPads = trex::TGeomInfo::Get().TPC().GetPadCount();
-  fYPads = trex::TGeomInfo::Get().TPC().GetPadRows();
-  fZPads = trex::TGeomInfo::Get().TPC().GetPadColumns();
-
-  // set x cell geometry variables
-  fXCellSize = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.XCellSize") * fPadPitchZ; 
+  fDriftSpeed = 1.;
+  fPadPitchY = 1.;
+  fPadPitchZ = 1.;
+  fXCellSize = 1. * fPadPitchZ; 
   fTWidth = fXCellSize / fDriftSpeed;
 
-  // set if groups are broken in x, y and z
-  fJumpX = bool( trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.JumpX") );
-  fJumpY = bool( trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.JumpY") );
-  fJumpZ = bool( trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.JumpZ") );
-
-  // set offsets
-  fGapOffsetX = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.GapOffsetX");
-  fGapOffsetY = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.GapOffsetY");
-  fGapOffsetZ = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.GapOffsetZ");
-  fGapOffsetAdjacent = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.GapOffsetAdjacent");
-
-  // set gap variables
-  fXShiftFromC = fGapOffsetX;
-  fYShiftFromXZ = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.YShiftFromXZ");
-  fYShiftFromMM = fYPads + fGapOffsetY;
-  fZShiftFromMM = fZPads + fGapOffsetZ;
-  fZShiftFromTPC = (fZPads + fGapOffsetZ)*3;
-
   // set useable pattern and path sizes
-  fMinPatternPads = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.MinPatternPads");
-  fMinPathClusters = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.MinPathClusters");
+  fMinPatternPads = 4;
+  fMinPathClusters = 4;
 
-  // set variables for primary track edge search
-  fUseIndirectEdges = (bool)trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.UseIndirectEdges");
-  fEdgeLayers = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.EdgeLayers");
+  fEdgeLayers = 2;
 
   // set pattern recognition and path finding connection distances
-  fConnectDistX = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.ConnectDistX");
-  fConnectDistY = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.ConnectDistY");
-  fConnectDistZ = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.ConnectDistZ");
+  fConnectDistX = 3;
+  fConnectDistY = 1;
+  fConnectDistZ = 1;
 
   // set charactaristic structure distances
-  fStructDistX = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.StructDistX");
-  fStructDistY = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.StructDistY");
-  fStructDistZ = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.StructDistZ");
+  fStructDistX = 1;
+  fStructDistY = 1;
+  fStructDistZ = 1;
 
   // characterising distances based on HitDist
-  fAStarConnectDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.AStarConnectDist");
-  fPathHitConnectDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.PathHitConnectDist");
-  fExtraHitConnectDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.ExtraHitConnectDist");
+  fAStarConnectDist = 2;
+  fPathHitConnectDist = 10;
+  fExtraHitConnectDist = 4;
 
   // characteristic distances based on StructDist
-  fEdgeMergeStructDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.EdgeMergeStructDist");
-  fVertexMergeStructDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.VertexMergeStructDist");
-  fVertexFindStructDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.VertexFindStructDist");
-  fVertexHitStructDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.VertexHitStructDist");
-  fVertexPathStructDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.VertexPathStructDist");
-  fClusterMergeStructDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.ClusterMergeStructDist");
-
-  // variables used when fUseAltHitAssociation is true
-  fAltPathHitConnectDist = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AltPathHitConnectDist");
-  fAltExtraHitConnectDist = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AltExtraHitConnectDist");
-  fAltEdgeHitConnectDist = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AltEdgeHitConnectDist");
-  fAltVertexHitConnectDist = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AltVertexHitConnectDist");
+  fEdgeMergeStructDist = 3;
+  fVertexMergeStructDist = 6;
+  fVertexFindStructDist = 3;
+  fVertexHitStructDist = 2;
+  fVertexPathStructDist = 6;
+  fClusterMergeStructDist = 2;
 
   // variables used to check whether to count something as an x path
-  fXPathMaxPads = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.XPathMaxPads");
-  fXPathMinEndRatio = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.XPathMinEndRatio");
+  fXPathMaxPads = 5;
+  fXPathMinEndRatio = 2.;
 
   // set edge parameters
-  fEdgePreDist = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.EdgePreDist");
-  fEdgePreAng = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.EdgePreAng");
-  fEdgeMinDist = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.EdgeMinDist");
-  fEdgeMinDistLow = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.EdgeMinDistLow");
-  fEdgeMinHits = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.EdgeMinHits");
-  fEdgeMaxSigma = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.EdgeMaxSigma");
-  fEdgeRange = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.EdgeRange");
-  fEdgeThreshold = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.EdgeThreshold");
-  fEdgeOffset = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.EdgeOffset");
+  fEdgePreDist = 8.;
+  fEdgePreAng = 80.;
+  fEdgeMinDist = 8.;
+  fEdgeMinDistLow = 2.;
+  fEdgeMinHits = 0.2;
+  fEdgeMaxSigma = 0.3;
+  fEdgeRange = 0.56;
+  fEdgeThreshold = 0.52;
+  fEdgeOffset = 0.3;
 
   // set parameters for forming HV clusters
-  fHVClusterExtrapolateDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.HVClusterExtrapolateDist");
-  fHVClusterExtrapolateLimit = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.HVClusterExtrapolateLimit");
-  fClusterConnectDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.ClusterConnectDist");
-  fMergeDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.MergeDist");
-  fHVEdgeDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.HVEdgeDist");
-  fThresholdAngleRange = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.ThresholdAngleRange");
-  fThresholdAngle = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.ThresholdAngle");
-  fDichotomyCutoff = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.DichotomyCutoff");
+  fHVClusterExtrapolateDist = 3;
+  fHVClusterExtrapolateLimit = 20;
+  fClusterConnectDist = 5;
+  fMergeDist = 8;
+  fHVEdgeDist = 12;
+  fThresholdAngleRange = 3;
+  fThresholdAngle = 55.;
+  fDichotomyCutoff = 8;
 
   // set parameters relating to features along paths
-  fHVClusterMaxIso = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.HVClusterMaxIso");
+  fHVClusterMaxIso = 3;
 
   // set parameters for breaking long x clusters
-  fXSizeThreshold = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.XSizeThreshold");
-  fPathSizeThreshold = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.PathSizeThreshold");
-  fBreakInMiddle = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.BreakInMiddle");
+  fXSizeThreshold = 4;
+  fPathSizeThreshold = 3;
+  fBreakInMiddle = 0;
 
   // set parameters relating to cleaning up hits near junctions
-  fAnomCheckDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.AnomCheckDist");
-  fAnomProjectDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.AnomProjectDist");
-  fAnomMaxOffs = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AnomMaxOffs");
-
-  // set parameters relating to cleaning up hits near junctions
-  fAnomCheckDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.AnomCheckDist");
-  fAnomProjectDist = trex::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.PatRec.AnomProjectDist");
-  fAnomMaxOffs = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AnomMaxOffs");
+  fAnomCheckDist = 2;
+  fAnomProjectDist = 8;
+  fAnomMaxOffs = 4.;
 
   // defualt scales and heuristic factor for A* algorithm
-  fAStarXScale = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AStarXScale");
-  fAStarYScale = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AStarYScale");
-  fAStarZScale = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AStarZScale");
+  fAStarXScale = 1.;
+  fAStarYScale = 1.;
+  fAStarZScale = 1.;
 
-  fAStarHeuristicFactor = trex::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.PatRec.AStarHeuristicFactor");
+  fAStarHeuristicFactor = 1.2;
   
   // other default values
   fTNMin = 0.;
@@ -136,7 +98,7 @@ trex::TTPCLayout::TTPCLayout(){
   fTPMax = -1.;
   fTNegativeBins = 0;
   fTPositiveBins = 0;
-  fTBins = 0;*/
+  fTBins = 0;
 }
 trex::TTPCLayout::~TTPCLayout(){
 }
@@ -149,7 +111,6 @@ void trex::TTPCLayout::SetTimeRanges(double tNMin, double tNMax, double tPMin, d
 
   bool binsN = tNMin < tNMax; // do hits exist in negative half?
   bool binsP = tPMin < tPMax; // do hits exist in positibe half?
-  fXCathodeCross = (binsN && binsP);
 
   if(binsN){
     fTNegativeBins = (int)( (fTNMax-fTNMin) / fTWidth );
@@ -164,8 +125,8 @@ void trex::TTPCLayout::SetTimeRanges(double tNMin, double tNMax, double tPMin, d
     fTPositiveBins = 0;
   };
   fTBins = fTNegativeBins + fTPositiveBins;
-  if(fXCathodeCross) fTBins += fXShiftFromC;
 }
+
 void trex::TTPCLayout::SetRanges(int minX,int maxX, int minY,int maxY, int minZ,int maxZ){
   // set x, y and z minima, maxima and sizes
   fMinX = minX;
@@ -199,156 +160,15 @@ long trex::TTPCLayout::SafeMash(int x, int y, int z){
   return Mash(x, y, z);
 }
 
-
-trex::TTPCPadStruct trex::TTPCLayout::GlobalXYZToPos(TVector3 pos){
-  trex::TTPCPadStruct padStruct;
-
-  //MDH
-  //This needs reimplementing with new geometry lookup
-  //or just simplifying
-  // get pad geometry information
-  /*
-  trex::TGeometryId id;
-  trex::TGeomInfo::Get().TPC().GlobalXYZToGeomId(pos, id);
-
-  // extract location for tpc, gas half, mm unit and pad
-  padStruct.tpc = trex::TGeomInfo::Get().TPC().GeomIdToTPC(id);
-  padStruct.half = trex::TGeomInfo::Get().TPC().GeomIdToHalf(id);
-  padStruct.mm = trex::TGeomInfo::Get().TPC().GeomIdToMM(id);
-  padStruct.rawpad = trex::TGeomInfo::Get().TPC().GeomIdToPad(id);
-
-  // shift to consistent pattern of MM pads (consistent order, consistent ids in x, y and z)
-  padStruct.pad = padStruct.rawpad;
-  if (padStruct.mm < 6){
-    padStruct.pad = (fMMPads-1) - padStruct.pad;
-  };
-  if(padStruct.half == 0){
-    int cpad = padStruct.pad%fYPads;
-    padStruct.pad -= cpad;
-    padStruct.pad = (fMMPads-fYPads) - padStruct.pad;
-    padStruct.pad += cpad;
-  };
-
-  // shift to consistent pattern of MM module ids
-  if(padStruct.half == 1){
-    padStruct.mm = (padStruct.mm + 6) % 12;
-    };*/
-
-  // mm numbers and mm pad numbers should now be oriented consistently across all modules
-  return padStruct;
-}
-
-//MDH
-//Got rid of this sig since it uses a THit. Replace invocation of this sig in TTPCTRExPatAlgorithm
-//with the one below
-
-/*
-trex::TTPCCellInfo3D trex::TTPCLayout::GetPadPosID(trex::THandle<trex::THit> hit, int tpcMask){
-  double time;
-  trex::THandle<trex::TTPCHitPad> hitPad = hit;
-
-  if(hitPad){
-    std::vector<double> peakTimes = hitPad->GetPeakTimes();
-    if(peakTimes.size()){
-      time = 0.;
-      for(std::vector<double>::iterator peakTimeIt = peakTimes.begin(); peakTimeIt != peakTimes.end(); ++peakTimeIt){
-        time += *peakTimeIt;
-      };
-      time /= (double)peakTimes.size();
-    }
-    else{
-      time = hitPad->GetTime();
-    };
-  }
-  else{
-    time = hit->GetTime();
-  };
-
-  return GetPadPosID(hit->GetPosition(), time, tpcMask);
-}
-*/
-
 trex::TTPCCellInfo3D trex::TTPCLayout::GetPadPosID(TVector3 pos, double time, int tpcMask){
   trex::TTPCCellInfo3D cellInfo;
 
-  // get pad id
-  trex::TTPCPadStruct pad = GlobalXYZToPos(pos);
+  //MDH
+  //PLACEHOLDER!!!
+  cellInfo.x=pos.X();
+  cellInfo.y=pos.Y();
+  cellInfo.z=pos.Z();
 
-  // initialise edge status to 0
-  cellInfo.edgeX = 0;
-  cellInfo.edgeY = 0;
-  cellInfo.edgeZ = 0;
-  if (tpcMask > 0){
-    // if tpc mask is on and tpc is not that specified, pad is invalid
-    if (pad.tpc+1 != tpcMask) pad.tpc = -1;
-  };
-  if ((pad.tpc < 0) || (pad.half < 0) || (pad.mm < 0) || (pad.pad < 0)){
-    // if pad is invalid, set all ids to -1 and return
-    cellInfo.x = -1;
-    cellInfo.y = -1;
-    cellInfo.z = -1;
-    return cellInfo;
-  };
-
-  // calculate cell x by finding a time bin depending on the cathode half and the hit time
-  if(pos.X() < 0){
-    // negative side - just bin normally 
-    cellInfo.x = (int)( (time-fTNMin) / fTWidth );
-  }
-  else{
-    // positive side - subtract bin number from maximum bin
-    cellInfo.x = fTBins - (int)( (time-fTPMin) / fTWidth );
-  };
-
-  // get cell raw y
-  cellInfo.y = pad.pad%fYPads;
-  // get cell raw z
-  cellInfo.z = (pad.pad-cellInfo.y)/fYPads;
-
-  // if next to central cathode, set x edges appropriately 
-  if (fXCathodeCross){
-    if(pos.X() < 0){
-      if( (fTNMax-time) < fTWidth ) cellInfo.edgeX = 1;
-    }
-    else{
-      if( (fTPMax-time) < fTWidth ) cellInfo.edgeX = -1;
-    };
-  };
-
-  // if at y mm gap, set y edge appropriately
-  if (cellInfo.y == fYPads - 1) cellInfo.edgeY = 1;
-  else if(cellInfo.y == 0) cellInfo.edgeY = -1;
-
-  // if at z mm gap, set z edge appropriately
-  if (cellInfo.z == fZPads - 1) cellInfo.edgeZ = 1;
-  else if(cellInfo.z == 0) cellInfo.edgeZ = -1;
-
-  // if pad is dead by default, set edges to -2
-  if (pad.rawpad == 0 || pad.rawpad == 1){
-    cellInfo.edgeX = -2;
-    cellInfo.edgeY = -2;
-    cellInfo.edgeZ = -2;
-  };
-
-  // shift y id down if in a shifted mm column
-  if (pad.mm < 6){
-    if (pad.half == 0) cellInfo.y += fYShiftFromXZ;
-  }
-  else{
-    if (pad.half == 1) cellInfo.y += fYShiftFromXZ;
-    cellInfo.z += fZShiftFromMM;
-  };
-  // increase y by position of mm volume in row times number of pads contained
-  cellInfo.y += (5 - (pad.mm%6)) * fYShiftFromMM;
-  // increase z by position of tpc times number of pads in tpc
-  cellInfo.z += pad.tpc * fZShiftFromTPC;
-
-  // set segments appropriately depending on MM position
-  cellInfo.segX = pad.half;
-  cellInfo.segY = pad.mm % 6;
-  cellInfo.segZ = 2*pad.tpc + ( (int)pad.mm < 6 );
-
-  //if (cellInfo.z > 1000)std::cout << "\033[1;33m# " << "z: " << cellInfo.z << "\033[0;m" << std::endl;
   return cellInfo;
 }
 
@@ -400,78 +220,3 @@ void trex::TTPCLayout::GetTypeDistances(int& distX, int& distY, int& distZ, trex
   };
 }
 
-//MDH
-//Not used
-/*void trex::TTPCLayout::GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int& sizeZ,int& minZ,int& maxZ){
-  // get x, y and z minima, maxima and sizes
-  sizeX = fSizeX;
-  minX = fMinX;
-  maxX = fMaxX;
-
-  sizeY = fSizeY;
-  minY = fMinY;
-  maxY = fMaxY;
-
-  sizeZ = fSizeZ;
-  minZ = fMinZ;
-  maxZ = fMaxZ;
-}
-void trex::TTPCLayout::GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int axis){
-  // get 2D minima, maxima and sizes in x, y or z view (with axis of 1, 2 or 3 respectively)
-  switch(axis){
-    case 1:
-      sizeX = fSizeZ;
-      minX = fMinZ;
-      maxX = fMaxZ;
-
-      sizeY = fSizeY;
-      minY = fMinY;
-      maxY = fMaxY;
-
-      break;
-    case 2:
-      sizeX = fSizeZ;
-      minX = fMinZ;
-      maxX = fMaxZ;
-
-      sizeY = fSizeX;
-      minY = fMinX;
-      maxY = fMaxX;
-
-      break;
-    case 3:
-      sizeX = fSizeY;
-      minX = fMinY;
-      maxX = fMaxY;
-
-      sizeY = fSizeX;
-      minY = fMinX;
-      maxY = fMaxX;
-
-      break;
-  };
-}
-
-
-long trex::TTPCLayout::MashYZ(int y, int z){
-  // convert x, y and z id to unique id
-  long valY = long(y - fMinY);
-  long valZ = long(z - fMinZ);
-  return (valZ * fSizeY) + valY;
-}
-trex::TTPCCell3D trex::TTPCLayout::UnMash(long id){
-  // convert unique id to x, y and z id
-  trex::TTPCCell3D cell;
-
-  cell.x = id % fSizeX;
-  id = (id - cell.x) / fSizeX;
-  cell.y = id % fSizeY;
-  id = (id - cell.y) / fSizeY;
-  cell.z = id;
-
-  cell.x += fMinX;
-  cell.y += fMinY;
-  cell.z += fMinZ;
-
-  return cell;
-  }*/
