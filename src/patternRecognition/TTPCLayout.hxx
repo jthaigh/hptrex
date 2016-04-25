@@ -45,49 +45,24 @@ namespace trex{
       /// Default destructor
       ~TTPCLayout();
 
-      // Set min and max times either side of the cathode
-      void SetTimeRanges(double tNMin, double tNMax, double tPMin, double tPMax);
       /// Set cell id ranges in x, y and z
       void SetRanges(int minX,int maxX, int minY,int maxY, int minZ,int maxZ);
-      /// Get cell id ranges in x, y and z
-      //void GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int& minZ,int& maxZ,int& sizeZ);
-      /// Get 2D cell ranges in x view, y view or z view, at axis of 1, 2 or 3 respectively
-      //void GetRanges(int& sizeX,int& minX,int& maxX, int& sizeY,int& minY,int& maxY, int axis=1);
 
       /// Get cell id in x, y and z based on a 3D position
-      trex::TTPCCellInfo3D GetPadPosID(TVector3 pos, double time, int tpcMask=-1);
+      trex::TTPCCellInfo3D GetPadPosID(TVector3 pos, int tpcMask=-1);
 
       /// Convert cell id in x, y and z to a single unique long integer
       long Mash(int x, int y, int z);
-      /// Convert cell id in y and z to a single unique long integer
-      //long MashYZ(int y, int z);
       /// Convert cell id in x, y and z to a single unique long integer, returning -1 if bad ids are supplied
       long SafeMash(int x, int y, int z);
-      /// Convert a single unique long integer into a cell id in x, y and z
-      //trex::TTPCCell3D UnMash(long id);
 
       /// Find appropriate distances for a given type of connection
       void GetTypeDistances(int& distX, int& distY, int& distZ, trex::TTPCConnection::Type type);
-
-      /// Get drift speed
-      double GetDriftSpeed(){ return fDriftSpeed; }
-
-      /// Get minimum hit time in negative half
-      double GetTNMin(){ return fTNMin; }
-      /// Get maximum hit time in negative half
-      double GetTNMax(){ return fTNMax; }
-      /// Get minimum hit time in positive half
-      double GetTPMin(){ return fTPMin; }
-      /// Get maximum hit time in positive half
-      double GetTPMax(){ return fTPMax; }
 
       /// Get distance between MM pad centres in y direction
       double GetPadPitchY(){ return fPadPitchY; }
       /// Get distance between MM pad centres in z direction
       double GetPadPitchZ(){ return fPadPitchZ; }
-
-      /// Get wheter a track in this event crosses the central cathode
-    //      bool GetXCathodeCross(){ return fXCathodeCross; }
 
       /// Get size of an individual x cell
       double GetXCellSize(){ return fXCellSize; }
@@ -190,24 +165,6 @@ namespace trex{
 
     private:
 
-      /// Drift speed
-      double fDriftSpeed;
-
-      /// Minimum hit time in negative half
-      double fTNMin;
-      /// Maximum hit time in negative half
-      double fTNMax;
-      /// Minimum hit time in positive half
-      double fTPMin;
-      /// Maximum hit time in positive half
-      double fTPMax;
-      /// Number of bins in negative half
-      int fTNegativeBins;
-      /// Number of bins in positibe half
-      int fTPositiveBins;
-      /// Total number of time bins
-      int fTBins;
-
       /// Distance between MM pad centres in y direction
       double fPadPitchY;
       // Distance between MM pad centres in z direction
@@ -224,8 +181,6 @@ namespace trex{
 
       /// Size of an individual x cell
       double fXCellSize;
-      /// Time bin size
-      double fTWidth;
 
       /// Minimum x id in event
       int fMinX;

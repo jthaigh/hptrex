@@ -180,9 +180,9 @@ namespace trex{
       /// Filter out any remaining tracks and hits that don't make sense
       void SanityFilter(std::vector< trex::TTPCOrderedVolGroup >& input);
    
-      /// Get representation of position using time and co-ordinates
+      /// Get representation of position using co-ordinates
       TVector3 GetAvgPosRep(trex::TTPCPathVolume* vol);
-      /// Get representation of position using time and co-ordinates
+      /// Get representation of position using co-ordinates
       TVector3 GetAvgPosRep(trex::TTPCUnitVolume* vol, int sign=0);
 
       /// Get whether a specified cell is within a specified range of another

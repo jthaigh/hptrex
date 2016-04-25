@@ -24,7 +24,6 @@ trex::TTPCVolGroup::TTPCVolGroup(trex::TTPCLayout* layout, unsigned int id){
   fZSize = 0;
 
   fAveragePosition = TVector3();
-  fAverageTime = 0.;
   fAveragePad = trex::TTPCCellInfo3D();
   fSigmaPadX = 0.;
   fSigmaPadY = 0.;

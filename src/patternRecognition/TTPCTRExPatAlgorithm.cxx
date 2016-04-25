@@ -42,48 +42,7 @@ void trex::TTPCTRExPatAlgorithm::CleanUp(){
 }
 
 void trex::TTPCTRExPatAlgorithm::PrepareHits(std::vector<trex::TTPCHitPad*>& hits){
-  // needed for pattern recognition - min and max times either side of the cathode
-  double tPMin = +99999999.;
-  double tPMax = -99999999.;
-  double tNMin = +99999999.;
-  double tNMax = -99999999.;
   fHits=hits;
-  for (std::vector<trex::TTPCHitPad*>::iterator hit = hits.begin(); hit != hits.end(); ++hit){
-    trex::TTPCHitPad* phit = *hit;
-
-    //MDH TODO - FIX CALL TO GEOM
-    // sense determines which side of the cathode we're on
-    //    int curX = int(trex::TGeomInfo::TPC().GetDriftSense(phit->GetGeomId()));
-    int curX=0;
-
-    // needed for pattern recognition - get min and max times either side of the cathode
-    std::vector<double> peakTimes = phit->GetPeakTimes();
-    if(peakTimes.size()){
-      for(std::vector<double>::iterator peakTimeIt = peakTimes.begin(); peakTimeIt != peakTimes.end(); ++peakTimeIt){
-        if(curX < 0){
-          tNMin = std::min(tNMin, *peakTimeIt);
-          tNMax = std::max(tNMax, *peakTimeIt);
-        }
-        else{
-          tPMin = std::min(tPMin, *peakTimeIt);
-          tPMax = std::max(tPMax, *peakTimeIt);
-        };
-      };
-    }
-    else{
-      if(curX < 0){
-        tNMin = std::min(tNMin, phit->GetTime());
-        tNMax = std::max(tNMax, phit->GetTime());
-      }
-      else{
-        tPMin = std::min(tPMin, phit->GetTime());
-        tPMax = std::max(tPMax, phit->GetTime());
-      };
-    };
-  };
-
-  // add maximum and minimum times either side of the cathode
-  fMasterLayout->SetTimeRanges(tNMin, tNMax, tPMin, tPMax);
 
   // work out minimum and maximum cell ids in x, y and z
   int minX = +99999;
@@ -95,12 +54,8 @@ void trex::TTPCTRExPatAlgorithm::PrepareHits(std::vector<trex::TTPCHitPad*>& hit
   for (std::vector<trex::TTPCHitPad*>::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
     trex::TTPCHitPad* hit = *hitIt;
 
-    //MDH
-    //Hopefully our hit object will have a GetTime method or else we need to abstract
-    //this out completely into a position number everywhere...
-
     // convert position to cell id in x, y and z
-    trex::TTPCCellInfo3D cell = fMasterLayout->GetPadPosID(hit->GetPosition(),hit->GetTime());
+    trex::TTPCCellInfo3D cell = fMasterLayout->GetPadPosID(hit->GetPosition());
 
     // find minima and maxima
     minX = std::min(minX, cell.x);
@@ -123,7 +78,7 @@ void trex::TTPCTRExPatAlgorithm::PrepareHits(std::vector<trex::TTPCHitPad*>& hit
     trex::TTPCHitPad* hit = *hitIt;
 
     // convert position to cell id in x, y and z
-    trex::TTPCCellInfo3D cell = fMasterLayout->GetPadPosID(hit->GetPosition(), 0);
+    trex::TTPCCellInfo3D cell = fMasterLayout->GetPadPosID(hit->GetPosition());
 
     // convert cell id in x, y and z to unique id
     long id = fMasterLayout->Mash(cell.x, cell.y, cell.z);
@@ -140,22 +95,7 @@ void trex::TTPCTRExPatAlgorithm::PrepareHits(std::vector<trex::TTPCHitPad*>& hit
       trex::TTPCUnitVolume& curVol = *(fMasterHitMap[id]);
 
       curVol.SetCell(cell.x, cell.y, cell.z, id);
-      //      if(cell.segX > 0){
-      curVol.SetTimeOffset(fMasterLayout->GetTPMin());
-	// }
-	//else{
-	//  curVol.SetTimeOffset(fMasterLayout->GetTNMin());
-	//};
 
-      // get MM information
-
-      //MDH TODO - figure out if any of this is needed
-      /*trex::TGeometryId geomId = hit->GetGeomId();
-    unsigned int tpc = trex::TGeomInfo::Get().TPC().GeomIdToTPC(geomId);
-    unsigned int half = trex::TGeomInfo::Get().TPC().GeomIdToHalf(geomId);
-    unsigned int mm = trex::TGeomInfo::Get().TPC().GeomIdToMM(geomId);
-    curVol.SetMMLoc(tpc, half, mm);
-      */
     };
     // increment charge and average position at this cell
     fMasterHitMap[id]->AddEvent(hit);
@@ -196,33 +136,40 @@ void trex::TTPCTRExPatAlgorithm::GetPatterns(trex::TReconObjectContainer *foundP
 
 void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused){
 
+  std::cout<<"2"<<std::endl;
   // master layout for all sub-events
   fMasterLayout = new trex::TTPCLayout();
-
+  std::cout<<"3"<<std::endl;
   // reset group IDs
   trex::TTPCVolGroup::ResetFreeID();
   // prepare hits
   PrepareHits(hits);
-
+  std::cout<<"4"<<std::endl;
   // master manager for all unit volumes
   fMasterVolGroupMan = new trex::TTPCVolGroupMan(fMasterLayout);
+  std::cout<<"5"<<std::endl;
+  std::cout<<"Number of hits: "<<fMasterHitMap.size()<<std::endl;
   fMasterVolGroupMan->AddPrimaryHits(fMasterHitMap);
-
+  std::cout<<"6"<<std::endl;
   // split all hits up into lists of sub events, with separate group for high charge ones if needed
   std::vector< trex::TTPCVolGroup > subEvents;
-  
+  std::cout<<"7"<<std::endl;
   fMasterVolGroupMan->GetConnectedHits(subEvents, trex::TTPCConnection::path);
-  
+  std::cout<<"8"<<std::endl;
+  std::cout<<"Number of subevents: "<<subEvents.size()<<std::endl;
   // push all groups of decent size into sub events
   for(unsigned int i=0; i<subEvents.size(); ++i){
+    std::cout<<"9"<<std::endl;
     trex::TTPCVolGroup& subEvent = subEvents.at(i);
-    
+    std::cout<<"10"<<std::endl;
     if(fMasterVolGroupMan->CheckUsability(subEvent)){
+      std::cout<<"11"<<std::endl;
       // create sub-algorithm for each sub-event
       fSubAlgorithms.emplace_back(fMasterLayout);
-
+      std::cout<<"12"<<std::endl;
       // set hit selection for sub-event
       fSubAlgorithms.back().SetUpHits(subEvent.GetHitMap());
+      std::cout<<"13"<<std::endl;
     };
   };
 

@@ -4,15 +4,11 @@
 trex::TTPCUnitVolume::TTPCUnitVolume(){
 
   // initialise charge, hits and position to zero
-  fNegativePeakEarly = 0.;
-  fNegativePeakLate = 0.;
+  //fNegativePeakEarly = 0.;
+  //fNegativePeakLate = 0.;
   fQ = 0.;
   fQMax = 0.;
 
-  fTime = 0.;
-  fTimeNom = 0.;
-  fTimeMin = +99999999.;
-  fTimeMax = -99999999.;
   fHasPos = false;
   fFriendDist = 9999;
 
@@ -52,51 +48,9 @@ void trex::TTPCUnitVolume::AddEvent(trex::TTPCHitPad* hit){
   // position, charge and time
   TVector3 pos = hit->GetPosition();
   double q = hit->GetCharge();
-  double time = 0.;
-  double timeNom = 0.;
-
-  // set average, max and min times from hit peak times
-  std::vector<double> peakTimes = hit->GetPeakTimes();
-  if(peakTimes.size()){
-    time = 0.;
-    for(std::vector<double>::iterator peakTimeIt = peakTimes.begin(); peakTimeIt != peakTimes.end(); ++peakTimeIt){
-      double offPeakTime = *peakTimeIt - fTimeOffset;
-      fTimeMin = std::min(fTimeMin, offPeakTime);
-      fTimeMax = std::max(fTimeMax, offPeakTime);
-      timeNom += offPeakTime;
-      time += *peakTimeIt;
-    };
-    timeNom /= (double)peakTimes.size();
-    time /= (double)peakTimes.size();
-  }
-  else{
-    double offPeakTime = hit->GetTime() - fTimeOffset;
-    fTimeMin = std::min(fTimeMin, offPeakTime);
-    fTimeMax = std::max(fTimeMax, offPeakTime);
-    timeNom = offPeakTime;
-    time = hit->GetTime();
-  };
 
   // set charge weighted average position and time between old and input position
   fPos = ((fQ * fPos) + (q * pos)) * (1./(fQ + q));
-  fTimeNom = ((fQ * fTimeNom) + (q * timeNom)) * (1./(fQ + q));
-  fTime = ((fQ * fTime) + (q * time)) * (1./(fQ + q));
-
-  // also add negative peak charges before and after
-  std::vector<double> negativePeakCharges = hit->GetNegativePeakCharges();
-  std::vector<double> negativePeakTimes = hit->GetNegativePeakTimes();
-  unsigned int negativePeakN = negativePeakCharges.size();
-  for(unsigned int i=0; i<negativePeakN; ++i){
-    double negativeCharge = negativePeakCharges.at(i);
-    double negativeTime = negativePeakTimes.at(i);
-
-    if(negativeTime < time){
-      fNegativePeakEarly = std::min(fNegativePeakEarly, negativeCharge);
-    }
-    else if(negativeTime > time){
-      fNegativePeakLate = std::min(fNegativePeakLate, negativeCharge);
-    };
-  };
 
   // increment charge
   AddCharge(q);
@@ -117,37 +71,3 @@ trex::TTPCCellInfo3D trex::TTPCUnitVolume::GetCellInfo3D(){
 
   return padInfo;
 }
-
-int trex::TTPCUnitVolume::GetNPeaksSum(){
-  unsigned int peaksSum=0;
-  for(std::vector< trex::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    trex::TTPCHitPad* hitPad = *hitIt;
-    peaksSum += hitPad->GetNumberPeaks();
-  }
-  return (int)peaksSum;
-}
-int trex::TTPCUnitVolume::GetNPeaksMax(){
-  unsigned int peaksSum=0;
-  for(std::vector< trex::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    trex::TTPCHitPad* hitPad = *hitIt;
-    peaksSum = std::max(peaksSum, hitPad->GetNumberPeaks());
-  }
-  return (int)peaksSum;
-}
-int trex::TTPCUnitVolume::GetNSaturated(){
-  int nSat=0;
-  for(std::vector< trex::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    trex::TTPCHitPad* hitPad = *hitIt;
-    nSat += (int)(hitPad->Saturation() > 1);
-  };
-  return nSat;
-}
-int trex::TTPCUnitVolume::GetSaturation(){
-  int satSum=0;
-  for(std::vector< trex::TTPCHitPad* >::iterator hitIt = fHits.begin(); hitIt != fHits.end(); ++hitIt){
-    trex::TTPCHitPad* hitPad = *hitIt;
-    satSum += hitPad->Saturation();
-  };
-  return satSum;
-}
-

@@ -13,7 +13,6 @@ trex::TTPCPathVolume::TTPCPathVolume(trex::TTPCUnitVolume* unitVolume){
   fZMin = 0;
   fZMax = 0;
   fZSize = 0;
-  fAverageTime = 0.;
 
   fClosed = false;
   fIsXCluster = false;
@@ -100,7 +99,6 @@ void trex::TTPCPathVolume::Close(){
   fZMin = +999999;
   fZMax = -999999;
 
-  fAverageTime = 0.;
   fAveragePos = TVector3(0., 0., 0.);
   fAveragePosXYZ = TVector3(0., 0., 0.);
   int norm = 0;
@@ -114,7 +112,6 @@ void trex::TTPCPathVolume::Close(){
     fZMin = std::min(fZMin, frnd->GetZ());
     fZMax = std::max(fZMax, frnd->GetZ());
 
-    fAverageTime += frnd->GetTime();
     fAveragePos += frnd->GetPos();
     fAveragePosXYZ += frnd->GetPosXYZ();
     norm ++;
@@ -123,7 +120,6 @@ void trex::TTPCPathVolume::Close(){
   fYSize = (fYMax - fYMin) + 1;
   fZSize = (fZMax - fZMin) + 1;
 
-  fAverageTime /= double(norm);
   fAveragePos *= 1. / double(norm);
   fAveragePosXYZ *= 1. / double(norm);
 

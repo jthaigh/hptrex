@@ -92,8 +92,6 @@ class trex::TTPCVolGroup : public TObject {
     TVector3 GetAveragePosition(){ Close(); return fAveragePosition; }
     /// Get vector representing average cell x, y, z
     TVector3 GetAveragePosXYZ(){ Close(); return TVector3( (double)fAveragePad.x, (double)fAveragePad.y, (double)fAveragePad.z ); }
-    /// Return average time of all cells in the group 
-    double GetAverageTime(){ Close(); return fAverageTime; }
     /// Get the pad at the average position of all cells in the group
     trex::TTPCCellInfo3D GetAveragePad(){ Close(); return fAveragePad; }
     /// Get the unit volume at the average position of all cells in the group
@@ -212,8 +210,6 @@ class trex::TTPCVolGroup : public TObject {
 
     /// Average position of all cells in group
     TVector3 fAveragePosition;
-    /// Average time of all cells in group
-    double fAverageTime;
     /// Pad at average position of all cells in group
     trex::TTPCCellInfo3D fAveragePad;
     /// Unit volume at average position of all cells in group

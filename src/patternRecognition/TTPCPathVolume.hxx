@@ -85,8 +85,6 @@ namespace trex{
       int GetZMax(){ Close(); return fZMax;}
       /// Get spread in z
       int GetZSize(){ Close(); return fZSize;}
-      /// Get average time
-      double GetAverageTime(){ Close(); return fAverageTime; }
       /// Get average position
       TVector3 GetAveragePos(){ Close(); return fAveragePos; }
       /// Get average position in x, y and z
@@ -155,8 +153,6 @@ namespace trex{
       int fZMax;
       /// Spread in z
       int fZSize;
-      /// Average time
-      double fAverageTime;
       /// Average position
       TVector3 fAveragePos;
       /// Average position in x, y and z

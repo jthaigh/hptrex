@@ -38,15 +38,6 @@ namespace trex{
       /// Summarise position and edge status in one struct
       trex::TTPCCellInfo3D GetCellInfo3D();
 
-      /// Get total number of peaks
-      int GetNPeaksSum();
-      /// Get maximum number of peaks
-      int GetNPeaksMax();
-      /// Get number of saturated peaks
-      int GetNSaturated();
-      /// Get total saturation
-      int GetSaturation();
-
       /// Reset friends for association
       void ClearExtendedCell(bool isFocus=true);
 
@@ -69,14 +60,6 @@ namespace trex{
       TVector3 GetPos(){ return fPos;}
       /// Get cell index representation ov average position in this cell
       TVector3 GetPosXYZ(){ return TVector3( (double)fX, (double)fY, (double)fZ); }
-      /// Get average time in this cell
-      double GetTime(){ return fTime;}
-      /// Get offset average time in this cell
-      double GetTimeNom(){ return fTimeNom;}
-      /// Get minimum time in this cell
-      double GetTimeMin(){ return fTimeMin;}
-      /// Get maximum time in this cell
-      double GetTimeMax(){ return fTimeMax;}
 
       /// Get hits associated with this cell
       std::vector< trex::TTPCHitPad* > GetHits(){ return fHits;}
@@ -87,11 +70,6 @@ namespace trex{
       /// Get size of list of hits associated with this cell
       unsigned int size(){ return fHits.size();}
 
-      /// Get negative peak before this hit
-      double GetNegativePeakEarly(){ return fNegativePeakEarly; }
-      /// Get late peak before this hit
-      double GetNegativePeakLate(){ return fNegativePeakLate; }
-
       /// Get cell unique id
       long GetID(){ return fID;}
 
@@ -101,16 +79,11 @@ namespace trex{
       // setters
       /// Set total charge in this cell
       void SetQ(int q){ fQ = q;}
-      /// Set local time offset for x calculations
-      void SetTimeOffset(double timeOffset){ fTimeOffset = timeOffset; }
       /// Set distance from focus for building list
       void SetFriendDist(float friendDist){ fFriendDist = friendDist;}
 
 
     private:
-
-      /// Local time offset for x calculations
-      double fTimeOffset;
 
       /// Whether or not position is set
       bool fHasPos;
@@ -128,22 +101,9 @@ namespace trex{
       double fQMax;
       /// Average position in this cell
       TVector3 fPos;
-      /// Average time in this cell
-      double fTime;
-      /// Average offset time in this cell
-      double fTimeNom;
-      /// Minimum time in this cell
-      double fTimeMin;
-      /// Maximum time in this cell
-      double fTimeMax;
 
       /// Hits associated with this cell
       std::vector< trex::TTPCHitPad* > fHits;
-
-      /// Negative peak before this hit
-      double fNegativePeakEarly;
-      /// Late peak before this hit
-      double fNegativePeakLate;
 
       /// Cell unique id
       long fID;

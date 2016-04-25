@@ -11,11 +11,9 @@ trex::TTPCLayout::TTPCLayout(){
   //MDH
   //PLACEHOLDER!!!
   // sampling time and drift speeds
-  fDriftSpeed = 1.;
   fPadPitchY = 1.;
   fPadPitchZ = 1.;
   fXCellSize = 1. * fPadPitchZ; 
-  fTWidth = fXCellSize / fDriftSpeed;
 
   // set useable pattern and path sizes
   fMinPatternPads = 4;
@@ -91,41 +89,10 @@ trex::TTPCLayout::TTPCLayout(){
 
   fAStarHeuristicFactor = 1.2;
   
-  // other default values
-  fTNMin = 0.;
-  fTNMax = -1.;
-  fTPMin = 0.;
-  fTPMax = -1.;
-  fTNegativeBins = 0;
-  fTPositiveBins = 0;
-  fTBins = 0;
 }
 trex::TTPCLayout::~TTPCLayout(){
 }
 
-void trex::TTPCLayout::SetTimeRanges(double tNMin, double tNMax, double tPMin, double tPMax){
-  fTNMin = tNMin;
-  fTNMax = tNMax;
-  fTPMin = tPMin;
-  fTPMax = tPMax;
-
-  bool binsN = tNMin < tNMax; // do hits exist in negative half?
-  bool binsP = tPMin < tPMax; // do hits exist in positibe half?
-
-  if(binsN){
-    fTNegativeBins = (int)( (fTNMax-fTNMin) / fTWidth );
-  }
-  else{
-    fTNegativeBins = 0;
-  };
-  if(binsP){
-    fTPositiveBins = (int)( (fTPMax-fTPMin) / fTWidth );
-  }
-  else{
-    fTPositiveBins = 0;
-  };
-  fTBins = fTNegativeBins + fTPositiveBins;
-}
 
 void trex::TTPCLayout::SetRanges(int minX,int maxX, int minY,int maxY, int minZ,int maxZ){
   // set x, y and z minima, maxima and sizes
@@ -160,7 +127,7 @@ long trex::TTPCLayout::SafeMash(int x, int y, int z){
   return Mash(x, y, z);
 }
 
-trex::TTPCCellInfo3D trex::TTPCLayout::GetPadPosID(TVector3 pos, double time, int tpcMask){
+trex::TTPCCellInfo3D trex::TTPCLayout::GetPadPosID(TVector3 pos, int tpcMask){
   trex::TTPCCellInfo3D cellInfo;
 
   //MDH

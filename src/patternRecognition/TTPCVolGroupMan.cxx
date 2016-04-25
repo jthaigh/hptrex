@@ -2293,25 +2293,12 @@ void trex::TTPCVolGroupMan::RecursiveFriendListSeek(long startID, trex::TTPCVolG
 }
 
 TVector3 trex::TTPCVolGroupMan::GetAvgPosRep(trex::TTPCPathVolume* vol){
-  //  double avgTime = vol->GetAverageTime();
   TVector3 avgPos = vol->GetAveragePos();
-  //  return TVector3(avgTime*fLayout->GetDriftSpeed(), avgPos.Y(), avgPos.Z());
   return avgPos;
 }
 TVector3 trex::TTPCVolGroupMan::GetAvgPosRep(trex::TTPCUnitVolume* vol, int sign){
-  /*  double avgTime;
-  if(sign < 0){
-    avgTime = vol->GetTimeMin();
-  }
-  else if(sign > 0){
-    avgTime = vol->GetTimeMax();
-  }
-  else{
-    avgTime = vol->GetTime();
-    };*/
   TVector3 avgPos = vol->GetPos();
   return avgPos;
-  //return TVector3(avgTime*fLayout->GetDriftSpeed(), avgPos.Y(), avgPos.Z());
 }
 
 bool trex::TTPCVolGroupMan::IsInRange(trex::TTPCPathVolume* point1, trex::TTPCPathVolume* point2, int sizeX, int sizeY, int sizeZ){
