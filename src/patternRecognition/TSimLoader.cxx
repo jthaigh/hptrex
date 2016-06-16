@@ -17,6 +17,8 @@ trex::TSimLoader::TSimLoader(std::string inputFile){
 
 void trex::TSimLoader::LoadEvent(unsigned int i){
 
+  std::cout << "LOADING EVENT # " << i << std::endl;
+
   //Delete hits from last event
   for(std::vector<trex::TTPCHitPad*>::iterator hitPadIter=fHits.begin();hitPadIter!=fHits.end();++hitPadIter){
     delete *hitPadIter;
@@ -31,13 +33,21 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
   fHits.clear();
   fVoxels.clear();
 
-  
-  fTree->GetEntry(i);
+  std::cout << " PEVIOUS EVENT HAS BEEN CLEANED UP " << std::endl;
 
-  HitCollection simHits = fSimulDataBranch->getTpcFidHits();
+  
+  fVoxelsTree->GetEntry(i);
+
+  std::cout << "JUST TRIED GETTING ENTRY FROM fTree" << std::endl;
+
+  //HitCollection simHits = fSimulDataBranch->getTpcFidHits();
   //THnSparseF VoxelCollection = (THnSparseF) fVoxelBranch->Clone();   
 
+  std::cout << "BRANCHES HAVE BEEN SET UP. ENTERING LOOP NOW." << std::endl;
+
   Int_t nVoxels = fVoxelBranch->GetNbins(); 
+
+  std::cout << "FOUND " << nVoxels << " Voxels " << std::endl; 
 
   for(int linInd=0; linInd<nVoxels; ++linInd){
 
