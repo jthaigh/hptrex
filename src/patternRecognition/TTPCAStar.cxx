@@ -267,9 +267,9 @@ void trex::TTPCAStar::ClearRedundancies(trex::TTPCVolGroupMan* volGroupMan, std:
     for(std::vector< trex::TTPCVolGroup >::iterator grpIt = groups.begin(); grpIt != groups.end(); ++grpIt){
       if(std::find(delGroups.begin(),delGroups.end(),grpIt)==delGroups.end()){
       newInGroups.push_back(*grpIt);
+      }
     }
       groups = std::move(newInGroups);
-    }
   }
 
   // parallel arrays for groups and list of groups they overlap
