@@ -8,6 +8,7 @@
 #include <TVector3.h>
 #include "TFile.h"
 #include "TTree.h"
+#include <THnSparse.h>
 
 //TREx
 #include "TTPCHitPad.hxx"
@@ -27,17 +28,35 @@ namespace trex{
 
     unsigned int GetNEvents();
 
+
     inline std::vector<trex::TTPCHitPad*>& GetHits(){return fHits;}
+
+    
+    unsigned int GetNVoxels();
+
+    struct voxel {
+      double x_pos;
+      double y_pos;
+      double z_pos;
+      double time;
+
+      double Edep;
+    };
+
+    inline std::vector<voxel*>& GetVoxels(){return fVoxels;}
 
   private:
 
     TFile* fFile;
 
     TTree* fTree;
+    TTree* fVoxelsTree;
 
     std::vector<trex::TTPCHitPad*> fHits;
-    
+    std::vector<voxel*> fVoxels;
+
     SimulData* fSimulDataBranch;
+    THnSparseF* fVoxelBranch;
 
   };
 }
