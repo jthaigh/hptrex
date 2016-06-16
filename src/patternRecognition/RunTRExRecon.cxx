@@ -23,7 +23,7 @@ int main(int argc,const char** argv){
     }
 
     trex::TTPCTRExPatAlgorithm trexAlg;
-    std::cout<<"1"<<std::endl;
+    std::cout<<"EVERYTHING LOADED! - NOW ATTEMPTING TO PROCESS"<<std::endl;
     trexAlg.Process(hitPads,usedHits,unusedHits);
   }
 }

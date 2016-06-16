@@ -41,9 +41,16 @@ namespace trex{
       double time;
 
       double Edep;
+      
+      void printVoxel() {
+	if(Edep<10){
+	  std::cout  << "\n" <<  x_pos << " : " << y_pos << " :  " << z_pos << "\n" << "     ---------\n" << "     |       |\n" << "     |   " << Edep << "   |\n" << "     |       |\n" << "     ---------" << std::endl; }
+	else{std::cout << "\n" <<  x_pos << " : " << y_pos << " :  " << z_pos << "\n" << "     ---------\n" << "     |       |\n" << "     |  " << Edep << "   |\n" << "     |       |\n" << "     ---------" << std::endl;}
+      };     
     };
 
     inline std::vector<voxel*>& GetVoxels(){return fVoxels;}
+
 
   private:
 
