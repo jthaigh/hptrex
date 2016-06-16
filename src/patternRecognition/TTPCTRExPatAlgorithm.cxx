@@ -181,14 +181,20 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     alg.ProduceContainers();
   };
 
+  std::cout<<"14"<<std::endl;
+
   // set up container for hitpad level unused
   std::vector<trex::TTPCHitPad*> usedTREx;
+
+  std::cout<<"15"<<std::endl;
 
   // get patterns
   subEvent = 0;
   for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
     trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
     subEvent++;
+
+    std::cout<<"16"<<std::endl;
 
     //MDH TODO - This is where the output needs to be generated...
     // produce pattern for each sub-algorithm
