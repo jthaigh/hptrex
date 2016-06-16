@@ -70,7 +70,7 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
 
     //Translate coordinates into positions
     for(int dim=0; dim<3; ++dim){
-      position[dim]=mins[dim] + (coords[dim] * 10);
+      position[dim]=(mins[dim]/10) + coords[dim]; //position in cm
     }
 
     
