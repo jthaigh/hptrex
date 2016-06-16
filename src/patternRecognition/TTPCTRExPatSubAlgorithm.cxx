@@ -17,13 +17,28 @@ trex::TTPCTRExPatSubAlgorithm::TTPCTRExPatSubAlgorithm(trex::TTPCLayout* layout)
 }
 trex::TTPCTRExPatSubAlgorithm::~TTPCTRExPatSubAlgorithm(){
   // delete groups of hits and path finders
-  delete fVolGroupMan;
-  delete fAStar;
+  if(fVolGroupMan) delete fVolGroupMan;
+  if(fAStar) delete fAStar;
 
   //MDH
   //Nobody had better use the pattern after we destroy the subalgorithm...
   //This is an output object that needs to be thoroughly re-engineered anyway
   //delete fPattern;
+}
+
+trex::TTPCTRExPatSubAlgorithm::TTPCTRExPatSubAlgorithm(trex::TTPCTRExPatSubAlgorithm&& in){
+  fHitMap=std::move(in.fHitMap);
+  fVolGroupMan=in.fVolGroupMan;
+  fAStar=in.fAStar;
+  fTracks=std::move(in.fTracks);
+  fHasHits=in.fHasHits;
+  fHasValidPaths=in.fHasValidPaths;
+  fTPC=in.fTPC;
+  fLayout=in.fLayout;
+  fPrimary=in.fPrimary;
+
+  in.fAStar=0;
+  in.fVolGroupMan=0;
 }
 
 void trex::TTPCTRExPatSubAlgorithm::SetUpHits(std::map<long, trex::TTPCUnitVolume*>& map, trex::TTPCAStar* aStarCopy){

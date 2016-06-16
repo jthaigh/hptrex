@@ -34,6 +34,11 @@ namespace trex{
       /// Default destructor
       ~TTPCTRExPatSubAlgorithm();
 
+      TTPCTRExPatSubAlgorithm(const TTPCTRExPatSubAlgorithm& in) = delete;
+
+    TTPCTRExPatSubAlgorithm(TTPCTRExPatSubAlgorithm&& in);
+      
+
       /// Set up pattern recognition algorithm cells from an iterable map of previously defined ones
       void SetUpHits(std::map<long, trex::TTPCUnitVolume*>& map, trex::TTPCAStar* aStarCopy=0);
 

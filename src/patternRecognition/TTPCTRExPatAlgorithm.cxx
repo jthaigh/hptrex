@@ -176,7 +176,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   // first pass of processing
   int subEvent = 0;
   for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
-    trex::TTPCTRExPatSubAlgorithm alg = *algIt;
+    trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
     subEvent++;
     alg.ProduceContainers();
   };
