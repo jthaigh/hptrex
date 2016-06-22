@@ -87,8 +87,6 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
 
     fHits.push_back(hitPadPtr);
 
-    fVoxels.at(linInd)->printVoxel(); 
-
   }
 
   //for(HitCollection::iterator hitIter=simHits.begin();hitIter!=simHits.end();++hitIter){

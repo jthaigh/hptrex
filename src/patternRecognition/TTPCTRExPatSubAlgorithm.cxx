@@ -168,7 +168,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   // clear empties
   std::vector< trex::TTPCOrderedVolGroup >::iterator pathDel = truePaths.begin();
   while(pathDel != truePaths.end()){
-    if(!pathDel->size()) truePaths.erase(pathDel);
+    if(!pathDel->size()) pathDel=truePaths.erase(pathDel);
     else pathDel ++;
   }
 

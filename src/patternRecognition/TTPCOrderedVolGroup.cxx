@@ -28,15 +28,15 @@ void trex::TTPCOrderedVolGroup::SetUp(){
   fClosed = false;
 }
 
-void trex::TTPCOrderedVolGroup::AddFrontHits(trex::TTPCVolGroup& frontHits){
+void trex::TTPCOrderedVolGroup::AddFrontHits(const trex::TTPCVolGroup& frontHits){
   fFrontHits = frontHits;
   fAddedFrontHits = true;
 }
-void trex::TTPCOrderedVolGroup::AddBackHits(trex::TTPCVolGroup& backHits){
+void trex::TTPCOrderedVolGroup::AddBackHits(const trex::TTPCVolGroup& backHits){
   fBackHits = backHits;
   fAddedBackHits = true;
 }
-void trex::TTPCOrderedVolGroup::AddExtendedHits(trex::TTPCVolGroup& extendedHits){
+void trex::TTPCOrderedVolGroup::AddExtendedHits(const trex::TTPCVolGroup& extendedHits){
   fHasExtendedHits = true;
   fExtendedHits = extendedHits;
 }

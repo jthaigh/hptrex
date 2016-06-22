@@ -19,7 +19,6 @@ int main(int argc,const char** argv){
 
     for(int i=0;i<hitPads.size();++i){
       TVector3 pos=hitPads[i]->GetPosition();
-      std::cout<<"Hitpos: "<<pos.X()<<", "<<pos.Y()<<", "<<pos.Z()<<std::endl;
     }
 
     trex::TTPCTRExPatAlgorithm trexAlg;

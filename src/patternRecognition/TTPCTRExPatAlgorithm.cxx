@@ -43,14 +43,14 @@ void trex::TTPCTRExPatAlgorithm::CleanUp(){
 
 void trex::TTPCTRExPatAlgorithm::PrepareHits(std::vector<trex::TTPCHitPad*>& hits){
   fHits=hits;
-
+  if(!fHits.size())return;
   // work out minimum and maximum cell ids in x, y and z
-  int minX = +99999;
-  int maxX = -99999;
-  int minY = +99999;
-  int maxY = -99999;
-  int minZ = +99999;
-  int maxZ = -99999;
+  int minX = +9999999;
+  int maxX = -9999999;
+  int minY = +9999999;
+  int maxY = -9999999;
+  int minZ = +9999999;
+  int maxZ = -9999999;
   for (std::vector<trex::TTPCHitPad*>::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt){
     trex::TTPCHitPad* hit = *hitIt;
 
@@ -66,9 +66,6 @@ void trex::TTPCTRExPatAlgorithm::PrepareHits(std::vector<trex::TTPCHitPad*>& hit
     maxZ = std::max(maxZ, cell.z);
   };
 
-  // determine if any hits have been added
-  fHasHits = (maxX >= 0 && maxY >= 0 && maxZ >= 0);
-  if (!fHasHits) return;
 
   // add minimum and maximum cell ids in x, y and z to layout
   fMasterLayout->SetRanges(minX,maxX, minY,maxY, minZ,maxZ);
@@ -84,8 +81,14 @@ void trex::TTPCTRExPatAlgorithm::PrepareHits(std::vector<trex::TTPCHitPad*>& hit
     long id = fMasterLayout->Mash(cell.x, cell.y, cell.z);
 
     // ignore cells below or above minima or maxima
-    if (cell.x < minX || cell.y < minY || cell.z < minZ) continue;
-    if (cell.x > maxX || cell.y > maxY || cell.z > maxZ) continue;
+    if (cell.x < minX || cell.y < minY || cell.z < minZ){
+      std::cout<<"Cell out of range!"<<std::endl;
+      continue;
+    }
+    if (cell.x > maxX || cell.y > maxY || cell.z > maxZ){
+ std::cout<<"Cell out of range!"<<std::endl;
+      continue;
+    }
 
     // see if a cell already exists at this position
     std::map<long, trex::TTPCUnitVolume*>::iterator el = fMasterHitMap.find(id);
@@ -136,40 +139,30 @@ void trex::TTPCTRExPatAlgorithm::GetPatterns(trex::TReconObjectContainer *foundP
 
 void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused){
 
-  std::cout<<"2"<<std::endl;
+  std::cout<<"Number of hit pads: "<<hits.size()<<std::endl;
   // master layout for all sub-events
   fMasterLayout = new trex::TTPCLayout();
-  std::cout<<"3"<<std::endl;
   // reset group IDs
   trex::TTPCVolGroup::ResetFreeID();
   // prepare hits
   PrepareHits(hits);
-  std::cout<<"4"<<std::endl;
   // master manager for all unit volumes
   fMasterVolGroupMan = new trex::TTPCVolGroupMan(fMasterLayout);
-  std::cout<<"5"<<std::endl;
   std::cout<<"Number of hits: "<<fMasterHitMap.size()<<std::endl;
   fMasterVolGroupMan->AddPrimaryHits(fMasterHitMap);
-  std::cout<<"6"<<std::endl;
+
   // split all hits up into lists of sub events, with separate group for high charge ones if needed
   std::vector< trex::TTPCVolGroup > subEvents;
-  std::cout<<"7"<<std::endl;
   fMasterVolGroupMan->GetConnectedHits(subEvents, trex::TTPCConnection::path);
-  std::cout<<"8"<<std::endl;
   std::cout<<"Number of subevents: "<<subEvents.size()<<std::endl;
   // push all groups of decent size into sub events
   for(unsigned int i=0; i<subEvents.size(); ++i){
-    std::cout<<"9"<<std::endl;
     trex::TTPCVolGroup& subEvent = subEvents.at(i);
-    std::cout<<"10"<<std::endl;
     if(fMasterVolGroupMan->CheckUsability(subEvent)){
-      std::cout<<"11"<<std::endl;
       // create sub-algorithm for each sub-event
       fSubAlgorithms.emplace_back(fMasterLayout);
-      std::cout<<"12"<<std::endl;
       // set hit selection for sub-event
       fSubAlgorithms.back().SetUpHits(subEvent.GetHitMap());
-      std::cout<<"13"<<std::endl;
     };
   };
 
@@ -181,12 +174,9 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     alg.ProduceContainers();
   };
 
-  std::cout<<"14"<<std::endl;
 
   // set up container for hitpad level unused
   std::vector<trex::TTPCHitPad*> usedTREx;
-
-  std::cout<<"15"<<std::endl;
 
   // get patterns
   subEvent = 0;
@@ -194,7 +184,6 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
     subEvent++;
 
-    std::cout<<"16"<<std::endl;
 
     //MDH TODO - This is where the output needs to be generated...
     // produce pattern for each sub-algorithm

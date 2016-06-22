@@ -23,7 +23,7 @@ namespace trex{
 }
 
 /// class for holding and operating on groups of the cells used in feature finding and path finding
-class trex::TTPCVolGroup : public TObject {
+class trex::TTPCVolGroup{
   public:
     /// Constructor
     TTPCVolGroup(trex::TTPCLayout* layout, unsigned int id=0);

@@ -25,7 +25,7 @@ namespace trex{
 }
 
 /// class for holding an ordered chain of cells between two groups, and also holding pointers to the groups themselves
-class trex::TTPCOrderedVolGroup : public TObject {
+class trex::TTPCOrderedVolGroup {
   public:
     /// Default constructor
   //    TTPCOrderedVolGroup();
@@ -35,11 +35,11 @@ class trex::TTPCOrderedVolGroup : public TObject {
     virtual ~TTPCOrderedVolGroup();
 
     /// Add a pointer to the hits corresponding to hits near the start of this group (hits near hit at size()-1 index)
-    void AddFrontHits(trex::TTPCVolGroup& frontHits);
+    void AddFrontHits(const trex::TTPCVolGroup& frontHits);
     /// Add a pointer to the hits corresponding to hits near the end of this group (hits near hit at 0 index)
-    void AddBackHits(trex::TTPCVolGroup& backHits);
+    void AddBackHits(const trex::TTPCVolGroup& backHits);
     /// Add a pointer to extended group of hits associated with this path
-    void AddExtendedHits(trex::TTPCVolGroup& extendedHits);
+    void AddExtendedHits(const trex::TTPCVolGroup& extendedHits);
 
     /// Check front hits exist and are not empty
     bool HasFrontHits(){ return fAddedFrontHits ? !fFrontHits.empty() : false; }
