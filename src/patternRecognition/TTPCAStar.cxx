@@ -135,7 +135,7 @@ void trex::TTPCAStar::ConnectVertexGroupsOrdered(trex::TTPCVolGroupMan* volGroup
   for(std::vector< trex::TTPCVolGroup >::iterator ver = vertices.begin(); ver != vertices.end(); ++ver){
     for(std::vector< trex::TTPCVolGroup >::iterator grp = edges.begin(); grp != edges.end(); ++grp){
       // add connection between the groups to set of connections
-      connections.push_back(fLayout);
+      connections.emplace_back(fLayout);
       ConnectGroupPair(*ver,*grp,connections.back(), true,false);
       if(connections.back().empty()) connections.pop_back();
       // break out if the number of iterations is too high
@@ -145,13 +145,7 @@ void trex::TTPCAStar::ConnectVertexGroupsOrdered(trex::TTPCVolGroupMan* volGroup
     if(i>=maxNo) break;
   };
 
-  // connect vertices to each other as well
-  std::vector< trex::TTPCOrderedVolGroup > vertexConnections;
-  ConnectGroupsOrdered(volGroupMan, vertices, vertexConnections, true, false, maxNo);
-  // add inter-vertex connections to group
-  for(std::vector< trex::TTPCOrderedVolGroup >::iterator it = vertexConnections.begin(); it != vertexConnections.end(); ++it){
-    connections.push_back(*it);
-  };
+  ConnectGroupsOrdered(volGroupMan, vertices, connections, true, false, maxNo);
 
 }
 
@@ -385,7 +379,7 @@ void trex::TTPCAStar::ClearVertexConnectionRedundancies(trex::TTPCVolGroupMan* v
       }
     }
     if(!redundancy){
-      outPaths.push_back(*path);
+      outPaths.emplace_back(std::move(*path));
     }
   }
 

@@ -18,6 +18,7 @@ trex::TTPCPathVolume::TTPCPathVolume(trex::TTPCUnitVolume* unitVolume){
   fIsXCluster = false;
 }
 trex::TTPCPathVolume::~TTPCPathVolume(){
+
 }
 
 std::vector<trex::TTPCUnitVolume*> trex::TTPCPathVolume::GetExtendedCell(int filter){

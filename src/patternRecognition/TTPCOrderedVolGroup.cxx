@@ -9,10 +9,32 @@ trex::TTPCOrderedVolGroup::TTPCOrderedVolGroup(trex::TTPCLayout* layout):
   fLayout = layout;
   SetUp();
 }
+
+trex::TTPCOrderedVolGroup::TTPCOrderedVolGroup(trex::TTPCOrderedVolGroup&& in):
+  fFrontHits(in.fFrontHits),fBackHits(in.fBackHits), fExtendedHits(in.fExtendedHits){
+
+    fLayout=in.fLayout;
+    fHits=std::move(in.fHits);
+    in.fHits.clear();
+    fAddedFrontHits=in.fAddedFrontHits;
+    fAddedBackHits=in.fAddedBackHits;
+    fFrontIsVertex=in.fFrontIsVertex;
+    fBackIsVertex=in.fBackIsVertex;
+    fHasExtendedHits=in.fHasExtendedHits;
+    fXMin=in.fXMin;
+    fXMax=in.fXMax;
+    fYMin=in.fYMin;
+    fYMax=in.fYMax;
+    fZMin=in.fZMin;
+    fZMax=in.fZMax;
+    fIsXPath=in.fIsXPath;
+    fClosed=in.fClosed;
+}
+
 trex::TTPCOrderedVolGroup::~TTPCOrderedVolGroup(){
-  for(std::vector<trex::TTPCPathVolume*>::iterator pathVol = fHits.begin(); pathVol != fHits.end(); ++pathVol){
-    delete *pathVol;
-  };
+  for(auto hit=fHits.begin();hit!=fHits.end();++hit){
+    delete *hit;
+  }
 }
 
 void trex::TTPCOrderedVolGroup::SetUp(){
@@ -94,6 +116,7 @@ void trex::TTPCOrderedVolGroup::StripX(){
     int curZ = pathVol->GetZ();
 
     if((curY == lastY) && (curZ == lastZ)){
+      delete *pathVolIt;
       *pathVolIt = 0;
     };
 

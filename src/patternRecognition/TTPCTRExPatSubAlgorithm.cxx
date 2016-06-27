@@ -103,7 +103,6 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
     for(std::map<long, trex::TTPCUnitVolume*>::iterator volIt = extraSubVolume.begin(); volIt != extraSubVolume.end(); ++volIt){
       subVolumeHits[volIt->first] = volIt->second;
     }
-
     subVolumeMan.AddPrimaryHits(subVolumeHits);
     std::vector<trex::TTPCVolGroup> extraEdgeGroups=subVolumeMan.GetEdgeGroups();
     // add unmatched edges to main group
@@ -114,7 +113,6 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
 
   // clear redundant edge groups (i.e. ones which are actually just half way points along existing paths)
   fAStar->ClearRedundancies(fVolGroupMan, edgeGroups);
-
 
   // connect pairs of edge groups
 
@@ -136,6 +134,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
     // make sure number of vertices is two less than number of track ends
     fVolGroupMan->CleanUpVertices(edgeGroups, vertices);
     // make sure vertices contain all the right hits
+
     fVolGroupMan->BulkGroups(vertices);
 
     if(vertices.size() > 0){
@@ -166,15 +165,16 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
     fVolGroupMan->ClusterGroupFriends(*truePathIt, false, true);
   };
   // clear empties
-  std::vector< trex::TTPCOrderedVolGroup >::iterator pathDel = truePaths.begin();
-  while(pathDel != truePaths.end()){
-    if(!pathDel->size()) pathDel=truePaths.erase(pathDel);
-    else pathDel ++;
+
+  std::vector<trex::TTPCOrderedVolGroup> nonEmptyPaths;
+  for(std::vector< trex::TTPCOrderedVolGroup >::iterator pathKeep = truePaths.begin();pathKeep != truePaths.end();++pathKeep){
+  if(pathKeep->size()) nonEmptyPaths.emplace_back(std::move(*pathKeep));
   }
+
+  truePaths=std::move(nonEmptyPaths);
 
   // look for kinks in paths
   fVolGroupMan->BreakPathsAboutKinks(truePaths);
-  
 
   for(std::vector< trex::TTPCOrderedVolGroup >::iterator brokenPathIt = truePaths.begin(); brokenPathIt != truePaths.end(); ++brokenPathIt){
     fVolGroupMan->ClusterGroupFriends(*brokenPathIt, true, true);

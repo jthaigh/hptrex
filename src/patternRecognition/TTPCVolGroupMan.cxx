@@ -891,22 +891,18 @@ void trex::TTPCVolGroupMan::FindDiscontinuity(float& pos, float& step, float siz
 void trex::TTPCVolGroupMan::BreakPathsAboutKinks(std::vector< trex::TTPCOrderedVolGroup >& paths){
   std::vector< trex::TTPCVolGroup > inVertices = GetJunctionsFromPaths(paths);
   std::vector< trex::TTPCOrderedVolGroup > outPaths;
-
   // loop over all input paths
   for(std::vector< trex::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
     trex::TTPCOrderedVolGroup& path = *pathIt;
-
     outPaths.emplace_back(fLayout);
-    trex::TTPCOrderedVolGroup& outPath1=outPaths.back();
     outPaths.emplace_back(fLayout);
+    trex::TTPCOrderedVolGroup& outPath1=outPaths[outPaths.size()-2];
     trex::TTPCOrderedVolGroup& outPath2=outPaths.back();
-
     trex::TTPCVolGroup kinkGroup(fLayout);
     GetFarHitsPreGroup(path, kinkGroup);
     if(!kinkGroup.size()){
       GetFarHitsGroup(path, kinkGroup);
     }
-
     TVector3 kinkPosXYZ = kinkGroup.GetAveragePosXYZ();
 
     std::vector<trex::TTPCPathVolume*>::iterator path1EndIt = path.end();
@@ -928,17 +924,16 @@ void trex::TTPCVolGroupMan::BreakPathsAboutKinks(std::vector< trex::TTPCOrderedV
         }
       }
     }
-
     // build copy of old hits so the code doesn't get confused when separating them
     trex::TTPCVolGroup newExtHits1(fLayout);
     trex::TTPCVolGroup newExtHits2(fLayout);
+
     newExtHits1.AddHits(path.GetExtendedHits());
     newExtHits2.AddHits(path.GetExtendedHits());
 
     outPath1.AddExtendedHits(newExtHits1);
     outPath1.AddBackHits(path.GetBackHits());
     outPath1.SetBackIsVertex(path.GetBackIsVertex());
-
     // if broken, tie up this path and start another
     if(broken){
       outPath1.AddFrontHits(kinkGroup);
@@ -1243,15 +1238,15 @@ void trex::TTPCVolGroupMan::SeparateXPathHits(std::vector< trex::TTPCOrderedVolG
   };
 
   // now remove all x-paths
-  std::vector< trex::TTPCOrderedVolGroup >::iterator reaper = paths.begin();
-  while(reaper != paths.end()){
-    if(reaper->GetIsXPath()){
-      paths.erase(reaper);
+  std::vector<trex::TTPCOrderedVolGroup> pathsToKeep;
+
+  for(std::vector< trex::TTPCOrderedVolGroup >::iterator reaper = paths.begin(); reaper != paths.end(); ++reaper){
+    if(!reaper->GetIsXPath()){
+      pathsToKeep.emplace_back(std::move(*reaper));
     }
-    else{
-      ++reaper;
-    };
-  };
+  }
+  paths=std::move(pathsToKeep);
+
 }
 
 void trex::TTPCVolGroupMan::SeparateEmptyClusters(std::vector< trex::TTPCOrderedVolGroup >& paths){
@@ -2229,7 +2224,7 @@ void trex::TTPCVolGroupMan::SanityFilter(std::vector< trex::TTPCOrderedVolGroup 
 
     // ensure path contains above threshold of clusters
     if(path.size() < fLayout->GetMinPathClusters()) continue;
-    output.push_back(path);
+    output.emplace_back(std::move(path));
   };
 
   input=std::move(output);

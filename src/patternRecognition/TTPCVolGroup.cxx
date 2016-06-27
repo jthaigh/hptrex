@@ -2,12 +2,12 @@
 #include "TTPCVolGroup.hxx"
 
 //ClassImp(trex::TTPCVolGroup);
-trex::TTPCVolGroup::~TTPCVolGroup(){;}
+trex::TTPCVolGroup::~TTPCVolGroup(){
+}
 
 unsigned int trex::TTPCVolGroup::sMaxID = 0;
 
 trex::TTPCVolGroup::TTPCVolGroup(trex::TTPCLayout* layout, unsigned int id){
-  fHitMap = std::map<long, trex::TTPCUnitVolume*>();
 
   fXLean = 0;
   fYLean = 0;
@@ -23,8 +23,6 @@ trex::TTPCVolGroup::TTPCVolGroup(trex::TTPCLayout* layout, unsigned int id){
   fZMax = -9999;
   fZSize = 0;
 
-  fAveragePosition = TVector3();
-  fAveragePad = trex::TTPCCellInfo3D();
   fSigmaPadX = 0.;
   fSigmaPadY = 0.;
   fSigmaPadZ = 0.;

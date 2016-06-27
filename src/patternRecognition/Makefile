@@ -3,7 +3,7 @@
 #=========================================================
 
 #CC	= g++
-COPTS	= -Wall -g -fPIC -DLINUX -O2 -std=c++11 -Wl,-rpath,$(brew --prefix)/lib
+COPTS	= -Wall -g -fPIC -DLINUX -O2 -std=c++11 -Wl,-rpath,$(shell brew --prefix)/lib
 
 #LIBS	= -L/usr/local/lib -lftd2xx
 

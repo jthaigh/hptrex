@@ -34,6 +34,10 @@ class trex::TTPCOrderedVolGroup {
     /// Destructor
     virtual ~TTPCOrderedVolGroup();
 
+  TTPCOrderedVolGroup(const TTPCOrderedVolGroup& in) = delete;
+  TTPCOrderedVolGroup(TTPCOrderedVolGroup&& in);
+  TTPCOrderedVolGroup& operator=(const TTPCOrderedVolGroup& in) = delete;
+
     /// Add a pointer to the hits corresponding to hits near the start of this group (hits near hit at size()-1 index)
     void AddFrontHits(const trex::TTPCVolGroup& frontHits);
     /// Add a pointer to the hits corresponding to hits near the end of this group (hits near hit at 0 index)
@@ -175,9 +179,16 @@ class trex::TTPCOrderedVolGroup {
     void SetIsXPath(bool isXPath){ fIsXPath = isXPath; }
 
     /// Erase element from hits in this group
-    void erase(std::vector<trex::TTPCPathVolume*>::iterator hit){ fHits.erase(hit); fClosed = false; }
+  void erase(std::vector<trex::TTPCPathVolume*>::iterator hit){ delete *hit; fHits.erase(hit); fClosed = false; }
     /// Erase elements from hits in this group
-    void erase(std::vector<trex::TTPCPathVolume*>::iterator begin, std::vector<trex::TTPCPathVolume*>::iterator end){ fHits.erase(begin, end); fClosed = false; }
+    
+  void erase(std::vector<trex::TTPCPathVolume*>::iterator begin, std::vector<trex::TTPCPathVolume*>::iterator end){ 
+      for(auto iter=begin;iter!=end;++iter){
+	delete &*iter;
+      }
+      fHits.erase(begin, end); fClosed = false; 
+    }
+
     /// Returns whether hit vector is empty 
     bool empty(){ return fHits.empty(); }
     /// Returns size of hit vector
