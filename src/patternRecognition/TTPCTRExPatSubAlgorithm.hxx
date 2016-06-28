@@ -55,10 +55,8 @@ namespace trex{
       /// Endure that none of the containers in this sub-object are empty
       void CleanContainers();
       
-    //MDH
-    //Needs completely rewriting for new output objects
     /// Produce pattern so it can be returned
-      //void ProducePattern(std::vector<trex::TTPCHitPad*>& used);
+    void ProducePattern();//std::vector<trex::TTPCHitPad*>& used);
 
       /// Return and this object's pattern
       //trex::TTPCPattern* GetPattern();
@@ -133,6 +131,11 @@ namespace trex{
 
       /// Whether this is the primary sub group
       bool fPrimary;
+
+    std::vector<std::vector<trex::TTPCHitPad*> > fPaths;
+    std::vector<std::vector<trex::TTPCHitPad*> > fJunctions;						       
+    std::vector< std::vector<unsigned int> > fJunctionsToPathsMap;
+
   };
 }
 

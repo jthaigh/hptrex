@@ -214,137 +214,96 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
 //  return fPattern;
 //}
 
-//MDH
-//Get rid of this for now since it needs to be rewritten for new output objects
-/*
-void trex::TTPCTRExPatSubAlgorithm::ProducePattern(trex::THitSelection* used){
-  if(fPattern){
-    return;
-  };
+void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used){
 
-  // final paths and junctions
-  std::vector< trex::THandle<trex::TTPCPath> > paths = std::vector< trex::THandle<trex::TTPCPath> >();
-  std::vector< trex::THandle<trex::TTPCJunction> > junctions = std::vector< trex::THandle<trex::TTPCJunction> >();
+  fPaths.clear();
+  fJunctions.clear();
+  fJunctionsToPathsMap.clear();
 
-  // temporary vectors for holding candidate paths and junctions, and parallel vector of groups associated with junctions
-  std::vector< trex::THandle<trex::TTPCPath> > tempPaths = std::vector< trex::THandle<trex::TTPCPath> >();
-  std::vector< trex::THandle<trex::TTPCJunction> > tempJunctions = std::vector< trex::THandle<trex::TTPCJunction> >();
-  std::vector< trex::THandle<trex::TTPCVolGroup> > tempJunctionGroups = std::vector< trex::THandle<trex::TTPCVolGroup> >();
+  std::vector< trex::TTPCVolGroup* > junctionGroups;
 
-  for(std::vector< trex::THandle<trex::TTPCOrderedVolGroup> >::iterator trackIt = fTracks.begin(); trackIt != fTracks.end(); ++trackIt){
-    trex::THandle<trex::TTPCOrderedVolGroup> track = *trackIt;
+  for(std::vector< trex::TTPCOrderedVolGroup >::iterator trackIt = fTracks.begin(); trackIt != fTracks.end(); ++trackIt){
+    trex::TTPCOrderedVolGroup& track = *trackIt;
 
     // ignore if empty
-    trex::THandle<trex::THitSelection> clusters = track->GetClusters();
-    if(!clusters->size()) continue;
+    std::vector<trex::TTPCHitPad*> clusters = track.GetClusters();
+    if(!clusters.size()) continue;
 
-    // create new path
-    trex::THandle<trex::TTPCPath> path( new trex::TTPCPath() );
-    tempPaths.push_back(path);
+    fPaths.emplace_back(std::move(clusters));
 
-    // otherwise add all hits to path
-    trex::THitSelection* copyClusters = new trex::THitSelection(*clusters);
-    path->AddHits(copyClusters);
-
-    // also save if delta criteria met
-    if(track->GetDeltaCriteriaMet()){
-      path->SetPID(trex::TReconPID::kEM, 1.);
-    };
     // and save if the path is in the x direction
-    if(track->GetIsXPath()){
-      path->SetIsXPath(true);
-    };
+    //    if(track->GetIsXPath()){
+    //  path->SetIsXPath(true);
+    //};
 
     // save groups for junctions
-    std::vector< trex::THandle<trex::TTPCVolGroup> > junctionGroups = std::vector< trex::THandle<trex::TTPCVolGroup> >();
-    if(track->HasBackHits()) junctionGroups.push_back(track->GetBackHits());
-    if(track->HasFrontHits()) junctionGroups.push_back(track->GetFrontHits());
+    std::vector< trex::TTPCVolGroup* > pathJunctionGroups;
+    if(track.HasBackHits()) pathJunctionGroups.push_back(&(track.GetBackHits()));
+    if(track.HasFrontHits()) pathJunctionGroups.push_back(&(track.GetFrontHits()));
+
     // determine if junction candidate has already been found and create a group for it if it hasn't
-    for(std::vector< trex::THandle<trex::TTPCVolGroup> >::iterator junctionGroupIt = junctionGroups.begin(); junctionGroupIt != junctionGroups.end(); ++junctionGroupIt){
-      trex::THandle<trex::TTPCVolGroup> junctionGroup = *junctionGroupIt;
+    for(std::vector< trex::TTPCVolGroup* >::iterator junctionGroupIt = pathJunctionGroups.begin(); junctionGroupIt != pathJunctionGroups.end(); ++junctionGroupIt){
+      trex::TTPCVolGroup* junctionGroup = *junctionGroupIt;
       bool found = false;
 
-      int iMax = tempJunctions.size();
+      int iMax = fJunctions.size();
       for(int i=0; i<iMax; i++){
-        trex::THandle<trex::TTPCJunction> tempJunction = tempJunctions[i];
-        trex::THandle<trex::TTPCVolGroup> tempJunctionGroup = tempJunctionGroups[i];
 
         // if the junction has the same id as the temporary, add this path to it
-        if(junctionGroup->GetID() == tempJunctionGroup->GetID()){
+        if(junctionGroup->GetID() == junctionGroups[i]->GetID()){
           // if already found, check this path isn't already added and add this path
           bool pathInJunction = false;
-          for(trex::TReconObjectContainer::iterator junctionConstIt = tempJunction->GetConstituents()->begin(); junctionConstIt != tempJunction->GetConstituents()->end(); ++junctionConstIt){
-            if(path == *junctionConstIt){
+          for(auto constituentIt = fJunctionsToPathsMap[i].begin(); 
+	      constituentIt != fJunctionsToPathsMap[i].end();
+	      ++constituentIt){
+            if(fPaths.size()-1 == *constituentIt){
               pathInJunction = true;
               break;
             };
           };
-          if(!pathInJunction) tempJunction->AddConstituent(path);
+          if(!pathInJunction) fJunctionsToPathsMap[i].push_back(fPaths.size()-1);
 
           found = true;
         };
       };
       // if not alread found, create a new one
       if(!found){
-        trex::THitSelection* junctionHitSelection = junctionGroup->GetHitSelection();
-        TVector3 tempVect3 = junctionGroup->GetAverageVol()->GetPos();
+	/*        TVector3 tempVect3 = junctionGroup->GetAverageVol()->GetPos();
         double tempTime = junctionGroup->GetAverageVol()->GetTime();
         // Get a guess X position based on a default T0 of 0.0 just to have a useful X position downstream.
         double tempX = TTPCUtils::GetXWithT0(tempTime, 0.0, (*(junctionHitSelection->begin())));
         tempVect3.SetX(tempX);
         TLorentzVector tempPosition(tempVect3, tempTime);
+	*/
+	fJunctions.emplace_back(junctionGroup->GetHits());
+        fJunctionsToPathsMap.emplace_back();
+	fJunctionsToPathsMap.back().push_back(fPaths.size()-1);
+	junctionGroups.push_back(junctionGroup);
 
-        trex::THandle<trex::TTPCJunction>  junct( new trex::TTPCJunction(tempPosition) );
-        junct->AddHits(junctionHitSelection);
-        junct->AddConstituent(path);
-
-        // make sure these two vectors remain parallel
-        tempJunctions.push_back(junct);
-        tempJunctionGroups.push_back(junctionGroup);
       };
     };
   };
 
-  // add paths that meet criteria
-  for(std::vector< trex::THandle<trex::TTPCPath> >::iterator path = tempPaths.begin(); path != tempPaths.end(); ++path){
-    (*path)->SetId(trex::tpcCalibration().GetPathId());
-    paths.push_back(*path);
-  };
-
-  // add junctions that meet criteria
-  for(std::vector< trex::THandle<trex::TTPCJunction> >::iterator junction = tempJunctions.begin(); junction != tempJunctions.end(); ++junction){
-    if((*junction)->GetNPaths() > 1){
-      (*junction)->SetId(trex::tpcCalibration().GetJunctionId());
-      junctions.push_back(*junction);
-    }
-  };
-
-  // add junctions only.  paths will be extracted from the junctions
-  if(junctions.size() == 0){
-    if(paths.size() == 1){
-      trex::THandle<trex::TTPCPath> thepath = *(paths.begin());
-      fPattern = trex::THandle<trex::TTPCPattern>( new trex::TTPCPattern(thepath) );
-      // One clean single track. Special treatment.
-    }
-    else{
-      // something went wrong - probably an unreconstructable event.  save a null pointer so the main algorithm knows not to add it to list of patterns.
-      if(trex::tpcDebug().PatternRecognition(DB_ERROR)) std::cout << "WARNING: no pattern reconstructed " << std::endl;
-      fPattern = trex::THandle<trex::TTPCPattern>();
-    };
-  } else {
-    fPattern = trex::THandle<trex::TTPCPattern>( new trex::TTPCPattern() );
-    for(std::vector< trex::THandle<trex::TTPCJunction> >::iterator junction = junctions.begin(); junction != junctions.end(); ++junction)
-      fPattern->AddJunction(*junction);
-  };
-  // fill used and unused hits
-  FillUsedHits(used);
-
-  // Call the setup method to define things like the detector bit.
-  if(fPattern){
-    fPattern->SetId(trex::tpcCalibration().GetPatternId());
-    fPattern->InitialSetup();
+  std::cout<<"Built a pattern..."<<std::endl;
+  std::cout<<"  "<<fPaths.size()<<" paths"<<std::endl;
+  std::cout<<"  and  "<<fJunctions.size()<<" junctions"<<std::endl;
+  for(int i=0;i<fPaths.size();++i){
+    std::cout<<"   Path "<<i<<" has "<<fPaths[i].size()<<" hits"<<std::endl;
+    std::cout<<"  **********"<<std::endl;
   }
-  }*/
+  for(int i=0;i<fJunctions.size();++i){
+    std::cout<<"   Junction "<<i<<" has "<<fJunctions[i].size()<<" hits"<<std::endl;
+    std::cout<<"   and is linked to paths:";
+    for(int j=0;j<fJunctionsToPathsMap[i].size();++j){
+      std::cout<<(j==0?" ":", ")<<fJunctionsToPathsMap[i][j]<<std::endl;
+    }
+    std::cout<<"  **********"<<std::endl;
+  }
+  std::cout<<"**************"<<std::endl;
+  // fill used and unused hits
+  //  FillUsedHits(used);
+
+}
 
 std::vector<trex::TTPCHitPad*> trex::TTPCTRExPatSubAlgorithm::GetHits(){
   return fVolGroupMan->GetHits();

@@ -186,8 +186,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
 
     //MDH TODO - This is where the output needs to be generated...
-    // produce pattern for each sub-algorithm
-    //alg.ProducePattern(usedTREx);
+    );
   };
 
   // fill unused hits
