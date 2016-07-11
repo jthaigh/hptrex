@@ -189,7 +189,10 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
   // get patterns
 
-  int iColor=2;
+  
+  int iColor=0;
+  int colors[11]={kBlue, kRed, kYellow, kGreen, kMagenta, kCyan, kOrange, kPink, kAzure, kSpring, kViolet};
+  
   
   for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
     trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
@@ -198,14 +201,17 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     std::vector< std::vector<unsigned int> >& subJPMap=alg.GetJunctionsToPathsMap();
 
     for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
+      int color_index = iColor%11;
+      int color_increment = iColor%4;
       xyGraphs.emplace_back(1);
       xzGraphs.emplace_back(1);
-      xyGraphs.back().SetMarkerColor(iColor);
+      xyGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
       xyGraphs.back().SetMarkerStyle(20);
       xyGraphs.back().SetMarkerSize(0.5);
-      xzGraphs.back().SetMarkerColor(iColor++);
+      xzGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
       xzGraphs.back().SetMarkerStyle(20);
       xzGraphs.back().SetMarkerSize(0.5);
+      iColor++;
       unsigned int iPt=0;
       for(auto iHit=iPath->begin();iHit!=iPath->end();++iHit){
 	TVector3 pos=(*iHit)->GetPosition();
@@ -218,15 +224,17 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     }
     
     for(auto iJunct=subJuncts.begin();iJunct!=subJuncts.end();++iJunct){
+      int color_index = iColor%11;
+      int color_increment = iColor%4;
       xyGraphs.emplace_back(1);
       xzGraphs.emplace_back(1);
-      xyGraphs.back().SetMarkerColor(iColor);
+      xyGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
       xyGraphs.back().SetMarkerStyle(21);
       xyGraphs.back().SetMarkerSize(0.5);
-      xzGraphs.back().SetMarkerColor(iColor++);
+      xzGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
       xzGraphs.back().SetMarkerStyle(21);
       xzGraphs.back().SetMarkerSize(0.5);
-      
+      iColor++;
       unsigned int iPt=0;
       for(auto iHit=iJunct->begin();iHit!=iJunct->end();++iHit){
 	TVector3 pos=(*iHit)->GetPosition();
@@ -272,9 +280,11 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     char buf[20];
     sprintf(buf,"evt_%d_xy",iEvt);
     TCanvas cxy(buf,buf);
-    TH2F dummyxy("dummyxy","dummyxy",
-		 1000,fMasterLayout->GetMinPos().X()-10.,fMasterLayout->GetMaxPos().X()+10.,
-		 1000,fMasterLayout->GetMinPos().Y()-10.,fMasterLayout->GetMaxPos().Y()+10.);
+        
+    TH2F dummyxy("XY-view","XY-view",
+                 1000,fMasterLayout->GetMinPos().X()-10.,fMasterLayout->GetMaxPos().X()+10.,
+                 1000,fMasterLayout->GetMinPos().Y()-10.,fMasterLayout->GetMaxPos().Y()+10.);
+    
     dummyxy.Draw();
     
     for(auto iGr=xyGraphs.begin();iGr!=xyGraphs.end();++iGr){
@@ -288,9 +298,12 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     
     sprintf(buf,"evt_%d_xz",iEvt);
     TCanvas cxz(buf,buf);
-    TH2F dummyxz("dummyxz","dummyxz",
+    
+    TH2F dummyxz("XZ-view","XZ-view",
 		 1000,fMasterLayout->GetMinPos().X()-10.,fMasterLayout->GetMaxPos().X()+10.,
 		 1000,fMasterLayout->GetMinPos().Z()-10.,fMasterLayout->GetMaxPos().Z()+10.);
+    
+
     dummyxz.Draw();
     
     for(auto iGr=xzGraphs.begin();iGr!=xzGraphs.end();++iGr){
