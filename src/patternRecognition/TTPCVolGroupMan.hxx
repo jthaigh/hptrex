@@ -86,14 +86,6 @@ namespace trex{
       void GetFarHitsPreGroup(trex::TTPCOrderedVolGroup& path, trex::TTPCVolGroup& hits);
       /// Get group of hits which could be a track end
       void GetFarHitsGroup(trex::TTPCOrderedVolGroup& path, trex::TTPCVolGroup& hits);
-      /// Find one point along set of paths at which discontinuities occur (the most significant)
-      void GetDiscontinuity(std::vector< trex::TTPCOrderedVolGroup >& paths, trex::TTPCVolGroup& point);
-      /// Find points along set of paths at which discontinuities occur
-      void GetDiscontinuities(std::vector< trex::TTPCOrderedVolGroup >& paths, std::vector< trex::TTPCVolGroup >& points, float diffThreshold=.5, float threshold=2.);
-      /// Get in-path id of a sudden sharp change 
-      int GetDiscontinuityID(trex::TTPCOrderedVolGroup& path, int dimension=1, float threshold=2.);
-      /// Find suddent sharp change in angle along a path 
-      void FindDiscontinuity(float& pos, float& step, float size, TH1F* hist, float threshold=2.);
 
       /// Determine whether a vol overlaps a path 
       bool GetPathVolOverlap(trex::TTPCOrderedVolGroup& path, trex::TTPCUnitVolume* vol, trex::TTPCConnection::Type type = trex::TTPCConnection::edgeMerge);

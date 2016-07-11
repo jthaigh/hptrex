@@ -11,6 +11,7 @@
 
 // ROOT
 #include <TVector3.h>
+#include <TFile.h>
 
 // TREx
 //#include <TTPCPattern.hxx>
@@ -30,7 +31,7 @@ namespace trex{
   class TTPCTRExPatAlgorithm {
     public:
       /// Default constructor
-      TTPCTRExPatAlgorithm();
+      TTPCTRExPatAlgorithm(TFile* plotFile);
       /// Default destructor
       ~TTPCTRExPatAlgorithm();
 
@@ -79,6 +80,7 @@ namespace trex{
       /// Set of sub-algorithms for sub-events in event
       std::vector<trex::TTPCTRExPatSubAlgorithm> fSubAlgorithms;
 
+    TFile* fPlotFile;
     
   };
 }

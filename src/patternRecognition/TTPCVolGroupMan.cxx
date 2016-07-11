@@ -88,6 +88,9 @@ std::vector< trex::TTPCVolGroup > trex::TTPCVolGroupMan::GetEdgeGroups(trex::TTP
     if(z < (inGroup.GetZMin() + layers) ) edgeHitsZLo.AddHit(vol->second);
   };
 
+  std::cout<<"Edge hit sizes: "<<edgeHitsXHi.size()<<", "<<edgeHitsYHi.size()<<", "<<edgeHitsZHi.size()<<", "
+	   <<edgeHitsXLo.size()<<", "<<edgeHitsYLo.size()<<", "<<edgeHitsZLo.size()<<std::endl;
+
   std::vector< trex::TTPCVolGroup > edgeGroups;
   // recursively build groups of hits on x, y and z edges
   if(fiddlyLeans){
@@ -106,6 +109,17 @@ std::vector< trex::TTPCVolGroup > trex::TTPCVolGroupMan::GetEdgeGroups(trex::TTP
     FillWithSplitGroups(edgeGroups, edgeHitsZHi, type, 0,0,1 );
     FillWithSplitGroups(edgeGroups, edgeHitsZLo, type, 0,0,-1);
   };
+
+  std::cout<<"Ingroup min and max at: ("
+	   <<inGroup.GetXMin()<<", "<<inGroup.GetYMin()<<", "<<inGroup.GetZMin()<<"), ("
+	   <<inGroup.GetXMax()<<", "<<inGroup.GetYMax()<<", "<<inGroup.GetZMax()<<") "
+	   <<std::endl;
+
+  std::cout<<"GetEdgeGroups finds groups at: "<<std::endl;
+  for(auto iGrp=edgeGroups.begin();iGrp!=edgeGroups.end();++iGrp){
+    TVector3 pos=iGrp->GetAveragePosition();
+    std::cout<<"  "<<pos.X()<<", "<<pos.Y()<<", "<<pos.Z()<<std::endl;
+  }
 
   // loop over all found groups on x, y and z edges
   for(std::vector< trex::TTPCVolGroup >::iterator grp1It = edgeGroups.begin(); grp1It != edgeGroups.end(); ++grp1It){
@@ -159,12 +173,12 @@ std::vector< trex::TTPCVolGroup > trex::TTPCVolGroupMan::GetEdgeGroups(trex::TTP
 
 void trex::TTPCVolGroupMan::FillWithSplitGroups(std::vector< trex::TTPCVolGroup >& container, trex::TTPCVolGroup& inputHits, trex::TTPCConnection::Type type, int maxFilterX, int maxFilterY, int maxFilterZ){
   //  std::vector< trex::THandle<trex::TTPCVolGroup> > splitGroups = GetSplitGroups(inputHits, type);
-  container=GetSplitGroups(inputHits, type);
-  for(std::vector< trex::TTPCVolGroup >::iterator grp = container.begin(); grp != container.end(); ++grp){
+  std::vector< trex::TTPCVolGroup > containerTmp=GetSplitGroups(inputHits, type);
+  for(std::vector< trex::TTPCVolGroup >::iterator grp = containerTmp.begin(); grp != containerTmp.end(); ++grp){
     if(maxFilterX) grp->SetXLean(maxFilterX);
     if(maxFilterY) grp->SetYLean(maxFilterY);
     if(maxFilterZ) grp->SetZLean(maxFilterZ);
-
+    container.push_back(*grp);
   }
 }
 
@@ -780,112 +794,6 @@ void trex::TTPCVolGroupMan::GetFarHitsGroup(trex::TTPCOrderedVolGroup& path, tre
 
   // default
   return;
-}
-
-void trex::TTPCVolGroupMan::GetDiscontinuity(std::vector< trex::TTPCOrderedVolGroup >& paths, trex::TTPCVolGroup& point){
-  // get focus with arbitrary threshold close to unity
-  std::vector< trex::TTPCVolGroup > discontinuities;
-  GetDiscontinuities(paths, discontinuities, .99, 2.);
-  // return first (should be only) element
-  if(discontinuities.size() > 0){
-    point=*(discontinuities.begin());
-  }
-}
-
-void trex::TTPCVolGroupMan::GetDiscontinuities(std::vector< trex::TTPCOrderedVolGroup >& paths, std::vector< trex::TTPCVolGroup >& points, float diffThreshold, float threshold){
-  trex::TTPCVolGroup inGroup(fLayout);
-
-  // add all discontinuity hits from all paths to group
-  for(std::vector< trex::TTPCOrderedVolGroup >::iterator path = paths.begin(); path != paths.end(); ++path){
-    int discX = GetDiscontinuityID(*path, 1, threshold);
-    int discY = GetDiscontinuityID(*path, 2, threshold);
-    int discZ = GetDiscontinuityID(*path, 3, threshold);
-
-    if (discX > 0) inGroup.AddHit((*path)[discX]->GetUnitVolume());
-    if (discY > 0) inGroup.AddHit((*path)[discY]->GetUnitVolume());
-    if (discZ > 0) inGroup.AddHit((*path)[discZ]->GetUnitVolume());
-  };
-
-  std::vector< trex::TTPCVolGroup > groups;
-
-  GetConnectedHits(inGroup,groups, trex::TTPCConnection::path);
-
-  int maxSize = -999999;
-  // find group of biggest size
-  for(std::vector< trex::TTPCVolGroup >::iterator grp = groups.begin(); grp != groups.end(); ++grp){
-    maxSize = std::max(maxSize, int(grp->size()));
-  };
-  // set cutoff for group size at fraction of maxSize defined by threshold
-  float minSize = float(maxSize) * diffThreshold;
-
-  // build list of groups of size above the threshold
-  for(std::vector< trex::TTPCVolGroup >::iterator grp = groups.begin(); grp != groups.end(); ++grp){
-    if(float(grp->size()) >= minSize){
-      points.push_back(*grp);
-    };
-  };
-
-}
-int trex::TTPCVolGroupMan::GetDiscontinuityID(trex::TTPCOrderedVolGroup& path, int dimension, float threshold){
-  // set up histograms for x, y and z differences
-  float size = float(path.size()-1);
-
-  TH1F* diffs = new TH1F("diffs", "Diffs", size, 1., size);
-
-  // loop over all points in path
-  int i=1;
-  for(std::vector<trex::TTPCPathVolume*>::iterator it = path.begin(); it != path.end()-1; ++it){
-    // get difference of positions
-    TVector3 diff = (*(it+1))->GetPos() - (*(it))->GetPos();
-
-    if(dimension == 1){
-      diffs->SetBinContent(i, diff.X());
-      diffs->SetBinError(i, fLayout->GetXCellSize()/2.);
-    }
-    else if(dimension == 2){
-      diffs->SetBinContent(i, diff.Y());
-      diffs->SetBinError(i, fLayout->GetPadPitchY()/2.);
-    }
-    else if(dimension == 3){
-      diffs->SetBinContent(i, diff.Z());
-      diffs->SetBinError(i, fLayout->GetPadPitchZ()/2.);
-    };
-    i++;
-  };
-  float disPos;
-  float disSize;
-
-  FindDiscontinuity(disPos, disSize, size, diffs, threshold);
-
-  delete diffs;
-  if (disSize > 0.){
-    return int(disPos); 
-  };
-  return 0;
-}
-
-void trex::TTPCVolGroupMan::FindDiscontinuity(float& pos, float& step, float size, TH1F* hist, float threshold){
-  TF1* fitLine = new TF1("line", "[0]", 1., size);
-  TF1* fitStep = new TF1("step", "[0] + [1]*(x<[2])", 1., size);
-
-  hist->Fit(fitLine, "q");
-
-  fitStep->SetParameters(fitLine->GetParameter(0), 0., size/2.);
-  fitStep->SetParameter(0, fitLine->GetParameter(0));
-
-  hist->Fit(fitStep, "q");
-
-  bool isStep = (fitLine->GetChisquare() / fitStep->GetChisquare()) > threshold;
-  if(isStep){
-    pos = fitStep->GetParameter(2);
-    step = fitStep->GetParameter(1);
-  }
-  else{
-    pos = 0.;
-    step = 0.;
-  };
-  delete fitLine;
-  delete fitStep;
 }
 
 void trex::TTPCVolGroupMan::BreakPathsAboutKinks(std::vector< trex::TTPCOrderedVolGroup >& paths){

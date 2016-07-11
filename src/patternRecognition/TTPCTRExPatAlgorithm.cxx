@@ -1,9 +1,14 @@
 // eddy
 #include "TTPCTRExPatAlgorithm.hxx"
 
-trex::TTPCTRExPatAlgorithm::TTPCTRExPatAlgorithm() {
+#include "TCanvas.h"
+#include "TGraph.h"
+#include "TH2F.h"
+
+trex::TTPCTRExPatAlgorithm::TTPCTRExPatAlgorithm(TFile* plotFile) {
   // has no hits by default
   fHasHits = false;
+  fPlotFile=plotFile;
 
   // initial values
   fMasterLayout = 0;
@@ -139,6 +144,8 @@ void trex::TTPCTRExPatAlgorithm::GetPatterns(trex::TReconObjectContainer *foundP
 
 void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused){
 
+  static unsigned int iEvt=0;
+
   std::cout<<"Number of hit pads: "<<hits.size()<<std::endl;
   // master layout for all sub-events
   fMasterLayout = new trex::TTPCLayout();
@@ -167,27 +174,136 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   };
 
   // first pass of processing
-  int subEvent = 0;
   for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
     trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
-    subEvent++;
     alg.ProduceContainers();
+    alg.ProducePattern();
   };
 
 
   // set up container for hitpad level unused
   std::vector<trex::TTPCHitPad*> usedTREx;
 
+  std::vector<TGraph> xyGraphs;
+  std::vector<TGraph> xzGraphs;
+
   // get patterns
-  subEvent = 0;
+
+  int iColor=2;
+  
   for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
     trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
-    subEvent++;
+    std::vector<std::vector<trex::TTPCHitPad*> >& subPaths= alg.GetPaths();
+    std::vector<std::vector<trex::TTPCHitPad*> >& subJuncts=alg.GetJunctions();
+    std::vector< std::vector<unsigned int> >& subJPMap=alg.GetJunctionsToPathsMap();
+
+    for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
+      xyGraphs.emplace_back(1);
+      xzGraphs.emplace_back(1);
+      xyGraphs.back().SetMarkerColor(iColor);
+      xyGraphs.back().SetMarkerStyle(20);
+      xyGraphs.back().SetMarkerSize(0.5);
+      xzGraphs.back().SetMarkerColor(iColor++);
+      xzGraphs.back().SetMarkerStyle(20);
+      xzGraphs.back().SetMarkerSize(0.5);
+      unsigned int iPt=0;
+      for(auto iHit=iPath->begin();iHit!=iPath->end();++iHit){
+	TVector3 pos=(*iHit)->GetPosition();
+	xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
+	xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());
+	if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
+	  usedTREx.push_back(*iHit);
+	}
+      }
+    }
+    
+    for(auto iJunct=subJuncts.begin();iJunct!=subJuncts.end();++iJunct){
+      xyGraphs.emplace_back(1);
+      xzGraphs.emplace_back(1);
+      xyGraphs.back().SetMarkerColor(iColor);
+      xyGraphs.back().SetMarkerStyle(21);
+      xyGraphs.back().SetMarkerSize(0.5);
+      xzGraphs.back().SetMarkerColor(iColor++);
+      xzGraphs.back().SetMarkerStyle(21);
+      xzGraphs.back().SetMarkerSize(0.5);
+      
+      unsigned int iPt=0;
+      for(auto iHit=iJunct->begin();iHit!=iJunct->end();++iHit){
+	TVector3 pos=(*iHit)->GetPosition();
+	xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
+	xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());
+	if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
+	  usedTREx.push_back(*iHit);
+	}
+	
+      }
+      
+    }
+  }
 
 
+  if(hits.size()){
+    fPlotFile->cd();
+
+    std::vector<trex::TTPCHitPad*> unusedHits;  
+    for(auto iHit=hits.begin();iHit!=hits.end();++iHit){
+      if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
+	unusedHits.push_back(*iHit);
+      }
+    }
+    
+    xyGraphs.emplace_back(1);
+    xzGraphs.emplace_back(1);
+    xyGraphs.back().SetMarkerColor(1);
+    xyGraphs.back().SetMarkerStyle(20);
+    xyGraphs.back().SetMarkerSize(0.2);
+    xzGraphs.back().SetMarkerColor(1);
+    xzGraphs.back().SetMarkerStyle(20);
+    xzGraphs.back().SetMarkerSize(0.2);
+
+    unsigned int iPt=0;
+    
+    for(auto iHit=unusedHits.begin();iHit!=unusedHits.end();++iHit){
+      TVector3 pos=(*iHit)->GetPosition();
+      xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
+      xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());
+    }
+    
+    char buf[20];
+    sprintf(buf,"evt_%d_xy",iEvt);
+    TCanvas cxy(buf,buf);
+    TH2F dummyxy("dummyxy","dummyxy",
+		 1000,fMasterLayout->GetMinPos().X()-10.,fMasterLayout->GetMaxPos().X()+10.,
+		 1000,fMasterLayout->GetMinPos().Y()-10.,fMasterLayout->GetMaxPos().Y()+10.);
+    dummyxy.Draw();
+    
+    for(auto iGr=xyGraphs.begin();iGr!=xyGraphs.end();++iGr){
+      iGr->Draw("Psame");
+    }
+
+    sprintf(buf,"evt_%d_xy.pdf",iEvt);
+    
+    cxy.SaveAs(buf);
+    cxy.Write();
+    
+    sprintf(buf,"evt_%d_xz",iEvt);
+    TCanvas cxz(buf,buf);
+    TH2F dummyxz("dummyxz","dummyxz",
+		 1000,fMasterLayout->GetMinPos().X()-10.,fMasterLayout->GetMaxPos().X()+10.,
+		 1000,fMasterLayout->GetMinPos().Z()-10.,fMasterLayout->GetMaxPos().Z()+10.);
+    dummyxz.Draw();
+    
+    for(auto iGr=xzGraphs.begin();iGr!=xzGraphs.end();++iGr){
+      iGr->Draw("Psame");
+    }
+
+    sprintf(buf,"evt_%d_xz.pdf",iEvt);    
+    cxz.SaveAs(buf);
+    
+    cxz.Write();
+  }
+    
     //MDH TODO - This is where the output needs to be generated...
-    );
-  };
 
   // fill unused hits
   //FillUsedUnusedHits(usedTREx, used, unused);
@@ -195,4 +311,5 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   // clean up
   //delete usedTREx;
 
+  ++iEvt;
 }

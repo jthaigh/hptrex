@@ -163,6 +163,10 @@ namespace trex{
       /// Get maximum isolated clusters at the start of a path before they're merged into a nearby vertex
       int GetHVClusterMaxIso(){ return fHVClusterMaxIso; }
 
+    TVector3 GetMinPos(){return TVector3(fMinX,fMinY,fMinZ);}
+
+    TVector3 GetMaxPos(){return TVector3(fMaxX,fMaxY,fMaxZ);}
+
     private:
 
       /// Distance between MM pad centres in y direction

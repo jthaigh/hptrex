@@ -58,6 +58,10 @@ namespace trex{
     /// Produce pattern so it can be returned
     void ProducePattern();//std::vector<trex::TTPCHitPad*>& used);
 
+    std::vector<std::vector<trex::TTPCHitPad*> >& GetPaths(){return fPaths;}
+    std::vector<std::vector<trex::TTPCHitPad*> >& GetJunctions(){return fJunctions;}
+    std::vector< std::vector<unsigned int> >& GetJunctionsToPathsMap(){return fJunctionsToPathsMap;}
+
       /// Return and this object's pattern
       //trex::TTPCPattern* GetPattern();
 

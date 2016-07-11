@@ -201,6 +201,13 @@ void trex::TTPCAStar::ClearRedundancies(trex::TTPCVolGroupMan* volGroupMan, std:
 
   std::vector< trex::TTPCVolGroup > mergedGroups;
 
+  std::cout<<"ClearRedundancies starting with "<<groups.size()<<" groups"<<std::endl;
+
+  for(auto iGrp=groups.begin();iGrp!=groups.end();++iGrp){
+    TVector3 pos=iGrp->GetAveragePosition();
+    std::cout<<"Group at "<<pos.X()<<", "<<pos.Y()<<", "<<pos.Z()<<std::endl;
+  }
+
   while(groups.size()){
     // copy id of merge from first inGroup for consistency
     unsigned int id = (*groups.begin()).GetID();
@@ -266,6 +273,8 @@ void trex::TTPCAStar::ClearRedundancies(trex::TTPCVolGroupMan* volGroupMan, std:
       groups = std::move(newInGroups);
   }
 
+  std::cout<<"After removing overlaps have "<<mergedGroups.size()<<" groups"<<std::endl;
+
   // parallel arrays for groups and list of groups they overlap
   std::vector< std::vector<int> > connectedGroups;
   for(std::vector< trex::TTPCVolGroup >::iterator grpIt = mergedGroups.begin(); grpIt != mergedGroups.end(); ++grpIt){
@@ -301,6 +310,7 @@ void trex::TTPCAStar::ClearRedundancies(trex::TTPCVolGroupMan* volGroupMan, std:
     };
     if(count>=maxNo) break;
   };
+
 
   // build surviving groups
   std::vector< trex::TTPCVolGroup > survivors;
@@ -363,7 +373,7 @@ void trex::TTPCAStar::ClearRedundancies(trex::TTPCVolGroupMan* volGroupMan, std:
       };
     };
   };
-
+  std::cout<<"After removing midpoint groups have "<<survivors.size()<<" groups"<<std::endl;
   groups=std::move(survivors);
 }
 
