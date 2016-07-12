@@ -71,7 +71,7 @@ void trex::TTPCPathVolume::ClearMarked(){
   };
 }
 void trex::TTPCPathVolume::ClearFriends(){
-  fFriends.empty();
+  fFriends.clear();
 }
 
 TVector3 trex::TTPCPathVolume::GetAvgPosXYZ(){

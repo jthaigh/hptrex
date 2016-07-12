@@ -932,7 +932,7 @@ std::vector<trex::TTPCHitPad*> trex::TTPCOrderedVolGroup::GetClusters(){
   std::vector<trex::TTPCHitPad*> hits;
 
   for(std::vector<trex::TTPCPathVolume*>::iterator id = fHits.begin(); id != fHits.end(); ++id){
-    std::vector<trex::TTPCHitPad*> chits = (*id)->GetCellHits();
+    std::vector<trex::TTPCHitPad*> chits = (*id)->GetHits();
     for(auto hit=chits.begin();hit!=chits.end();++hit){
       hits.push_back(*hit);
     }
