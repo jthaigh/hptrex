@@ -201,6 +201,8 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     std::vector< std::vector<unsigned int> >& subJPMap=alg.GetJunctionsToPathsMap();
 
     for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
+
+      std::vector<trex::TTPCHitPad*> usedThisObject;
       int color_index = iColor%11;
       int color_increment = iColor%4;
       xyGraphs.emplace_back(1);
@@ -217,13 +219,28 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 	TVector3 pos=(*iHit)->GetPosition();
 	xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
 	xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());
-	if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
-	  usedTREx.push_back(*iHit);
+	
+	if(std::find(usedThisObject.begin(),usedThisObject.end(),*iHit)==usedThisObject.end()){
+	  usedThisObject.push_back(*iHit);
+	  if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
+	    usedTREx.push_back(*iHit);
+	  }
+	  else{
+	    std::cout<<"Hit shared between objects!"<<std::endl;
+	    //exit(1);
+	  }
 	}
       }
     }
-    
+
+    unsigned int junctCount=0;
     for(auto iJunct=subJuncts.begin();iJunct!=subJuncts.end();++iJunct){
+      if(subJPMap[junctCount++].size()<2){
+	  continue;
+      }
+
+      std::vector<trex::TTPCHitPad*> usedThisObject;
+
       int color_index = iColor%11;
       int color_increment = iColor%4;
       xyGraphs.emplace_back(1);
@@ -240,12 +257,17 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 	TVector3 pos=(*iHit)->GetPosition();
 	xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
 	xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());
-	if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
-	  usedTREx.push_back(*iHit);
-	}
-	
+	if(std::find(usedThisObject.begin(),usedThisObject.end(),*iHit)==usedThisObject.end()){
+          usedThisObject.push_back(*iHit);
+          if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
+            usedTREx.push_back(*iHit);
+          }
+          else{
+	    std::cout<<"Hit shared between objects!"<<std::endl;
+            //exit(1);
+          }
+        }
       }
-      
     }
   }
 
