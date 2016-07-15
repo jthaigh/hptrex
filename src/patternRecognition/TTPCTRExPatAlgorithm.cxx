@@ -189,7 +189,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
   // get patterns
 
-  
+  gStyle->SetOptStat(0);
   int iColor=0;
   int colors[11]={kBlue, kRed, kYellow, kGreen, kMagenta, kCyan, kOrange, kPink, kAzure, kSpring, kViolet};
   
