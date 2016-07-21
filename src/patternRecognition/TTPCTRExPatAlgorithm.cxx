@@ -142,7 +142,7 @@ void trex::TTPCTRExPatAlgorithm::GetPatterns(trex::TReconObjectContainer *foundP
 
 //Top-level code - reimplement
 
-void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused){
+void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused, std::vector<TTrueHit*>& trueHits){
 
   static unsigned int iEvt=0;
 
@@ -189,7 +189,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
   // get patterns
 
-  
+  gStyle->SetOptStat(0);
   int iColor=0;
   int colors[11]={kBlue, kRed, kYellow, kGreen, kMagenta, kCyan, kOrange, kPink, kAzure, kSpring, kViolet};
   
@@ -272,9 +272,71 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   }
 
 
+
+  
+  int trackId = 0;
+  int trueTrackCount=0;
+  
+  unsigned int iPt=0;
+  int pdg;
+  int color;
+
+  
+  std::cout << "NOW ATTEMPTING TO DRAW THE TRUE HITS!!!!!!!!" << std::endl;
+  
+  
+  for (auto iTrueHits=trueHits.begin(); iTrueHits!=trueHits.end();++iTrueHits){
+    
+    
+    std::cout << "WE HAVE ENTERED THE FOR LOOP FOR TRUE HITS!" << std::endl;
+
+
+    if(trueTrackCount==0){
+
+      xyGraphs.emplace_back(1);
+      xzGraphs.emplace_back(1);
+
+      pdg = (*iTrueHits)->pdg;
+
+      color = kRed;
+      
+      trackId = (*iTrueHits)->TrueTrackID;
+      trueTrackCount++;
+
+    }
+    
+    if((*iTrueHits)->TrueTrackID == trackId){
+            
+      xyGraphs.back().SetMarkerColor(color);
+      xyGraphs.back().SetMarkerStyle(31);
+      xyGraphs.back().SetMarkerSize(1);
+      xzGraphs.back().SetMarkerColor(color);
+      xzGraphs.back().SetMarkerStyle(31);
+      xzGraphs.back().SetMarkerSize(1);
+
+      
+      TLorentzVector pos = (*iTrueHits)->TruePos4;
+      	
+      xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
+      xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());;
+      
+      continue;
+    }
+
+    xyGraphs.emplace_back(1);
+    xzGraphs.emplace_back(1);
+    
+    pdg = (*iTrueHits)->pdg;
+    color = kRed;
+    trueTrackCount++;
+    iPt=0;
+  }
+  
+  std::cout << "FOUND " << trueTrackCount << " TRUE TRACKS!" << std::endl;
+  
   if(hits.size()){
     fPlotFile->cd();
-
+    
     std::vector<trex::TTPCHitPad*> unusedHits;  
     for(auto iHit=hits.begin();iHit!=hits.end();++iHit){
       if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
@@ -337,14 +399,17 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     
     cxz.Write();
   }
-    
-    //MDH TODO - This is where the output needs to be generated...
-
+  
+  
+  if(trueTrackCount!=0){std::cout << "WE HAVE TRUE TRACKS!" << std::endl;}
+  
+  //MDH TODO - This is where the output needs to be generated...
+  
   // fill unused hits
   //FillUsedUnusedHits(usedTREx, used, unused);
-
+  
   // clean up
   //delete usedTREx;
-
+  
   ++iEvt;
 }
