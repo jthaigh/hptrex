@@ -802,10 +802,11 @@ void trex::TTPCVolGroupMan::BreakPathsAboutKinks(std::vector< trex::TTPCOrderedV
   // loop over all input paths
   for(std::vector< trex::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
     trex::TTPCOrderedVolGroup& path = *pathIt;
-    outPaths.emplace_back(fLayout);
-    outPaths.emplace_back(fLayout);
-    trex::TTPCOrderedVolGroup& outPath1=outPaths[outPaths.size()-2];
-    trex::TTPCOrderedVolGroup& outPath2=outPaths.back();
+    std::vector< trex::TTPCOrderedVolGroup > tempOutPaths;
+    tempOutPaths.emplace_back(fLayout);
+    tempOutPaths.emplace_back(fLayout);
+    trex::TTPCOrderedVolGroup& outPath1=tempOutPaths[0];
+    trex::TTPCOrderedVolGroup& outPath2=tempOutPaths[1];
     trex::TTPCVolGroup kinkGroup(fLayout);
     GetFarHitsPreGroup(path, kinkGroup);
     if(!kinkGroup.size()){
@@ -873,10 +874,12 @@ void trex::TTPCVolGroupMan::BreakPathsAboutKinks(std::vector< trex::TTPCOrderedV
     };
 
     if(outPath2.size()){
-      SeparateHits(outPaths);
+      SeparateHits(tempOutPaths);
+      outPaths.emplace_back(std::move(tempOutPaths[0]));
+      outPaths.emplace_back(std::move(tempOutPaths[1]));
     }
     else{
-      outPaths.pop_back();
+      outPaths.emplace_back(std::move(tempOutPaths[0]));
     }
   }
 
