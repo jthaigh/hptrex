@@ -19,7 +19,7 @@ trex::TSimLoader::TSimLoader(std::string inputFile){
   fVoxelsTree->SetBranchAddress("voxels", &fVoxelBranch);
 
   Detector = new TH3D("Detector", "Detector", 350, -350, 350, 350, -350, 350, 350, 355.82-350, 355.82+350);
-
+  Detector->SetDirectory(0);
 }
 
 
