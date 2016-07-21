@@ -12,11 +12,13 @@
 // ROOT
 #include <TVector3.h>
 #include <TFile.h>
+#include <TStyle.h>
 
 // TREx
 //#include <TTPCPattern.hxx>
 //#include <TTPCPath.hxx>
 //#include <TTPCJunction.hxx>
+#include "TTrueHit.hxx"
 
 // eddy
 #include "TTPCTRExPatSubAlgorithm.hxx"
@@ -43,7 +45,7 @@ namespace trex{
       //void GetPatterns(TReconObjectContainer *foundPatterns);
 
       /// Current processing pattern recognition
-    void Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused);
+    void Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused, std::vector<TTrueHit*>& trueHits);
 
       /// Getters
       /// Get iterator to start of set of sub-algorithms for sub-events in event

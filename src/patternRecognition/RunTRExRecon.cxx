@@ -13,18 +13,23 @@ int main(int argc,const char** argv){
 
   TFile fOut("plots.root","RECREATE");
 
-  for(int i=0;i<1000;++i){//loader.GetNEvents();++i){
+  for(int i=0;i<100;++i){//loader.GetNEvents();++i){
     
     loader.LoadEvent(i);
     std::vector<trex::TTPCHitPad*>& hitPads=loader.GetHits();
     std::vector<trex::TTPCHitPad*> usedHits;
     std::vector<trex::TTPCHitPad*> unusedHits;
+    //std::vector<TTrueHit*>& trueHits = loader.GetTrueHits();
+    
+    //std::cout << "True hits contains: " << trueHits.size() << " entries. "<< std::endl;
 
-    trex::TTPCTRExPatAlgorithm trexAlg(&fOut);
-    std::cout<<"EVERYTHING LOADED! - NOW ATTEMPTING TO PROCESS"<<std::endl;
-    trexAlg.Process(hitPads,usedHits,unusedHits);
+    //loader.DrawDetector();
+
+    //trex::TTPCTRExPatAlgorithm trexAlg(&fOut);
+    //std::cout<<"EVERYTHING LOADED! - NOW ATTEMPTING TO PROCESS"<<std::endl;
+    //trexAlg.Process(hitPads,usedHits,unusedHits,trueHits);
   }
 
-  fOut.Write();
+  //fOut.Write();
 }
     
