@@ -107,32 +107,33 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
 
   fTree->GetEntry(i);
 
-  //HitCollection simHits = fSimulDataBranch->getTpcFidHits();
+  HitCollection simHits = fSimulDataBranch->getTpcFidHits();
   
-  //std::cout << "Size of HitCollection: " << simHits.size() << std::endl;
+  std::cout << "Size of HitCollection: " << simHits.size() << std::endl;
   
-  //for(HitCollection::iterator hitIter=simHits.begin();hitIter!=simHits.end();++hitIter){
+  for(HitCollection::iterator hitIter=simHits.begin();hitIter!=simHits.end();++hitIter){
 
-  //std::cout << "Entering the HitCollection LOOP!" << std::endl;
+    //std::cout << "Entering the HitCollection LOOP!" << std::endl;
     
-  //SDHit& hit=*hitIter;
-  //double TrueEdep=hit.getEdep();
-  //TLorentzVector TruePos4=hit.getPosition();
-  //int TrueTrackID = hit.getTrackID();
-  //int pdg = hit.getPDG();
-  //int charge = hit.getCharge();
+  SDHit& hit=*hitIter;
+  double TrueEdep=hit.getEdep();
+  TLorentzVector TruePos4=hit.getPosition();
+  int TrueTrackID = hit.getTrackID();
+  //std::cout << "TRACK ID: " << TrueTrackID << std::endl;
+  int pdg = hit.getPDG();
+  int charge = hit.getCharge();
     
-  //fTrueHits.push_back(new TTrueHit());
-  //TTrueHit * TrueHitPtr = fTrueHits.back();
-  //(*TrueHitPtr).TrueEdep = TrueEdep;
-  //(*TrueHitPtr).TruePos4 = TruePos4;
-  //(*TrueHitPtr).pdg = pdg;
-  //(*TrueHitPtr).TrueTrackID = TrueTrackID;
-  //(*TrueHitPtr).charge = charge;
+  fTrueHits.push_back(new TTrueHit());
+  TTrueHit * TrueHitPtr = fTrueHits.back();
+  (*TrueHitPtr).TrueEdep = TrueEdep;
+  (*TrueHitPtr).TruePos4 = TruePos4;
+  (*TrueHitPtr).pdg = pdg;
+  (*TrueHitPtr).TrueTrackID = TrueTrackID;
+  (*TrueHitPtr).charge = charge;
   //delete TrueHitPtr;
-  //}
+  }
   
-  //std::sort(fTrueHits.begin(), fTrueHits.end());
+  std::sort(fTrueHits.begin(), fTrueHits.end());
   
   
 }

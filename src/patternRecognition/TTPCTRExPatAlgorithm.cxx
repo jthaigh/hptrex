@@ -5,6 +5,8 @@
 #include "TGraph.h"
 #include "TH2F.h"
 
+#include<map>
+
 trex::TTPCTRExPatAlgorithm::TTPCTRExPatAlgorithm(TFile* plotFile) {
   // has no hits by default
   fHasHits = false;
@@ -272,23 +274,37 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   }
 
 
+  std::vector<int> strangePDG;
+
+  std::map<int,int> truthColors;
+
+  truthColors[13]=kSpring-9;
+  truthColors[-13]=kOrange-3;
+  truthColors[11]=kPink-4;
+  truthColors[-11]=kPink-7;
+  truthColors[22]=kOrange-2;
+  truthColors[211]=kCyan-9;
+  truthColors[-211]=kAzure-3;
+  truthColors[2112]=kYellow-4;
+  truthColors[2212]=kRed-4;
 
   
   int trackId = 0;
   int trueTrackCount=0;
   
   unsigned int iPt=0;
-  int pdg;
-  int color;
+  int pdg=0;
+  int color=0;
 
-  
+  std::vector<std::vector<TTrueHit*>> TrueTracks;
+
   std::cout << "NOW ATTEMPTING TO DRAW THE TRUE HITS!!!!!!!!" << std::endl;
   
   
   for (auto iTrueHits=trueHits.begin(); iTrueHits!=trueHits.end();++iTrueHits){
     
     
-    std::cout << "WE HAVE ENTERED THE FOR LOOP FOR TRUE HITS!" << std::endl;
+    //std::cout << "WE HAVE ENTERED THE FOR LOOP FOR TRUE HITS!" << std::endl;
 
 
     if(trueTrackCount==0){
@@ -298,7 +314,12 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
       pdg = (*iTrueHits)->pdg;
 
-      color = kRed;
+      //std::cout << "FOUND PDG: " << pdg << std::endl;
+
+      if(truthColors.find(pdg) == truthColors.end()){
+	strangePDG.push_back(pdg);
+      }
+      else{color = truthColors[pdg];}
       
       trackId = (*iTrueHits)->TrueTrackID;
       trueTrackCount++;
@@ -309,31 +330,52 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
             
       xyGraphs.back().SetMarkerColor(color);
       xyGraphs.back().SetMarkerStyle(31);
-      xyGraphs.back().SetMarkerSize(1);
+      xyGraphs.back().SetMarkerSize(0.1);
       xzGraphs.back().SetMarkerColor(color);
       xzGraphs.back().SetMarkerStyle(31);
-      xzGraphs.back().SetMarkerSize(1);
+      xzGraphs.back().SetMarkerSize(0.1);
 
-      
       TLorentzVector pos = (*iTrueHits)->TruePos4;
-      	
-      xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
-      xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());;
+      
+      //std::cout << "Found true hit at position: " << pos.X() << " : " << pos.Y() << " : " << pos.Z() << std::endl;
+	
+      xyGraphs.back().SetPoint(iPt,0.1*pos.X(),0.1*pos.Y());
+      xzGraphs.back().SetPoint(iPt++,0.1*pos.X(),0.1*pos.Z());;
+
+      //0.1* factor turns positions from mm to cm
+
+      //TrueTracks[trueTrackCount-1].push_back(*iTrueHits);
       
       continue;
     }
 
+    trackId=(*iTrueHits)->TrueTrackID;
+    
     xyGraphs.emplace_back(1);
     xzGraphs.emplace_back(1);
     
     pdg = (*iTrueHits)->pdg;
-    color = kRed;
+    std::cout << "FOUND PDG: " << pdg << std::endl;
+    
+    if(truthColors.find(pdg) == truthColors.end()){
+      strangePDG.push_back(pdg);
+    }
+    else{color = truthColors[pdg];}
+
     trueTrackCount++;
     iPt=0;
   }
   
   std::cout << "FOUND " << trueTrackCount << " TRUE TRACKS!" << std::endl;
   
+  if(strangePDG.size()!=0){
+    std::cout << "STRANGE PDGS FOUND!!!" << std::endl;
+    for(auto istrange=strangePDG.begin(); istrange!=strangePDG.end();++istrange){
+      std::cout << "STRANGE: " << *istrange << std::endl;}
+  }
+
+ 
+
   if(hits.size()){
     fPlotFile->cd();
     

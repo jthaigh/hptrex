@@ -1,6 +1,7 @@
 #include "TTPCTRExPatAlgorithm.hxx"
 #include "TTPCHitPad.hxx"
 #include "TSimLoader.hxx"
+#include "TTrueHit.hxx"
 
 #include <iostream>
 #include <vector>
@@ -13,23 +14,23 @@ int main(int argc,const char** argv){
 
   TFile fOut("plots.root","RECREATE");
 
-  for(int i=0;i<100;++i){//loader.GetNEvents();++i){
+  for(int i=0;i<1000;++i){//loader.GetNEvents();++i){
     
     loader.LoadEvent(i);
     std::vector<trex::TTPCHitPad*>& hitPads=loader.GetHits();
     std::vector<trex::TTPCHitPad*> usedHits;
     std::vector<trex::TTPCHitPad*> unusedHits;
-    //std::vector<TTrueHit*>& trueHits = loader.GetTrueHits();
+    std::vector<TTrueHit*>& trueHits = loader.GetTrueHits();
     
-    //std::cout << "True hits contains: " << trueHits.size() << " entries. "<< std::endl;
+    std::cout << "True hits contains: " << trueHits.size() << " entries. "<< std::endl;
 
     //loader.DrawDetector();
 
-    //trex::TTPCTRExPatAlgorithm trexAlg(&fOut);
-    //std::cout<<"EVERYTHING LOADED! - NOW ATTEMPTING TO PROCESS"<<std::endl;
-    //trexAlg.Process(hitPads,usedHits,unusedHits,trueHits);
+    trex::TTPCTRExPatAlgorithm trexAlg(&fOut);
+    std::cout<<"EVERYTHING LOADED! - NOW ATTEMPTING TO PROCESS"<<std::endl;
+    trexAlg.Process(hitPads,usedHits,unusedHits,trueHits);
   }
 
-  //fOut.Write();
+  fOut.Write();
 }
     
