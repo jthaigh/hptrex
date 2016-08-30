@@ -1,9 +1,12 @@
 #ifndef TTPCHitPad_hxx_seen
 #define TTPCHitPad_hxx_seen
 
+#include <iostream>
 #include <vector>
 #include "TVector3.h"
 #include "TLorentzVector.h"
+
+using namespace std;
 
 namespace trex {
   class TTPCHitPad;
@@ -14,6 +17,9 @@ namespace trex {
 /// to be split into individual waveforms.
 class trex::TTPCHitPad {
 public:
+
+  TTPCHitPad() :fChargeFit(0),fTimeFit(0),fPosition(0,0,0) {};
+
   TTPCHitPad(double eDep, TLorentzVector pos4);
 
   double GetCharge(){return fChargeFit;}
@@ -26,6 +32,13 @@ public:
   double Z(){return fPosition.Z();};
 
   TVector3 GetPosition(){return fPosition;}
+
+  void Print(){
+
+    std::cout << "This Hit is at position: " << Y() << " : " << Z() << std::endl;
+    
+  }
+  
 
 private:
 

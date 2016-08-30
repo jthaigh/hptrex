@@ -3,13 +3,16 @@
 
 trex::TSimLoader::TSimLoader(std::string inputFile){
   
-  fFile=new TFile(inputFile.c_str());
+  fFile=new TFile(inputFile.c_str(), "UPDATE");
   
   fTree=(TTree*)fFile->Get("Tracking");
   fTree->SetBranchStatus("event",0); //this just needs to be there until the genie libs are linked
 
   fVoxelsTree=(TTree*)fFile->Get("VoxelsTree");
 
+  fReconTree=new TTree("TPCRecon", "TPCRecon");
+
+   
   fSimulDataBranch=0;
   fTree->SetBranchAddress("SimulData",&fSimulDataBranch);
 
@@ -142,3 +145,6 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
 unsigned int trex::TSimLoader::GetNEvents(){
   return fTree->GetEntries();
 }
+
+
+

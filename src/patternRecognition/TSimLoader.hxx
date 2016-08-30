@@ -17,6 +17,7 @@
 //TREx
 #include "TTPCHitPad.hxx"
 #include "TTrueHit.hxx"
+#include "TTRExPattern.hxx"
 
 //Sim data
 #include "GasTPCDataLib.hxx"
@@ -73,14 +74,25 @@ namespace trex{
     
     inline std::vector<voxel*>& GetVoxels(){return fVoxels;}
     
+
+    TFile* GetFile() {
+      return fFile;
+    }
+
+    TTree* GetReconTree(){
+      return fReconTree;
+    }
+
+    TFile* fFile;
+
      
   private:
     
-    TFile* fFile;
-    
+    //TFile* fFile;
+    TFile* fReconOutFile;
     TTree* fTree;
     TTree* fVoxelsTree;
-    
+    TTree* fReconTree;
     TH3D * Detector;
     
     std::vector<trex::TTPCHitPad*> fHits;

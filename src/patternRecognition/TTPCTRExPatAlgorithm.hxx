@@ -19,6 +19,7 @@
 //#include <TTPCPath.hxx>
 //#include <TTPCJunction.hxx>
 #include "TTrueHit.hxx"
+#include "TTRExPattern.hxx"
 
 // eddy
 #include "TTPCTRExPatSubAlgorithm.hxx"
@@ -33,7 +34,7 @@ namespace trex{
   class TTPCTRExPatAlgorithm {
     public:
       /// Default constructor
-      TTPCTRExPatAlgorithm(TFile* plotFile);
+    TTPCTRExPatAlgorithm(TFile* plotFile);
       /// Default destructor
       ~TTPCTRExPatAlgorithm();
 
@@ -45,7 +46,7 @@ namespace trex{
       //void GetPatterns(TReconObjectContainer *foundPatterns);
 
       /// Current processing pattern recognition
-    void Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused, std::vector<TTrueHit*>& trueHits);
+    void Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad> * unused, std::vector<TTrueHit*>& trueHits, trex::TTRExEvent* event);
 
       /// Getters
       /// Get iterator to start of set of sub-algorithms for sub-events in event
