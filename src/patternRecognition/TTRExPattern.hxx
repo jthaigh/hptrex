@@ -32,6 +32,7 @@ namespace trex{
       fPatterns.clear();
 
     }
+
     
   private:
     
@@ -75,6 +76,41 @@ namespace trex{
 	fJunctions.clear();
       }
       
+
+      void PrintSize() {
+
+	int pathSize = fPaths.size();
+	int junctSize = fJunctions.size();
+
+       
+	std::cout << "This Pattern holds " << pathSize << " Paths and " << junctSize << " Junctions" << std::endl;
+
+      }
+
+      void Print() {
+	
+	int pathSize = fPaths.size();
+	int junctSize = fJunctions.size();
+
+	std::cout << "This Pattern has the following content: " << std::endl;
+	
+	for(int i=0; i<pathSize; ++i){
+	  std::cout << " Path # " << i << " contains the following Hits: " << std::endl;
+	  for(int j=0; j<fPaths[i].size(); ++j){
+	    fPaths[i][j].Print(); 
+	  }
+	}
+	
+	
+	for(int i=0; i<junctSize; ++i){
+	  std::cout << " Junction # " << i << " contains the following Hits: " << std::endl;
+          for(int j=0; j<fJunctions[i].size(); ++j){
+            fJunctions[i][j].Print();
+          }
+        }
+	
+      }
+
 	
       private:
 	

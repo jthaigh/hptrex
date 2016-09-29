@@ -33,10 +33,11 @@ public:
 
   TVector3 GetPosition(){return fPosition;}
 
-  void Print(){
+  char Print(){
 
-    std::cout << "This Hit is at position: " << Y() << " : " << Z() << std::endl;
-    
+    std::cout << "This Hit is at position: " << Y() << " : " << Z() << " and Charge: " << GetCharge()  << std::endl;
+    char out = 'd';
+    return out;
   }
   
 

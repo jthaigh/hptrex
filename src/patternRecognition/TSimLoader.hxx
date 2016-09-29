@@ -79,9 +79,9 @@ namespace trex{
       return fFile;
     }
 
-    TTree* GetReconTree(){
-      return fReconTree;
-    }
+    //TTree* GetReconTree(){
+    //return fReconTree;
+    //}
 
     TFile* fFile;
 
@@ -92,7 +92,7 @@ namespace trex{
     TFile* fReconOutFile;
     TTree* fTree;
     TTree* fVoxelsTree;
-    TTree* fReconTree;
+    //TTree* fReconTree;
     TH3D * Detector;
     
     std::vector<trex::TTPCHitPad*> fHits;

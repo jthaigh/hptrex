@@ -10,7 +10,7 @@ trex::TSimLoader::TSimLoader(std::string inputFile){
 
   fVoxelsTree=(TTree*)fFile->Get("VoxelsTree");
 
-  fReconTree=new TTree("TPCRecon", "TPCRecon");
+  //fReconTree=new TTree("TPCRecon", "TPCRecon");
 
    
   fSimulDataBranch=0;

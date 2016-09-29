@@ -250,8 +250,8 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
       
       for(auto iHit=iJunct->begin(); iHit!=iJunct->end(); ++iHit) {
 	
-	//std::cout << "Managed to get into inner loop" << std::endl;
-	//std::cout << "Junction Hit Pad is accessible " << (*iHit)->Y() << std::endl;
+	std::cout << "Managed to get into inner loop" << std::endl;
+	std::cout << "Junction Hit Pad is accessible " << (*iHit)->Print() << std::endl;
 	TLorentzVector pos((*iHit)->GetPosition(), 0);
 	trex::TTPCHitPad pad((*iHit)->GetCharge(), pos);
 	junction.push_back(pad);
