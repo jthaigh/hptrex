@@ -128,7 +128,7 @@ int main(int argc, char** argv){
     
     
 
-    if(event->GetPatterns().size()==0){
+    /*    if(event->GetPatterns().size()==0){
     delete event;
     event=NULL;
     std::cout << "Event got deleted" << std::endl;
@@ -139,7 +139,7 @@ int main(int argc, char** argv){
     delete unused;
     unused=NULL;
     std::cout << "unused Hits got deleted" << std::endl;
-    }
+    }*/
     
 
     fReconTree->Fill();

@@ -10,27 +10,21 @@ void ReadTREx(const char * argv) {
 
   TTree * ReconTree = (TTree*)inFile->Get("TPCRecon");
 
-  trex::TTRExEvent * event;
+  trex::TTRExEvent * event=0;
 
   ReconTree->SetBranchAddress("event", &event);
 
-  std::vector<trex::TTRExPattern> pats = event->GetPatterns();
+  for(int i=0;i<ReconTree->GetEntries();++i){
+    ReconTree->GetEntry(i);
+    std::vector<trex::TTRExPattern> pats = event->GetPatterns();
+    int patSize = pats.size(); 
+    std::cout << "Size of pattern vector: " << patSize << std::endl;
 
+    for(int i=0; i<patSize; ++i){
 
-  int patSize = pats.size(); 
-  std::cout << "Size of pattern vector: " << patSize << std::endl;
+    pats.at(i).Print();
 
-  //for(int i=0; i<patSize; ++i){
+    }
 
-  //pats.at(i).Print();
-
-  //}
-
-  //for(auto ipat=pats.begin(); ipat!=pats.end(); ++ipat){
- 
-  //std::vector<std::vector<trex::TTPCHitPad> > paths = ipat->GetPaths();
-  //std::vector<std::vector<trex::TTPCHitPad> > juncts = ipat->GetJunctions();
-
-  //}
+  }
 }
-
