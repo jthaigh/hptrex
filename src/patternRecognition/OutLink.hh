@@ -24,6 +24,10 @@
 #pragma link C++ class trex::TTPCHitPad*+;
  
 #pragma link C++ class std::vector<trex::TTPCHitPad>+; 
+
+#pragma link C++ class trex::TTRExHVCluster+;
+#pragma link C++ class std::vector<trex::TTRExHVCluster>+;
+#pragma link C++ class std::vector<std::vector<trex::TTRExHVCluster> >+;
                    
 //#pragma link C++ class std::vector<std::vector<trex::TTPCHitPad*> >+;
 
