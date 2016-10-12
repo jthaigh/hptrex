@@ -941,6 +941,15 @@ std::vector<trex::TTPCHitPad*> trex::TTPCOrderedVolGroup::GetClusters(){
   return std::move(hits);
 }
 
+//PD
+// THE GETCLUSTERS() METHOD ABOVE NEEDS TO BE REWRITTEN TO GIVE A VECOR OF CLUSTERS RATHER THAN HITPADS
+
+
+
+
+
+
+
 std::string trex::TTPCOrderedVolGroup::GetOrientations(){
   std::string orientationsList = "";
   if(fHits.size() > 0)
