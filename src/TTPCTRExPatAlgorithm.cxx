@@ -201,16 +201,66 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   
   for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
     trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
-    std::vector<std::vector<trex::TTPCHitPad*> >& subPaths= alg.GetPaths();
+
+
+    //NEED TO CHANGE THIS TO HOLD <vec<vec<cluster>>
+
+
+
+    std::vector<std::vector<trex::TTRExHVCluster> >& subPaths= alg.GetPaths();
     std::vector<std::vector<trex::TTPCHitPad*> >& subJuncts=alg.GetJunctions();
     std::vector< std::vector<unsigned int> >& subJPMap=alg.GetJunctionsToPathsMap();
+
+
+
+
 
 
     std::cout << "MARKER 1 SubPaths Size: " << subPaths.size() << std::endl;
     std::cout << "MARKER 1 SubJuncts Size: " << subJuncts.size() << std::endl;
 
-    std::vector<std::vector<trex::TTPCHitPad> > pathsContainer;
+
+
+
+    //PD NEED TO CHANGE THIS 
+
+
+    std::vector<std::vector<trex::TTRExHVCluster> > pathsContainer;
     std::vector<std::vector<trex::TTPCHitPad> > junctsContainer;
+
+
+
+
+    //PD NEED TO PUT BETTER FILLING METHOD HERE
+
+    for(auto iPath=subPaths.begin(); iPath!=subPaths.end(); ++iPath) {
+      
+      vector<trex::TTRExHVCluster> path;
+
+      for(auto iCluster=iPath->begin(); iCluster!=iPath->end(); ++iCluster){
+
+	path.push_back(*iCluster);
+	
+	vector<trex::TTPCHitPad*> cHits = (*iCluster).GetClusterHits();
+
+	for(auto iHit=cHits.begin(); iHit!=cHits.end(); ++iHit){
+	  
+	  if(std::find(usedTREx.begin(), usedTREx.end(), *iHit)==usedTREx.end()){
+	    usedTREx.push_back(*iHit);
+	  }
+	  else{
+	    std::cout<<"Hit shared between objects!"<<std::endl; 
+	  }	  
+	}	
+      }
+
+      pathsContainer.push_back(path);                                            
+      path.clear();     
+    }
+
+
+
+    /*
 
     for(auto iPath=subPaths.begin(); iPath!=subPaths.end(); ++iPath) {
       std::vector<trex::TTPCHitPad> path;
@@ -241,6 +291,10 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
       path.clear();
     }
 
+    */
+
+
+    //PD NEED TO PUT BETTER FILLING METHOD HERE
     
     for(auto iJunct=subJuncts.begin(); iJunct!=subJuncts.end(); ++iJunct) {      
       
@@ -285,6 +339,10 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   std::cout << "Have created Event" << std::endl;
   patternContainer.clear();
   }
+
+
+
+
 
   if(hits.size()){ 
     

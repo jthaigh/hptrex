@@ -24,6 +24,7 @@
 #include "TTPCVolGroupMan.hxx"
 #include "TTPCOrderedVolGroup.hxx"
 #include "TTPCVolGroup.hxx"
+#include "TTRExHVCluster.hxx"
 
 namespace trex{
   /// Main algorithm for pattern recognition for path finding.  Processes a sub-event of connected hits and returns a set of paths.
@@ -50,16 +51,28 @@ namespace trex{
       /// Add a list of new cells to current map, through a series of AbsorbCell calls on each element of the group
       void AppendHits(trex::THandle<trex::TTPCVolGroup> hits);
     */
+
+
       /// Fill containers in this sub-object
       void ProduceContainers();
-      /// Endure that none of the containers in this sub-object are empty
+      /// Ensure that none of the containers in this sub-object are empty
       void CleanContainers();
       
     /// Produce pattern so it can be returned
     void ProducePattern();//std::vector<trex::TTPCHitPad*>& used);
 
-    std::vector<std::vector<trex::TTPCHitPad*> >& GetPaths(){return fPaths;}
+
+
+
+    //NEED TO CHANGE RETURN TYPE HERE
+
+    std::vector<std::vector<trex::TTRExHVCluster> >& GetPaths(){return fPaths;}
     std::vector<std::vector<trex::TTPCHitPad*> >& GetJunctions(){return fJunctions;}
+
+
+
+
+
     std::vector< std::vector<unsigned int> >& GetJunctionsToPathsMap(){return fJunctionsToPathsMap;}
 
       /// Return and this object's pattern
@@ -69,7 +82,7 @@ namespace trex{
     std::vector<trex::TTPCHitPad*> GetHits();
 
       /// Get hits from algorithm's hit map corresponding to provided path
-    std::vector<trex::TTPCHitPad*> GetHits(trex::TTPCOrderedVolGroup& path);
+    std::vector<trex::TTRExHVCluster> GetHits(trex::TTPCOrderedVolGroup& path);
 
       /// Get groups of connected cells for defining sub-events
     void GetRegions(std::vector< trex::TTPCVolGroup >& regions);
@@ -136,7 +149,11 @@ namespace trex{
       /// Whether this is the primary sub group
       bool fPrimary;
 
-    std::vector<std::vector<trex::TTPCHitPad*> > fPaths;
+
+    
+    //NEED TO CHANGE DEFINITIONS HERE
+
+    std::vector<std::vector<trex::TTRExHVCluster> > fPaths;
     std::vector<std::vector<trex::TTPCHitPad*> > fJunctions;						       
     std::vector< std::vector<unsigned int> > fJunctionsToPathsMap;
 

@@ -238,7 +238,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used
     trex::TTPCOrderedVolGroup& track = *trackIt;
 
     // ignore if empty
-    std::vector<trex::TTPCHitPad*> clusters = track.GetClusters();
+    std::vector<trex::TTRExHVCluster> clusters = track.GetClusters();
     if(!clusters.size()) continue;
 
     fPaths.emplace_back(std::move(clusters));
@@ -321,7 +321,9 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used
 std::vector<trex::TTPCHitPad*> trex::TTPCTRExPatSubAlgorithm::GetHits(){
   return fVolGroupMan->GetHits();
 }
-std::vector<trex::TTPCHitPad*> trex::TTPCTRExPatSubAlgorithm::GetHits(trex::TTPCOrderedVolGroup& path){
+
+
+std::vector<trex::TTRExHVCluster> trex::TTPCTRExPatSubAlgorithm::GetHits(trex::TTPCOrderedVolGroup& path){
   return std::move(path.GetClusters());
 }
 

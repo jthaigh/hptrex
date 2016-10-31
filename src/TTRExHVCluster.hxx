@@ -15,60 +15,78 @@ namespace trex{
 
   public:
 
-    TTRExHVCluster() : fcHits(0), fIsVertical(0) {};
+    TTRExHVCluster() : fcHitPtrs(0), fIsVertical(0) {};
 
-    TTRExHVCluster(bool HV, std::vector<trex::TTPCHitPad> cHits) {
+    //TTRExHVCluster(bool HV, std::vector<trex::TTPCHitPad> cHits) {
 
-      fIsVertical = HV;
-      fcHits = cHits;
+    //fIsVertical = HV;
+    //fcHits = cHits;
       
-    }
+    // }
 
     
-    TRExHVCluster(bool HV, std::vector<trex::TTPCHitPad*> cHits){
+    TTRExHVCluster(bool HV, std::vector<trex::TTPCHitPad*> cHits){
       
       fIsVertical = HV;
-      fcHits = cHits;
+      fcHitPtrs = cHits;
 
     }
     
-    SetHits(std::vector<trex::TTPCHitPad*> cHits){
-      fcHits = cHits;
+    void SetHits(std::vector<trex::TTPCHitPad*> cHits){
+      fcHitPtrs = cHits;
     }
 
-    SetIsVertical(bool HV){
+    void SetIsVertical(bool HV){
       fIsVertical = HV;
     }
 
-    IsVertical() {
+    bool IsVertical() {
 
       return fIsVertical;
     }
     
-    IsHorizontal() {
+    bool IsHorizontal() {
 
       return (not fIsVertical);
     }
 
-    GetCluster(){
+    std::vector<trex::TTPCHitPad*> GetClusterHits(){
       
-      return fcHits;
+      return fcHitPtrs;
+    }
+
+    
+    int GetNHits(){
+      
+      return fcHitPtrs.size();
+      
     }
     
-    GetOutputCluster() {
+    //GetOutputCluster() {
       
-      std::vector<trex::TTPCHitPad> hits;
+    //std::vector<trex::TTPCHitPad> hits;
       
-      for(auto id=fcHits.begin(); id!=fcHits.end(), ++id){
+    //for(auto id=fcHits.begin(); id!=fcHits.end(), ++id){
 
-	hits.push_back(*id);
+    //hits.push_back(*id);
+    // }
+
+    //return std::move(hits);
+
+    //}
+
+
+    void Print() {
+
+      string orientation;
+      if(fIsVertical){
+	orientation = "vertical";
+      }else{
+	orientation = "horizontal";
       }
-
-      return std::move(hits);
-
+      
+      std::cout << "This is a " << orientation << " Cluster containing " << this->GetNHits() << " Hits." << std::endl;
     }
-
-
 
 
   private:
@@ -78,5 +96,9 @@ namespace trex{
     bool fIsVertical;
     
     
-  }
+  };
   
+  
+}
+  
+#endif

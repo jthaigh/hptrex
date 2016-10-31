@@ -2,6 +2,8 @@
 #define TTRExPattern_HXX
 
 #include "TTPCHitPad.hxx"
+#include "TTRExHVCluster.hxx"
+
 
 namespace trex{
   
@@ -49,13 +51,13 @@ namespace trex{
       
       TTRExPattern() : fPaths(0),fJunctions(0){};
       
-      TTRExPattern(std::vector<std::vector<trex::TTPCHitPad> > paths, std::vector<std::vector<trex::TTPCHitPad> > junctions){
+      TTRExPattern(std::vector<std::vector<trex::TTRExHVCluster> > paths, std::vector<std::vector<trex::TTPCHitPad> > junctions){
 	  fPaths = paths;
 	  fJunctions = junctions;
 	};
 
 
-      std::vector<std::vector<trex::TTPCHitPad> > GetPaths(){
+      std::vector<std::vector<trex::TTRExHVCluster> > GetPaths(){
 	return fPaths;
       }
 
@@ -63,7 +65,7 @@ namespace trex{
 	return fJunctions;
       }
 
-      void SetPaths(std::vector<std::vector<trex::TTPCHitPad> > paths){
+      void SetPaths(std::vector<std::vector<trex::TTRExHVCluster> > paths){
 	fPaths = paths;
       }
 
@@ -114,7 +116,7 @@ namespace trex{
 	
       private:
 	
-	std::vector<std::vector<trex::TTPCHitPad> > fPaths;
+	std::vector<std::vector<trex::TTRExHVCluster> > fPaths;
 	std::vector<std::vector<trex::TTPCHitPad> > fJunctions;
 	
 	

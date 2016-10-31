@@ -19,6 +19,8 @@
 #include "TTPCPathVolume.hxx"
 #include "TTPCUnitVolume.hxx"
 #include "TTPCVolGroup.hxx"
+#include "TTRExHVCluster.hxx"
+
 
 namespace trex{
   class TTPCOrderedVolGroup;
@@ -141,7 +143,10 @@ class trex::TTPCOrderedVolGroup {
     void OrderFromPosition(TVector3 pos);
 
     /// Get list of all hits associated with elements of this group
-  std::vector<trex::TTPCHitPad*> GetClusters();
+  //std::vector<trex::TTPCHitPad*> GetClusters();
+
+  //PD: New Definition of GetClusters() to get clustered input for tracking
+  std::vector<trex::TTRExHVCluster> GetClusters();
 
     /// Set front hits to be a vertex (or not)
     void SetFrontIsVertex(bool isVertex=false){ fFrontIsVertex = isVertex; }
