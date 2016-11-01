@@ -49,11 +49,12 @@ namespace trex{
       
     public:
       
-      TTRExPattern() : fPaths(0),fJunctions(0){};
+      TTRExPattern() : fPaths(0),fJunctions(0),fPathsToJunctionMap(0){};
       
-      TTRExPattern(std::vector<std::vector<trex::TTRExHVCluster> > paths, std::vector<std::vector<trex::TTPCHitPad> > junctions){
+      TTRExPattern(std::vector<std::vector<trex::TTRExHVCluster> > paths, std::vector<std::vector<trex::TTPCHitPad> > junctions, std::vector< std::vector<unsigned int> > map){
 	  fPaths = paths;
 	  fJunctions = junctions;
+	  fPathsToJunctionMap = map;
 	};
 
 
@@ -65,6 +66,11 @@ namespace trex{
 	return fJunctions;
       }
 
+      std::vector< std::vector<unsigned int> > GetMap(){
+	return fPathsToJunctionMap;
+      }
+
+
       void SetPaths(std::vector<std::vector<trex::TTRExHVCluster> > paths){
 	fPaths = paths;
       }
@@ -73,9 +79,14 @@ namespace trex{
 	fJunctions = junctions;
       }
 
+      void SetMap(std::vector< std::vector<unsigned int> > map){
+	fPathsToJunctionMap = map;
+      }
+
       void Clear() {
 	fPaths.clear();
 	fJunctions.clear();
+	fPathsToJunctionMap.clear();
       }
       
 
@@ -112,13 +123,13 @@ namespace trex{
         }
 	
       }
-
-	
-      private:
-	
-	std::vector<std::vector<trex::TTRExHVCluster> > fPaths;
-	std::vector<std::vector<trex::TTPCHitPad> > fJunctions;
-	
+      
+      
+    private:
+      
+      std::vector<std::vector<trex::TTRExHVCluster> > fPaths;
+      std::vector<std::vector<trex::TTPCHitPad> > fJunctions;
+      std::vector< std::vector<unsigned int> > fPathsToJunctionMap;
 	
     };
 	

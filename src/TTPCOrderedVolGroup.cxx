@@ -957,7 +957,7 @@ std::vector<trex::TTRExHVCluster> trex::TTPCOrderedVolGroup::GetClusters(){
     std::vector<trex::TTPCHitPad*> hits = (*id)->GetHits();
 
     bool hasCluster = (*id)->GetHasCluster();
-    std::cout << "This hit has clustered friends" << std::endl;
+    //std::cout << "This hit has clustered friends" << std::endl;
     bool IsVertical = (*id)->GetIsVertical();
 
     trex::TTRExHVCluster HVcluster;
