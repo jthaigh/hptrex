@@ -197,41 +197,29 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   // set up container for hitpad level unused  
   std::vector<trex::TTPCHitPad*> usedTREx;
   
+  //set up container for all the patterns in the event
   std::vector<trex::TTRExPattern> patternContainer;
   
   for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
     trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
 
-
-    //NEED TO CHANGE THIS TO HOLD <vec<vec<cluster>>
-
-
+    //
 
     std::vector<std::vector<trex::TTRExHVCluster> >& subPaths= alg.GetPaths();
     std::vector<std::vector<trex::TTPCHitPad*> >& subJuncts=alg.GetJunctions();
     std::vector< std::vector<unsigned int> >& subJPMap=alg.GetJunctionsToPathsMap();
 
-
-
-
-
-
     std::cout << "MARKER 1 SubPaths Size: " << subPaths.size() << std::endl;
     std::cout << "MARKER 1 SubJuncts Size: " << subJuncts.size() << std::endl;
 
 
-
-
-    //PD NEED TO CHANGE THIS 
-
-
+    // containers for paths and junctions to create a pattern from 
     std::vector<std::vector<trex::TTRExHVCluster> > pathsContainer;
     std::vector<std::vector<trex::TTPCHitPad> > junctsContainer;
 
 
-
-
     //PD NEED TO PUT BETTER FILLING METHOD HERE
+    //extract the path hits from the sub algorithm and build HVCluster objects to fill the paths with
 
     for(auto iPath=subPaths.begin(); iPath!=subPaths.end(); ++iPath) {
       
@@ -295,6 +283,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
 
     //PD NEED TO PUT BETTER FILLING METHOD HERE
+    //extract junction hits from subAlgorithm and build non pointer hit objects to fill the junctions with
     
     for(auto iJunct=subJuncts.begin(); iJunct!=subJuncts.end(); ++iJunct) {      
       
@@ -325,7 +314,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     }
     
     std::cout << "Exited the junction list loop" << std::endl;
-    patternContainer.push_back(trex::TTRExPattern(pathsContainer,junctsContainer));
+    patternContainer.push_back(trex::TTRExPattern(pathsContainer,junctsContainer, subJPMap));
     std::cout << "Have created pattern" << std::endl;
     pathsContainer.clear();
     junctsContainer.clear();

@@ -5,7 +5,7 @@
 #include <vector>
 
 //TREx
-#include <TTPCHitPad.hxx> 
+#include "TTPCHitPad.hxx" 
 
 
 namespace trex{

@@ -1,3 +1,4 @@
+
 #include "TTPCTRExPatAlgorithm.hxx"
 #include "TTPCHitPad.hxx"
 #include "TSimLoader.hxx"
@@ -52,7 +53,9 @@ int main(int argc, char** argv){
   TTree * fReconTree = new TTree("TPCRecon", "TPCRecon");
   fReconTree->SetDirectory(fFile);
   //TTree * fReconTree=(TTree*)loader.GetReconTree();
-  
+
+
+  //make pointers for output variables to be filled by Process()
   std::vector<trex::TTPCHitPad> * unused;
   trex::TTRExEvent * event;
 
@@ -93,11 +96,14 @@ int main(int argc, char** argv){
 
     }
     
-    std::cout << "Event " << i << " actually contains something: " << event->GetPatterns().size() << std::endl;
+    std::cout << "Event " << i << " contains  "<< event->GetPatterns().size() << " Patterns" <<std::endl;
     
    
     for(int k=0; k<event->GetPatterns().size(); ++k){
       
+      std::cout << "PATTERN NUMBER " << k << std::endl;
+
+      //Print out Path information for debugging
       for(int l=0; l<event->GetPatterns().at(k).GetPaths().size(); ++l){
 	
 	for (int m=0; m<event->GetPatterns().at(k).GetPaths().at(l).size(); ++m){
@@ -109,11 +115,8 @@ int main(int argc, char** argv){
 	  
 	}
       } 
-    }
-    
-    
-    for(int k=0; k<event->GetPatterns().size(); ++k){
       
+      //Print out Junction Information for debugging
       for(int l=0; l<event->GetPatterns().at(k).GetJunctions().size(); ++l){
 	
 	for (int m=0; m<event->GetPatterns().at(k).GetJunctions().at(l).size(); ++m){
@@ -124,16 +127,37 @@ int main(int argc, char** argv){
 	  std::cout << "____________________________" << std::endl;
 	}
       }
+      
+      
+      std::cout << "CONNECTED my Map of size " << event->GetPatterns().at(k).GetMap().size() << std::endl;
+      std::cout << "Map has following entries: " << std::endl;
+      std::cout << "____________________________" << std::endl;
+
+      //Print out Map information for debugging
+      for (int l=0; l<event->GetPatterns().at(k).GetMap().size(); ++l){
+	
+	for (int m=0; m<event->GetPatterns().at(k).GetMap().at(l).size(); ++m){
+	  std::cout << event->GetPatterns().at(k).GetMap().at(l).at(m)<< std::endl;	
+	}
+      }      
+      std::cout << "____________________________" << std::endl;
     }
+
     
 
-    fReconTree->Fill();
+
+    //DO TRACKING HERE using event object filled above
+
+
+
+
+    //fReconTree->Fill();
     
     delete event;
     delete unused;        
     
   }
-  fReconTree->Print();
+  //fReconTree->Print();
   
   
   //fOut.Write();
@@ -141,10 +165,10 @@ int main(int argc, char** argv){
   
   //fFile->cd();
   
-  std::cout << "Writing Tree to File" << std::endl;
-  fReconTree->Write();
+  //std::cout << "Writing Tree to File" << std::endl;
+  //fReconTree->Write();
   
-  fFile->Write();
-  fFile->Close();
+  //fFile->Write();
+  //fFile->Close();
 }
 
