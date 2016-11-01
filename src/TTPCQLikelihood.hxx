@@ -1,9 +1,12 @@
 #ifndef TTPCQLikelihood_hxx_seen
 #define TTPCQLikelihood_hxx_seen
 
-#include "TTPCDebug.hxx"
+namespace trex {
+  class TTPCQLikelihood;
+}
 
-class TTPCQLikelihood {
+
+class trex::TTPCQLikelihood {
   public:
 
     TTPCQLikelihood();

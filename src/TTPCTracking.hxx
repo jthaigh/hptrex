@@ -1,10 +1,9 @@
 #ifndef TTPCTracking_hxx_seen
 #define TTPCTracking_hxx_seen
 
-#include "TTPCPattern.hxx" 
-#include "TTPCPath.hxx"
+#include "TTRExPattern.hxx" 
+#include "TTRExPath.hxx"
 #include "TTPCLikFitPath.hxx"
-#include "TTPCClusterCorrection.hxx"
 
 #define RHOMIN 5.e-10  // Equivalent to 20 GeV.
 
@@ -17,28 +16,26 @@
 //       Need structures (HelixModel ?) to store the YZ results and X results
 //
 
-namespace ND {
+namespace trex {
   class TTPCTracking;
 }
 
-class ND::TTPCTracking {
+class trex::TTPCTracking {
 
   public:
     TTPCTracking();
     ~TTPCTracking();
 
-    void Process(ND::THandle<ND::TTPCPattern> Pattern);
+    void Process(trex::TTRExPattern>& Pattern);
 
   private:
-    void LikelihoodFit(ND::THandle<ND::TTPCPath> thePath);
+    void LikelihoodFit(trex::TTPCPath& thePath);
 
     TTPCLikFitPath *fLklhdFitPath;
-    TTPCClusterCorrection *fClusterCorrection;
 
     bool fRunLikelihoodFit;
-    bool fUseTruthAsFitResult;
 
-	  unsigned int fMinNumberOfClusters;
+    unsigned int fMinNumberOfClusters;
 };
 
 

@@ -10,92 +10,70 @@
 
 
 //*****************************************************************************
-ND::TTPCLikelihoodMatch::TTPCLikelihoodMatch( ){
+trex::TTPCLikelihoodMatch::TTPCLikelihoodMatch( ){
 //*****************************************************************************
 
   fLklhdCalc = new TTPCLikFitPath(true);
 }
 
 //*****************************************************************************
-ND::TTPCLikelihoodMatch::~TTPCLikelihoodMatch( ){
+trex::TTPCLikelihoodMatch::~TTPCLikelihoodMatch( ){
 //*****************************************************************************
   delete fLklhdCalc;
 }
 
 
 //*****************************************************************************
-void ND::TTPCLikelihoodMatch::Process( ND::TReconObjectContainer *allPatterns){
+void trex::TTPCLikelihoodMatch::Process( std::vector<trex::TTRExPattern>& allPatterns){
 //*****************************************************************************
-  std::vector< ND::THandle<ND::TTPCPattern> > PatternPerDriftVol[6];
-  for (ND::TReconObjectContainer::iterator patit = allPatterns->begin(); patit != allPatterns->end(); patit++) {
-    ND::THandle<ND::TTPCPattern> Pattern = *patit;
-    if ( ND::tpcDebug().LikelihoodMatch(DB_INFO))
-      std::cout<<" ===== TTPCLikelihoodMatch"<<std::endl;
-    if ( Pattern->GetConstituents()->size() != 1)
+
+  for (auto patit allPatterns.begin(); patit != allPatterns.end(); patit++) {
+    trex::TTRExPattern&=*patit;
+    if ( Pattern.GetConstituents()->size() != 1)
       MatchAcrossJunctions(Pattern);
 
-    bool PatternAlreadySaved = false;
-    for (ND::TReconObjectContainer::iterator constit = Pattern->GetConstituents()->begin(); constit != Pattern->GetConstituents()->end(); constit++) {
-      ND::THandle<ND::TTPCPath> path = *constit;
-      if ( !path)
-        continue;
-      ND::THandle<ND::TTPCHVCluster> cluster = *(path->GetHits()->begin());
-      ND::THandle<ND::TTPCHitPad> hitPad = *(cluster->GetHits().begin());
-      int tpc, half, mm, pad;
-      ND::TTPCGeom& tpcGeom = ND::TGeomInfo::TPC();
-      tpcGeom.GetGeometryInfo(hitPad->GetGeomId(), tpc, half, mm, pad);
-      // Set the End Nodes here before any merging
+    for (auto constit = Pattern.GetConstituents()->begin(); constit != Pattern.GetConstituents()->end(); constit++) {
       path->SetEndClustersToNodes();
-      if (PatternAlreadySaved)
-        continue;
-      PatternPerDriftVol[(tpc*2)+half].push_back(Pattern);
-      PatternAlreadySaved = true;
     }
   }
 
-  for( int i = 0; i < 6; i++)
-    MatchBrokenPaths(PatternPerDriftVol[i]);
+  MatchBrokenPaths(allPatterns);
 }
 
 
 //*****************************************************************************
-void ND::TTPCLikelihoodMatch::MatchAcrossJunctions(ND::THandle<ND::TTPCPattern> Pattern){
+void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern){
 //*****************************************************************************
-  if ( ND::tpcDebug().LikelihoodMatch(DB_INFO)){
-    std::cout<<" ----- MatchAcrossJunctions "<<std::endl;
-    std::cout<<"  -*- Pattern "<<Pattern->GetId()<<std::endl;
-  }
+
   // Loop through the paths
-  std::vector< ND::THandle<ND::TTPCJunction> > Junctions = Pattern->GetJunctions();
-  std::vector< ND::THandle<ND::TTPCPath> > Paths = Pattern->GetPaths();
-  for (std::vector< ND::THandle<ND::TTPCJunction> >::iterator jct = Junctions.begin(); jct != Junctions.end(); jct++) {
-    ND::THandle<ND::TTPCJunction> junction = *jct;
-    // Extract the connected paths
-    std::vector< ND::THandle<ND::TTPCPath> > ConnectedPaths;
+  std::vector< std::vector<trex::TTPCHitPad> >& Junctions = Pattern.GetJunctions();
+  std::vector<trex::TTRExPath> Paths = Pattern.GetPaths();
+  for (std::vector< auto jct = Junctions.begin(); jct != Junctions.end(); jct++) {
+      std::vector<trex::TTPCHitPad>& junction = *jct;
+    
+      //MDH TODO: Write new code to get paths connected to this junction
+      // Extract the connected paths
+      std::vector< trex::TTRExPath* > ConnectedPaths;
     for (std::vector< ND::THandle<ND::TTPCPath> >::iterator pth = Paths.begin(); pth != Paths.end(); pth++) {
       ND::THandle<ND::TTPCPath> path = *pth;
       if(junction->IsPathConnected(path->GetId()))
         ConnectedPaths.push_back(path);
     }
 
-    std::vector< ND::THandle<ND::TTPCPath> >::iterator coPthA;
-    std::vector< ND::THandle<ND::TTPCPath> >::iterator coPthB;
+    std::vector< trex::TTRExPath* >::iterator coPthA;
+    std::vector< trex::TTRExPath* >::iterator coPthB;
     for (coPthA = ConnectedPaths.begin(); coPthA != ConnectedPaths.end(); coPthA++) {
-      ND::THandle<ND::TTPCPath> pathA = *coPthA;
+      trex::TTRExPath& pathA = **coPthA;
       coPthB = coPthA + 1;
       for (; coPthB != ConnectedPaths.end(); coPthB++) {
-        ND::THandle<ND::TTPCPath> pathB = *coPthB;
+	trex::TTRExPath& pathB = *coPthB;
         // Propagate A to B
-        if (pathA->HasFitState()){
-          if ( ND::tpcDebug().LikelihoodMatch(DB_VERBOSE))
-            std::cout<<"  - Match path "<<pathA->GetId()<<" to path "<<pathB->GetId()<<std::endl;
-          MatchPathsAtJunction(pathA, pathB, junction->GetId());
+        if (pathA.HasFitState()){
+          MatchPathsAtJunction(pathA, pathB, junction.GetId());
         }
         // Propagate B to A
-        if (pathB->HasFitState()){
-          if ( ND::tpcDebug().LikelihoodMatch(DB_VERBOSE))
-            std::cout<<"  - Match path "<<pathB->GetId()<<" to path "<<pathA->GetId()<<std::endl;
-          MatchPathsAtJunction(pathB, pathA, junction->GetId());
+        if (pathB.HasFitState()){
+          MatchPathsAtJunction(pathB, pathA, junction.GetId());
         }
       } 
     }
@@ -105,16 +83,18 @@ void ND::TTPCLikelihoodMatch::MatchAcrossJunctions(ND::THandle<ND::TTPCPattern> 
 
 
 //*****************************************************************************
-void ND::TTPCLikelihoodMatch::MatchPathsAtJunction(ND::THandle<ND::TTPCPath> Path1, ND::THandle<ND::TTPCPath> Path2, int JunctionId){
+  void trex::TTPCLikelihoodMatch::MatchPathsAtJunction(trex::TTRExPath& Path1, trex::TTRExPath& Path2, int JunctionId){
 //*****************************************************************************
   TTPCLogLikelihood Likelihood;
   Likelihood.Total = 0.0;
   Likelihood.X = 0.0;
   Likelihood.HV = 0.0;
 
-  State propagState;
+  std::vector<double> propagState;
+
+  //MDH TODO: Fix this to get junction connections properly
   // Front state is connected to this junction
-  if ( Path1->GetConnectedEnd(JunctionId) == -1){
+  if ( Path1.GetConnectedEnd(JunctionId) == -1){
     propagState = Path1->GetFrontFitState();
     // We want to propagate towards the "outside" of the track.
     ND::tman().ReverseStateSenseAndCharge(propagState);
@@ -126,9 +106,9 @@ void ND::TTPCLikelihoodMatch::MatchPathsAtJunction(ND::THandle<ND::TTPCPath> Pat
     return;
   }
 
-  ND::THandle<ND::TTPCHVCluster> targetClu;
-  if ( Path2->GetConnectedEnd(JunctionId) == -1) {
-    targetClu = *(Path2->GetHits()->begin());
+  trex::TTRExHVCluster* targetClu;
+  if ( Path2.GetConnectedEnd(JunctionId) == -1) {
+    targetClu = *(Path2.GetClusterHits()->begin());
   } else if ( Path2->GetConnectedEnd(JunctionId) == 1) {
     targetClu = *(Path2->GetHits()->rbegin());
   } else {

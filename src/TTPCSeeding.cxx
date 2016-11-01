@@ -14,28 +14,24 @@
 #include <TrackingUtils.hxx>
 
 //*****************************************************************************
-ND::TTPCSeeding::TTPCSeeding( ){
+trex::TTPCSeeding::TTPCSeeding( ){
 //*****************************************************************************
-  fChi2max = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.Seeding.MaxChi2");
+  fChi2max = 1000;
 
-  fExcludeClusterWithManyPeaks = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.Seeding.ExcludeClusterWithManyPeaks");
-  fExcludeSaturatedClusters = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.Seeding.ExcludeSaturatedClusters");
-
-  fUseTruthAsSeedResult = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.UseTruthAsSeedResults");
 }
 
 
 //*****************************************************************************
-void ND::TTPCSeeding::Process(ND::THandle<ND::TTPCPattern> Pattern){
+void trex::TTPCSeeding::Process(trex::TTRExPattern& Pattern){
 //*****************************************************************************
   // return false when no seed was found for any path ???
-  std::vector< ND::THandle<ND::TTPCPath> > Paths = Pattern->GetPaths();
+  std::vector<trex::TTRExPath> Paths = Pattern->GetPaths();
   
-  for (std::vector< ND::THandle<ND::TTPCPath> >::iterator pth = Paths.begin(); pth != Paths.end(); pth++) {
-    ND::THandle<ND::TTPCPath> path = *pth;
+  for (auto pth = Paths.begin(); pth != Paths.end(); pth++) {
+    trex::TTPCPath& path = *pth;
     // If there is already a seed result, don't seed again.
-    if ( path->CheckStatus(ND::TReconBase::kChi2Fit) || 
-               path->CheckStatus(ND::TReconBase::kRan)){
+    if ( path->CheckStatus(trex::kChi2Fit) || 
+               path->CheckStatus(trex::kRan)){
       continue;
     }
     // TODO: Reset all the seed variables for safety
@@ -45,66 +41,43 @@ void ND::TTPCSeeding::Process(ND::THandle<ND::TTPCPattern> Pattern){
 
 
 //*****************************************************************************
-void ND::TTPCSeeding::FindSeed(ND::THandle<ND::TTPCPath> thePath){
+void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
 //*****************************************************************************
-  if ( ND::tpcDebug().Seeding(DB_INFO))
-    std::cout << " ========== Seeding on path Id: "<<thePath->GetId()<< std::endl; 
 
-  ND::THandle<ND::THitSelection> HVclu = thePath->GetHits();
-  if( !HVclu->size() ) return;
-
-  // Little shortcut
-  fDriftVelocity = ND::tpcCalibration().GetDriftVelocity();
+  std::vector<TTRExHVCluster>& HVclu = thePath->GetHits();
+  if( !HVclu.size() ) return;
 
   PrepareSeeding(HVclu);
 
-  if( ND::tpcDebug().SeededClusters(DB_INFO)){
-    std::cout << " ====================== Seeding =====================" << std::endl; 
-    TTPCUtils::HVClustersPrintout(HVclu, ND::tpcDebug().SeededClusters(DB_VERBOSE));
-    std::cout << " ----------------------------------------------------" << std::endl; 
-  }
-
   // Do we have enough valid clusters to get a decent seed ?
   int NbValidPlanes = 0;
-  for (ND::THitSelection::const_iterator Hit = HVclu->begin(); Hit != HVclu->end(); Hit++) {
-    ND::THandle<ND::TTPCHVCluster> HV = (*Hit);
-    if( HV->isOkForSeed() ) NbValidPlanes++;
+  for (auto Hit = HVclu->begin(); Hit != HVclu->end(); Hit++) {
+    trex::TTRExHVCluster& HV = (*Hit);
+    if( HV.isOkForSeed() ) NbValidPlanes++;
   }
   if (NbValidPlanes < 4 ){
     // TODO: Somehow save the fact that we tried to make a seed but failed.
-    thePath->SetStatus(ND::TReconBase::kRan);
+    thePath->SetStatus(trex::kRan);
     return;
   }
     
-  if ( ND::tpcDebug().Seeding(DB_INFO))
-    std::cout << " --- Process Riemann seeding"<< std::endl; 
-  State RiemannHelix;
+  std::vector<double> RiemannHelix;
   double RiemannError = Riemann(HVclu, RiemannHelix);
 
-  if ( ND::tpcDebug().Seeding(DB_INFO))
-    std::cout << " --- Process R2 seeding"<< std::endl; 
-  State R2Helix;
+  std::vector<double> R2Helix;
   double R2Error = R2(HVclu, R2Helix);
 
   bool RiemannIsBad = ( isnan(RiemannError) || RiemannError > 1.e6); 
   bool R2IsBad = ( isnan(R2Error) || R2Error > 1.e6); 
 
-  if( ND::tpcDebug().Seeding(DB_INFO) ){ 
-    std::cout << " Riemann RMS " << RiemannError << std::endl; 
-    std::cout << " 3 point RMS " << R2Error << std::endl; 
-  }
-
   if( RiemannIsBad && R2IsBad ) {
     // TODO: Save "seeding failed" in path ?
-    if( ND::tpcDebug().Seeding(DB_INFO) ){ 
-      std::cout<<" ---> Both Riemann and R2 seeding algorithms FAILED ! "<<std::endl; 
-    }
-    thePath->SetStatus(ND::TReconBase::kRan);
+    thePath->SetStatus(trex::kRan);
     return;
   }
 
-  State frontSeedState;
-  State backSeedState;
+  std::vector<double> frontSeedState;
+  std::vector<double> backSeedState;
   if( RiemannError > R2Error || (RiemannIsBad && R2IsBad)) {
     frontSeedState = R2Helix;
   }
@@ -114,76 +87,33 @@ void ND::TTPCSeeding::FindSeed(ND::THandle<ND::TTPCPath> thePath){
 
   if( ! IsResultValid(HVclu, frontSeedState) ) {
     // TODO: Save "seeding failed" in path ?
-    if( ND::tpcDebug().Seeding(DB_INFO) ){ 
-      std::cout << " ---> The seed is invalid ! Don't save it."<< std::endl; 
-    }
-    thePath->SetStatus(ND::TReconBase::kRan);
+    thePath->SetStatus(trex::kRan);
     return;
   }
 
-  if ( ND::tpcDebug().Seeding(DB_INFO)){
-    std::cout<<" =========================================================================="<<std::endl;
-    std::cout<<"  Path Id "<<thePath->GetId()<<std::endl;
-    std::cout<<"  Riemann PosDirQoP: "<<RiemannHelix.vector()<<std::endl;
-    std::cout<<"  R2 PosDirQoP: "<<R2Helix.vector()<<std::endl;
-  }
-
-  // We can use the truth as fake seed to check the impact of the seeding
-  if (ND::tpcCalibration().IsMC() && 
-    ( fUseTruthAsSeedResult || ND::tpcDebug().Seeding(DB_INFO) )) {
-      State trueState = State(7);
-      // This gets the truth or returns false. Includes check if input file is MC.
-      bool ok = TTPCUtils::TrueStateNear3Dpoint(thePath->GetHits(), thePath->GetFirstPosition(), trueState);
-      if (ok && fUseTruthAsSeedResult)
-        frontSeedState = trueState;
-      if (ok && ND::tpcDebug().Seeding(DB_INFO))
-        std::cout<<"  Truth PosDirQoP: "<<trueState.vector()<<std::endl;
-  }
-
-  if ( ND::tpcDebug().Seeding(DB_INFO)){
-    std::cout<<" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<std::endl;
-  }
-
-  EVector vect = frontSeedState.vector();
-  EMatrix cova = frontSeedState.matrix();
-  // Just some values to have something.
-  // TODO: These actually originate from TTPCt0 in tpcRecon and should
-  // probably be reviewed
-  cova[0][0] = 10000.0; //0.015;//0.15;
-  cova[1][1] = 0.5; //0.015;//0.15;//0.5;
-  cova[2][2] = 0.1; //0.015;//0.15;//0.5;
-  cova[3][3] = 10000.0; //0.05;//0.5;
-  cova[4][4] = 0.0001; //0.05;//0.5;//1.0;
-  cova[5][5] = 0.0001; //0.05;//0.5;//1.0;
-  cova[6][6] = 1.0e-18; //1e-10;//1.0e-9;//1.0e-7;
-  frontSeedState.set_hv(HyperVector(vect,cova));
-
   // Calculate useful quantities for the following steps like the path length and the last state.
   // Use a copy of the seed state
-  State propagState = frontSeedState;
+  std::vector<double> propagState = frontSeedState;
 
-  if( ND::tpcDebug().Seeding(DB_VVERBOSE) )
-    std::cout<<" --> Get back seed state: Propagation"<<std::endl;
-  TTPCRecPackUtils::SavedParam RPParam = TTPCRecPackUtils::InitForPropagationInTPC();
   // For the final propagation in particular, the seed state may not be defined
   // at the first cluster but instead at the second or third if the first clusters
   // are not selected as good enough for the seeding.
   // So just propagate to the shortest distance.
-  ND::rpman("TREx").model_svc().model().intersector().set_length_sign(0);
+
+  trex::TTPCHelixPropagator& hp=trex::helixPropagator();
+  hp.InitHelixPosDirQoP(propagState,firstcluvertical);
   double pthLength = 0.0;
-  for (ND::THitSelection::const_iterator Hit = HVclu->begin(); Hit != HVclu->end(); Hit++) {
-    ND::THandle<ND::TTPCHVCluster> Cluster = (*Hit);
+  for (auto Hit = HVclu.begin(); Hit != HVclu.end(); Hit++) {
+    trex::TTRExHVCluster& Cluster = *Hit;
+
     double localLength = 0.0;
-    if (!TTPCRecPackUtils::PropagateToHVCluster(Cluster, propagState, localLength)){
+    
+    if (!hp.PropagateToHVCluster(Cluster, localLength)){
       continue;
-    }
-    if( ND::tpcDebug().Seeding(DB_VVERBOSE) ){
-      std::cout<<std::setw(20)<<" Clu at: "<<Cluster->GetPosition().Y()<<"   "<<Cluster->GetPosition().Z()<<std::endl;
-      std::cout<<std::setw(20)<<" Propagation at: "<<propagState.vector()[1]<<"   "<<propagState.vector()[2]<<std::endl;
     }
     pthLength += localLength;
 
-    if (Hit == HVclu->begin()){
+    if (&Hit == (&*(HVclu.begin())){
       frontSeedState = propagState;
     }
   }
@@ -192,11 +122,9 @@ void ND::TTPCSeeding::FindSeed(ND::THandle<ND::TTPCPath> thePath){
   // Or should we instead change the propagation sign ?
   // Not sure what's the best option.
   backSeedState = propagState;
-  thePath->SetLength(pthLength);
+  thePath.SetLength(pthLength);
 
-  TTPCRecPackUtils::ResetAfterPropagationInTPC(RPParam);
-  
-  thePath->SaveSeedStates(frontSeedState, backSeedState);
+  thePath.SaveSeedStates(frontSeedState, backSeedState);
 
 }
 
@@ -204,7 +132,7 @@ void ND::TTPCSeeding::FindSeed(ND::THandle<ND::TTPCPath> thePath){
 //*****************************************************************************
 // Calculate some quantities that are used by multiple seeding algorithm
 // to speed things up.
-void ND::TTPCSeeding::PrepareClustersForSeeding( ND::THandle<ND::THitSelection> HVclu ){
+  void trex::TTPCSeeding::PrepareClustersForSeeding( std::vector<trex::TTRExHVCluster>& HVclu ){
 //*****************************************************************************
   // Select the clusters that are good enough for the sseding.
   int NMaxPeaks = 0;
@@ -213,28 +141,15 @@ void ND::TTPCSeeding::PrepareClustersForSeeding( ND::THandle<ND::THitSelection> 
   int NSelHori = 0;
  
   fNbOrientChange = 0;
-  ND::THandle<ND::TTPCHVCluster> Clu;
   bool PrevIsVert = true;
   bool FirstClu = true;
   
-  for (ND::THitSelection::const_iterator tmpClu = HVclu->begin(); tmpClu != HVclu->end(); tmpClu++) {
-    Clu = *tmpClu;
+  for (auto tmpClu = HVclu.begin(); tmpClu != HVclu.end(); tmpClu++) {
+    trex::TTPCHVCluster& Clu = *tmpClu;
 
-    Clu->SetOkForSeed(true);  // Make sure that we start with fresh sample.
+    Clu.SetOkForSeed(true);  // Make sure that we start with fresh sample.
 
-    if( Clu->GetMaxNPeaks() > 1 && fExcludeClusterWithManyPeaks )  {
-      Clu->SetOkForSeed(false);
-      NMaxPeaks++; 
-      continue;
-    }
-
-    if( Clu->GetNSaturated() > 0  && fExcludeSaturatedClusters ) {
-      Clu->SetOkForSeed(false);
-      NSaturation++; 
-      continue;
-    }
-
-    bool ThisIsVert = Clu->IsVertical();
+    bool ThisIsVert = Clu.IsVertical();
     if ( PrevIsVert != ThisIsVert && !FirstClu ){
       fNbOrientChange++;
       PrevIsVert = ThisIsVert;
@@ -242,50 +157,27 @@ void ND::TTPCSeeding::PrepareClustersForSeeding( ND::THandle<ND::THitSelection> 
 
     // Select clusters allowing only 2 changes of orientation, not more.
     if (fNbOrientChange > 2){
-      Clu->SetOkForSeed(false);
+      Clu.SetOkForSeed(false);
       continue;
     }
 
     // Cluster selected !
-    if( Clu->IsVertical() ){
+    if( Clu.IsVertical() ){
       NSelVert++;
     } else {
       NSelHori++;
     }
 
     FirstClu = false;
-    PrevIsVert = Clu->IsVertical();
+    PrevIsVert = Clu.IsVertical();
   }
 
   // We removed the clusters starting at the 3rd change or orientation.
   // So record only the first 2 changes.
   if (fNbOrientChange > 2){
-    if( ND::tpcDebug().Seeding(DB_INFO))
-      std::cout << " WARNING: The cluster orientation changed "<<fNbOrientChange<<" times !!! This is not good !" << std::endl; 
     fNbOrientChange = 2;
   }
 
-  if( (double)NSaturation > 0.3*(HVclu->size()) && fExcludeSaturatedClusters) {
-    if( ND::tpcDebug().Seeding(DB_INFO)) {
-      std::cout << " The number of saturated hits is too large. Use saturated waveforms for the seeding. " << std::endl; 
-    }
-
-    fExcludeSaturatedClusters = 0;
-    PrepareClustersForSeeding(HVclu);
-    fExcludeSaturatedClusters = 1;
-  }
-  else {
-    if( ND::tpcDebug().Seeding(DB_VERBOSE)) {
-      std::cout << " ------- Hit selection prior to seeding."<<std::endl;
-      std::cout << " Original number of clusters: " << HVclu->size() << std::endl; 
-      std::cout << " Number of selected clusters:"<<std::endl;
-      std::cout << "    Vertical:   " << NSelVert << std::endl;
-      std::cout << "    Horizontal: " << NSelHori << std::endl;
-      std::cout << "    Total:      " << (NSelVert + NSelHori) << std::endl;
-      std::cout << " Rejected by " << std::endl; 
-      std::cout << " restricted number of peaks       " << NMaxPeaks          << std::endl;
-      std::cout << " restricted number of saturations " << NSaturation        << std::endl;
-    }
   }
 }
 
@@ -293,7 +185,7 @@ void ND::TTPCSeeding::PrepareClustersForSeeding( ND::THandle<ND::THitSelection> 
 //*****************************************************************************
 // Calculate some quantities that are used by multiple seeding algorithms
 // to speed things up.
-void ND::TTPCSeeding::PrepareSeeding( ND::THandle<ND::THitSelection> HVclu ){
+void trex::TTPCSeeding::PrepareSeeding( std::vector<trex::TTRExHVCluster>& HVclu ){
 //*****************************************************************************
   fZfirst = 900000.;
   fZlast = -900000.;
@@ -310,17 +202,13 @@ void ND::TTPCSeeding::PrepareSeeding( ND::THandle<ND::THitSelection> HVclu ){
 
   bool FoundFirst = false;
   int NbSelectedClu = 0;
-  for (ND::THitSelection::const_iterator hit = HVclu->begin(); hit != HVclu->end(); hit++) {
-    ND::THandle<ND::TTPCHVCluster> clu = *hit;
-    if (!clu){
-      // TODO: proper exception
-      throw;
-    }
-    if( !clu->isOkForSeed() ) continue; 
+  for (auto hit = HVclu.begin(); hit != HVclu.end(); hit++) {
+    trex::TTPCHVCluster& clu = *hit;
+    if( !clu.isOkForSeed() ) continue; 
 
-    xclu = clu->CalibX();
-    zclu = clu->Z();
-    yclu = clu->Y();
+    xclu = clu.CalibX();
+    zclu = clu.Z();
+    yclu = clu.Y();
 
     fXlast = xclu;
     fYlast = yclu;
@@ -339,36 +227,26 @@ void ND::TTPCSeeding::PrepareSeeding( ND::THandle<ND::THitSelection> HVclu ){
   int TargetClu = int(double(NbSelectedClu) / 2.);
   NbSelectedClu = 0;
 
-  for (ND::THitSelection::const_iterator hitit = HVclu->begin(); hitit != HVclu->end(); hitit++){
-    ND::THandle<ND::TTPCHVCluster> clu = *hitit;
-    if (!clu){
-      // TODO: proper exception
-      throw;
-    }
-    if( !clu->isOkForSeed() ) continue;
+  for (auto hitit = HVclu.begin(); hitit != HVclu.end(); hitit++){
+    ND::TTPCHVCluster& clu = *hitit;
+    if( !clu.isOkForSeed() ) continue;
 
     // Search for Zmid.
     if( TargetClu == NbSelectedClu )  {
-      fZmid = clu->Z();
-      fYmid = clu->Y();
+      fZmid = clu.Z();
+      fYmid = clu.Y();
       break;
     }
     NbSelectedClu++;
   }
 
-  if( ND::tpcDebug().Seeding(DB_VERBOSE) ){
-    std::cout << " ======> fNbOrientChange "<< fNbOrientChange<< std::endl;
-    std::cout << " First pt: " << fXfirst << ", " << fYfirst << ", " << fZfirst << std::endl;
-    std::cout << " Last pt: " << fXlast << ", " << fYlast << ", " << fZlast << std::endl;
-    std::cout << " Mid pt: " << fYmid << ", " << fZmid << std::endl;
-  }
 }
 
 
 //*****************************************************************************
 // R2 (3 point seeding method)
 //*****************************************************************************
-double ND::TTPCSeeding::R2( ND::THandle<ND::THitSelection> HVclu, State &Helix){
+double ND::TTPCSeeding::R2( std::vector<trex::TTRExHVCluster>& HVclu, std::vector<double>& Helix){
 
   double dy12 = fYfirst-fYmid; 
   double ay12 = fYfirst+fYmid; 
@@ -405,13 +283,6 @@ double ND::TTPCSeeding::R2( ND::THandle<ND::THitSelection> HVclu, State &Helix){
   R2rho *= Helicity;
   double R2theta = phiFirst - (Helicity * TMath::PiOver2());
 
-  if( ND::tpcDebug().Seeding(DB_VERBOSE) ){
-    std::cout << " R2:  zc  = " <<zl0 <<"      yc  = " <<yl0 << std::endl; 
-    std::cout << " R2:  Helicity = "<<Helicity << std::endl; 
-    std::cout << " R2:  phiFirst = "<<phiFirst <<"   phiLast = "<<phiLast << std::endl; 
-    std::cout << " R2:  theta = "<<R2theta<<"      rho = " << R2rho << std::endl;
-  }
-
   // At this point just use the projection of the clusters
   // onto the center of the cathode to figure out the delta phi angle (less than 1pi ?)
 
@@ -419,30 +290,34 @@ double ND::TTPCSeeding::R2( ND::THandle<ND::THitSelection> HVclu, State &Helix){
   double R2y = fYfirst;
   double R2z = fZfirst;
 
-  Helix = State(7);
-  EVector outVect = EVector(7,0);
-  EMatrix outCova = EMatrix(7,7,0);
-  outVect[0] = R2x;
-  outVect[1] = R2y;
-  outVect[2] = R2z;
-  outVect[3] = 0.0;
-  outVect[4] = TMath::Sin(R2theta);
-  outVect[5] = TMath::Cos(R2theta);
+  Helix.push_back(R2x);
+  Helix.push_back(R2y);
+  Helix.push_back(R2z);
+  Helix.push_back(0.0);
+  Helix.push_back(TMath::Sin(R2theta));
+  Helix.push_back(TMath::Cos(R2theta));
 
-  TVector3 Pos(outVect[0], outVect[1], outVect[2]);
-  TVector3 Dir(outVect[3], outVect[4], outVect[5]);
+  TVector3 Pos(Helix[0], Helix[1], Helix[2]);
+  TVector3 Dir(Helix[3], Helix[4], Helix[5]);
   double p;
   double q;
+  
+  //implement this properly...
+  /*
   TrackingUtils::Curvature_to_MomentumAndCharge(Pos,Dir,R2rho,p,q);
-  outVect[6] = q/p;
-  if( ND::tpcDebug().Seeding(DB_VERBOSE) ){
-    std::cout << " R2:  dy       = " << outVect[4] << std::endl;
-    std::cout << " R2:  dz       = " << outVect[5] << std::endl;
-    std::cout << " R2:  momentum = " << p << std::endl;
+  double B = COMET::IFieldManager::GetFieldValue(pos).Mag() / unit::tesla;
+  // project into the bending plane
+  double factor = -(0.3 * B) / sqrt(1. - dir.X() * dir.X());
+  if (fabs(curv) > 0 && factor != 0) {
+    p = fabs(factor / curv);
+    q = -curv / fabs(curv);
+    return true;
   }
+  
+  return false;  
+  */
 
-  Helix.set_hv(HyperVector(outVect,outCova));
-  Helix.set_name(RP::representation,RP::pos_dir_curv);
+  outVect[6] = q/p;
 
   return FinalizeSeed(HVclu, R2rho, Helix);
 }
@@ -450,7 +325,7 @@ double ND::TTPCSeeding::R2( ND::THandle<ND::THitSelection> HVclu, State &Helix){
 //*****************************************************************************
 // Riemann Fast Fit (Riemann sphere seeding method) 
 //*****************************************************************************
-double ND::TTPCSeeding::Riemann( ND::THandle<ND::THitSelection> HVclu, State &Helix){
+double trex::TTPCSeeding::Riemann( std::vector<TTRExHVCluster>& HVclu, std::vector<double>& Helix){
   double scale = 1000.; 
 
   std::vector<double> x;
@@ -461,12 +336,12 @@ double ND::TTPCSeeding::Riemann( ND::THandle<ND::THitSelection> HVclu, State &He
   double ry = 0.0;
   double rz = 0.0;
 
-  for (ND::THitSelection::const_iterator hitit = HVclu->begin(); hitit != HVclu->end(); hitit++) {
-    ND::THandle<ND::TTPCHVCluster> clu = *hitit;
-    if( !clu->isOkForSeed() ) continue; 
+  for (auto hitit = HVclu.begin(); hitit != HVclu.end(); hitit++) {
+    trex::TTRExHVCluster& clu = *hitit;
+    if( !clu.isOkForSeed() ) continue; 
 
-    double yy = (clu->Y() - fYfirst)/scale;
-    double zz = (clu->Z() - fZfirst)/scale;
+    double yy = (clu.Y() - fYfirst)/scale;
+    double zz = (clu.Z() - fZfirst)/scale;
     double r = TMath::Sqrt(zz*zz+yy*yy);
     double phi = TMath::ATan2(yy,zz);
     double xi = r/(1.+r*r)*TMath::Cos(phi);
@@ -555,13 +430,6 @@ double ND::TTPCSeeding::Riemann( ND::THandle<ND::THitSelection> HVclu, State &He
   Rierho = Rierho * Helicity;
   double Rietheta = phiFirst - (Helicity * TMath::PiOver2());
 
-  if( ND::tpcDebug().Seeding(DB_VERBOSE) ){
-    std::cout << " Riemann:  zc  = " << u0 <<"      yc  = " << v0 << std::endl; 
-    std::cout << " Riemann:  Helicity = "<<Helicity << std::endl; 
-    std::cout << " Riemann:  phiFirst = "<<phiFirst <<"   phiLast = "<<phiLast << std::endl; 
-    std::cout << " Riemann:  theta = "<<Rietheta<<"      rho = " << Rierho << std::endl;
-  }
-
   // At this point just use the projection of the clusters
   // onto the center of the cathode to figure out the delta phi angle (less than 1pi ?)
 
@@ -569,31 +437,35 @@ double ND::TTPCSeeding::Riemann( ND::THandle<ND::THitSelection> HVclu, State &He
   double Riey = fYfirst;
   double Riez = fZfirst;
 
-  Helix = State(7);
-  EVector outVect = EVector(7,0);
-  EMatrix outCova = EMatrix(7,7,0);
-  outVect[0] = Riex;
-  outVect[1] = Riey;
-  outVect[2] = Riez;
-  outVect[3] = 0.0;
-  outVect[4] = TMath::Sin(Rietheta);
-  outVect[5] = TMath::Cos(Rietheta);
+  Helix.push_back(Riex);
+  Helix.push_back(Riey);
+  Helix.push_back(Riez);
+  Helix.push_back(0.0);
+  Helix.push_back(TMath::Sin(Rietheta));
+  Helix.push_back(TMath::Cos(Rietheta));
 
-  TVector3 Pos(outVect[0], outVect[1], outVect[2]);
-  TVector3 Dir(outVect[3], outVect[4], outVect[5]);
+
+  TVector3 Pos(Helix[0], Helix[1], Helix[2]);
+  TVector3 Dir(Helix[3], Helix[4], Helix[5]);
   double p;
   double q;
+  
+  //implement this properly...
+  /*
   TrackingUtils::Curvature_to_MomentumAndCharge(Pos,Dir,Rierho,p,q);
-  outVect[6] = q/p;
-  if( ND::tpcDebug().Seeding(DB_VERBOSE) ){
-    std::cout << " Riemann:  dy       = " << outVect[4] << std::endl;
-    std::cout << " Riemann:  dz       = " << outVect[5] << std::endl;
-    std::cout << " Riemann:  momentum = " << p << std::endl;
+  double B = COMET::IFieldManager::GetFieldValue(pos).Mag() / unit::tesla;
+  // project into the bending plane
+  double factor = -(0.3 * B) / sqrt(1. - dir.X() * dir.X());
+  if (fabs(curv) > 0 && factor != 0) {
+    p = fabs(factor / curv);
+    q = -curv / fabs(curv);
+    return true;
   }
+  
+  return false;  
+  */
 
-  Helix.set_hv(HyperVector(outVect,outCova));
-  Helix.set_hv(RP::sense, HyperVector(1,0));
-  Helix.set_name(RP::representation,RP::pos_dir_curv);
+  outVect[6] = q/p;
 
   return FinalizeSeed(HVclu, Rierho, Helix);
 
@@ -601,7 +473,7 @@ double ND::TTPCSeeding::Riemann( ND::THandle<ND::THitSelection> HVclu, State &He
 
 
 //*****************************************************************************
-double ND::TTPCSeeding::CalculateRhoSign(double Y0, double Z0) {
+double trex::TTPCSeeding::CalculateRhoSign(double Y0, double Z0) {
 //*****************************************************************************
   // Just a short cut.
   bool largeCurv = false;
@@ -640,7 +512,7 @@ double ND::TTPCSeeding::CalculateRhoSign(double Y0, double Z0) {
 
 
 //*****************************************************************************
-double ND::TTPCSeeding::FinalizeSeed( ND::THandle<ND::THitSelection> HVclu, double rho, State &finalState){
+double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu, double rho, std::vector<double> &finalState){
 //*****************************************************************************
   double rms = 0.0;
   int ntot=0;
@@ -651,9 +523,10 @@ double ND::TTPCSeeding::FinalizeSeed( ND::THandle<ND::THitSelection> HVclu, doub
   EMatrix Cova = finalState.matrix();
 
   // First start by setting the sense
-  ND::THitSelection::const_iterator Hit = HVclu->begin();
-  ND::THandle<ND::TTPCHVCluster> Cluster = (*Hit);
-  if (Cluster->IsVertical()){
+  //MDH TODO: Figure out which vector element is the sense
+  std::vector<trex::TTRExHVCluster>::const_iterator Hit = HVclu.begin();
+  trex::TTRExHVCluster& Cluster = (*Hit);
+  if (Cluster.IsVertical()){
     if ( Vect[5] > 0)
       finalState.set_hv(RP::sense, HyperVector(1,0));
     else
@@ -665,23 +538,17 @@ double ND::TTPCSeeding::FinalizeSeed( ND::THandle<ND::THitSelection> HVclu, doub
       finalState.set_hv(RP::sense, HyperVector(-1,0));
   }
     
-
-  if( ND::tpcDebug().Seeding(DB_VVERBOSE) )
-    std::cout<<" --> FinalizeSeed: Propagation"<<std::endl;
-  TTPCRecPackUtils::SavedParam RPParam = TTPCRecPackUtils::InitForPropagationInTPC();
-  State propagState = finalState;
+  std::vector<double> propagState = finalState;
   double deltaPhi = 0.0;
-  State prevState;
+  std::vector<double> prevState;
   double ClusterX1;
   double ClusterX2 = 0.0;
-  ClusterX1 = Cluster->CalibX();
+  ClusterX1 = Cluster.CalibX();
   bool doDeltaPhi = true;
   double suspicious =0.0;
-  for ( ; Hit != HVclu->end(); Hit++) {
-    ND::THandle<ND::TTPCHVCluster> Cluster = (*Hit);
-    if( !Cluster->isOkForSeed() ) continue;
-    if( ND::tpcDebug().Seeding(DB_VVERBOSE) )
-      std::cout<<std::setw(20)<<" Cluster at: "<<Cluster->GetPosition().Y()<<"   "<<Cluster->GetPosition().Z()<<"   isVertical = "<<Cluster->IsVertical()<<std::endl;
+  for ( ; Hit != HVclu.end(); Hit++) {
+    trex::TTRExHVCluster& Cluster = (*Hit);
+    if( !Cluster.isOkForSeed() ) continue;
     prevState = propagState;
     double length = 0.0;
     if (!TTPCRecPackUtils::PropagateToHVCluster(Cluster, propagState, length))
@@ -692,13 +559,7 @@ double ND::TTPCSeeding::FinalizeSeed( ND::THandle<ND::THitSelection> HVclu, doub
     yclu = Cluster->Y();
     zclu = Cluster->Z();
     double delta = TMath::Sqrt((yclu-ypred)*(yclu-ypred)+(zclu-zpred)*(zclu-zpred));
-    if( ND::tpcDebug().Seeding(DB_VVERBOSE) ){
-      std::cout<<std::setw(20)<<" Propagation at: "<<ypred<<"   "<<zpred<<std::endl;
-      std::cout<<std::setw(20)<<" => delta = "<<delta<<std::endl;
-    }
     if ( fabs(delta) > 100.){
-      if( ND::tpcDebug().Seeding(DB_VVERBOSE) )
-        std::cout<<" --> Suspicious jump. Don't use it."<<std::endl;
       propagState = prevState;
       suspicious += 1.;
       continue;
@@ -714,11 +575,7 @@ double ND::TTPCSeeding::FinalizeSeed( ND::THandle<ND::THitSelection> HVclu, doub
     ntot++;
   }
 
-  TTPCRecPackUtils::ResetAfterPropagationInTPC(RPParam);
-
   if ( (suspicious/(double)ntot) > 0.7){
-    if( ND::tpcDebug().Seeding(DB_INFO) )
-      std::cout<<" ERROR: Too many suspicious jumps. Fail the seeding."<<std::endl;
     return 1.e99;
   }
   rms /= (double)ntot;
@@ -731,14 +588,6 @@ double ND::TTPCSeeding::FinalizeSeed( ND::THandle<ND::THitSelection> HVclu, doub
   Vect[6] *= sqrt(1. - Vect[3]*Vect[3]);
   finalState.set_hv(HyperVector(Vect,Cova));
 
-  if( ND::tpcDebug().Seeding(DB_VERBOSE) ){
-    std::cout << " X angle calculation:  deltaX  = " << deltaX << std::endl; 
-    std::cout << " X angle calculation:  deltaPhi = "<<deltaPhi << std::endl; 
-    std::cout << " X angle calculation:  Renorm = "<<Renorm << std::endl; 
-    std::cout << " X angle calculation:  rms = "<<rms << std::endl; 
-    std::cout << " cosX = "<<Vect[3] << std::endl; 
-  }
-
   // Something went wrong, don't trust the result
   if ( ! (rms > 0.0) )
     rms = 1.e99;
@@ -748,27 +597,21 @@ double ND::TTPCSeeding::FinalizeSeed( ND::THandle<ND::THitSelection> HVclu, doub
 
 
 //*****************************************************************************
-bool ND::TTPCSeeding::IsResultValid( ND::THandle<ND::THitSelection> HVclu, State &Result){
+bool ND::TTPCSeeding::IsResultValid( std::vector<trex::TTRExHVCluster>& HVclu, std::vector<double>& Result){
 //*****************************************************************************
-  EVector outVect = Result.vector();
+
   // For bad fits give tracks in X only and we can't fit those anyway.
-  if (outVect[4] == 0.0 && outVect[5] == 0.0){
-    if( ND::tpcDebug().Seeding(DB_VERBOSE) )
-      std::cout<<" Seed invalid: The y and z directions are zero !"<<std::endl;
+  if (Result[4] == 0.0 && Result[5] == 0.0){
     return false;
   }
 
   // If the first cluster is vertical (horizontal), the z (y) direction cannot be zero.
   // TODO: maybe this constraint could be more stringent.
-  ND::THandle<ND::TTPCHVCluster> HV = *(HVclu->begin());
-  if ( HV->IsVertical() && outVect[5] == 0.0){
-    if( ND::tpcDebug().Seeding(DB_VERBOSE) )
-      std::cout<<" Seed invalid: The first cluster is vertical and the z direction is zero !"<<std::endl;
+  trex::TTRExHVCluster& HV = *(HVclu.begin());
+  if ( HV.IsVertical() && Result[5] == 0.0){
     return false;
   }
-  if ( ( !HV->IsVertical()) && outVect[4] == 0.0){
-    if( ND::tpcDebug().Seeding(DB_VERBOSE) )
-      std::cout<<" Seed invalid: The first cluster is horizontal and the y direction is zero !"<<std::endl;
+  if ( ( !HV.IsVertical()) && Result[4] == 0.0){
     return false;
   }
 

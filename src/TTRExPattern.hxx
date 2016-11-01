@@ -57,11 +57,11 @@ namespace trex{
 	};
 
 
-      std::vector<std::vector<trex::TTRExHVCluster> > GetPaths(){
+      std::vector<std::vector<trex::TTRExHVCluster> >& GetPaths(){
 	return fPaths;
       }
 
-      std::vector<std::vector<trex::TTPCHitPad> > GetJunctions(){
+      std::vector<std::vector<trex::TTPCHitPad> >& GetJunctions(){
 	return fJunctions;
       }
 

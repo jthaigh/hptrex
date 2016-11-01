@@ -16,11 +16,14 @@
 /// We need the CLHEP package for the matrix calculations.
 // using namespace CLHEP;
 
+namespace trex {
+  class TTPCLikFitPath;
+}
 
 
 /// The TPC likelihood Algorithm.
 
-class TTPCLikFitPath: public TTPCQLikelihood{
+class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
 
   public:
 
@@ -40,21 +43,21 @@ class TTPCLikFitPath: public TTPCQLikelihood{
       at a time to do the Space Point Resolution study.
       Also store in the cluster using isOkForFit if we used it for fitting or not.
     */
-    void PrepareClustersForFitting(ND::THandle<ND::THitSelection> inputClu, ND::THandle<ND::THitSelection> outputClu, double XDirection);
+  void PrepareClustersForFitting(std::vector<trex::TTRExHVCluster>& inputClu, std::vector<trex::TTRExHVCluster>& outputClu, double XDirection);
 
     /// Setup various parameters of the log likelihood minimization
     /// Use this to setup the minimization parameters, there initial values, the step sizes, etc...
     /// Also define the modes of the fit, which parameters to fit, etc ...
-    void SetupLogLklhdMinimizer(ND::THandle<ND::TTPCPath> Path, bool UseSeedAsInit = true);
+  void SetupLogLklhdMinimizer(trex::TTRExPath& Path, bool UseSeedAsInit = true);
 
     /// Minimize the log likelihood for the given hits.
     /// This is the place where parameters will be fixed or released but nothing else.
     /// Use SetupLogLklhdMinimizer to setup the parameters, there initial values, the step sizes, etc...
-    int LogLklhdMinimizer(ND::THandle<ND::THitSelection> inputClusters);
+  int LogLklhdMinimizer(std::vector<trex::TTRExHVCluster>& inputClusters);
 
     /// A few little calls to prepare for a minimization.
     /// Must be called explicitely before calling SimpleLogLklhdMinimizer
-    void GetReadyForMinimization(ND::THandle<ND::THitSelection> inputClusters);
+  void GetReadyForMinimization(std::vector<trex::TTRExHVCluster>& inputClusters);
 
     /// Some clean of containers after the minimization.
     /// Must be called explicitely after calling SimpleLogLklhdMinimizer
@@ -70,7 +73,7 @@ class TTPCLikFitPath: public TTPCQLikelihood{
     /// Setup various parameters of the log likelihood calculation
     /// Use this to setup the calculation of the log likelihood for a given set of clusters.
     /// Needs to know if the front of back likelihood state should be used for the propagation.
-    bool SetupLogLklhdCalculator(State helixState, ND::THandle<ND::THitSelection> inputClusters, double inputLength);
+  bool SetupLogLklhdCalculator(std::vector<double> helixState, std::vector<trex::TTRExHVCluster> inputClusters, double inputLength);
 
     /// Minimize the log likelihood for the hits given to SetupLogLklhdCalculator.
     /// This is the place where parameters will be fixed or released but nothing else.
@@ -89,7 +92,9 @@ class TTPCLikFitPath: public TTPCQLikelihood{
     void StoreFittedState();
     void StoreFittedSigma();
 
-    void SaveFitResults(ND::THandle<ND::TTPCPath> Path);
+  void SaveFitResults(trex::TTRExPath& Path);
+
+  //MDH TODO: Fix return class
     TTPCPathFitResults GetFitResults();
 
   private: 
@@ -105,10 +110,7 @@ class TTPCLikFitPath: public TTPCQLikelihood{
     void ResetMinuitParam(void);
 
     /// Load initial values of the likelihood based on given state
-    void StateToInitValues( State inputState);
-
-    /// Calculate and store the Multiple Scattering correction for the likelihood.
-    void ComputeMScCorrection(double momentum);
+  void StateToInitValues( std::vector<double> inputState);
 
     /// Defines the clusters or hit pads that will be matched to a path.
     struct ClusterSelection {
@@ -126,7 +128,7 @@ class TTPCLikFitPath: public TTPCQLikelihood{
     };
 
     /// Performs the selection of the clusters suitable for the fit
-    void SelectClusters(ND::THandle<ND::THitSelection> inputClu, double XDirection, ClusterSelection &CluSel);
+  void SelectClusters(std::vector<trex::TTRExHVCluster> inputClu, double XDirection, ClusterSelection &CluSel);
 
     /// Retrieves the value of the likelihood in Y along the vertical direction.
     double log_likelihoodHV();
@@ -245,8 +247,6 @@ class TTPCLikFitPath: public TTPCQLikelihood{
     /// Minimum fractional change of the momentum between the seed and the fit momenta required
     /// to redo the minimization with the adjusted multiple scattering correction.
     double fMomChangeForNewMSc;
-    /// Stored path length to be able to recalculate the MSc correction after the Setup.
-    double fPathLength;
     /// Stored initial value of QoP to decide whether to adjust the MSc correction or not.
     double fInitQoP;
 
@@ -275,10 +275,11 @@ class TTPCLikFitPath: public TTPCQLikelihood{
 
 
     ///
-    ND::THandle<ND::THitSelection> fFitClu;
+    std::vector<trex::TTRExHVCluster> fFitClu;
 
     /// Value of the total likelihood
-    TTPCLogLikelihood fLogLklhd;
+  //MDH TODO: Fix class here  
+  TTPCLogLikelihood fLogLklhd;
     /// Value of the X likelihood
     double fLogLklhdX;
     /// Value of the Horizontal/Vertical cluster likelihood
@@ -287,6 +288,7 @@ class TTPCLikFitPath: public TTPCQLikelihood{
     /// Variable filled with Minuit's trial and used in the likelihood calculation.
     double fSigma;
 
+  //MDH TODO: Fix class here
     TTPCPathFitResults fFitResults;
 
     /// Records for each fit, the stages passed (XYZ fit only ? XZ and YZ fit separated ?)

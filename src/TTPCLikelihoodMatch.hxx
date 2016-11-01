@@ -3,30 +3,30 @@
 
 #include <TReconBase.hxx>
 
-#include "TTPCPattern.hxx"
-#include "TTPCPath.hxx"
-#include "TTPCHVCluster.hxx"
+#include "TTRExPattern.hxx"
+#include "TTRExPath.hxx"
+#include "TRExHVCluster.hxx"
 #include "TTPCLikFitPath.hxx"
 
-namespace ND {
+namespace trex {
   class TTPCLikelihoodMatch;
 }
 
 /// Algorithm to match and merge the patterns on each side of the vert MM gap
-class ND::TTPCLikelihoodMatch {
+class trex::TTPCLikelihoodMatch {
   public:
     TTPCLikelihoodMatch();
     ~TTPCLikelihoodMatch();
 
-    void Process( ND::TReconObjectContainer *allPatterns);
-    void MatchBrokenPaths(std::vector< ND::THandle<ND::TTPCPattern> > inPatterns);
-    void MatchAcrossJunctions(ND::THandle<ND::TTPCPattern> Pattern);
+  void Process( std::vector<trex::TTRExPattern>& allPatterns);
+    void MatchBrokenPaths(std::vector< trex::TTRExPattern>& inPatterns);
+  void MatchAcrossJunctions(trex::TTPCPattern& Pattern);
 
   private:
-    void MatchPathsAtJunction(ND::THandle<ND::TTPCPath> Path1, ND::THandle<ND::TTPCPath> Path2, int JunctionId);
-    bool CheckClusterMatch(State &propState, ND::THandle<ND::TTPCHVCluster> Target, int targetSense, bool ForcePropagSense);
-    bool CheckClusterMatch(State &propState, ND::THandle<ND::TTPCHVCluster> Target, int targetSense, bool ForcePropagSense, double &matchDistance);
-    TTPCLogLikelihood GetMatchLikelihood(State trkState, ND::THandle<ND::THitSelection> cluToMatch, double trkLength);
+  void MatchPathsAtJunction(trex::TTRExPath>& Path1, trex::TTRExPath& Path2, int JunctionId);
+bool CheckClusterMatch(std::vector<double>& propState, trex::TTRExHVCluster& Target, int targetSense, bool ForcePropagSense);
+bool CheckClusterMatch(std::vector<double>& propState, trex::TTRExHVCluster& Target, int targetSense, bool ForcePropagSense, double &matchDistance);
+TTPCLogLikelihood GetMatchLikelihood(std::vector<double>& trkState, trex::TTRExHVCluster& cluToMatch, double trkLength);
 
     TTPCLikFitPath *fLklhdCalc;
 };
