@@ -3,20 +3,20 @@
 
 #include <TReconBase.hxx>
 
-#include "TTPCPattern.hxx"
-#include "TTPCPath.hxx"
+#include "TTRExPattern.hxx"
+#include "TTRExPath.hxx"
 #include "TTPCHitPad.hxx"
-#include "TTPCHVCluster.hxx"
+#include "TTRExHVCluster.hxx"
 #include "TTPCSeeding.hxx"
 
 #define MAXPATTERNCHAIN 10
 
-namespace ND {
+namespace trex {
   class TTPCLikelihoodMerge;
 }
 
 /// Algorithm to match and merge the patterns on each side of the vert MM gap
-class ND::TTPCLikelihoodMerge {
+class trex::TTPCLikelihoodMerge {
   public:
     /// Default constructor.
     TTPCLikelihoodMerge();
@@ -24,69 +24,68 @@ class ND::TTPCLikelihoodMerge {
     virtual ~TTPCLikelihoodMerge() {};
 
     /// Perform the matching and merging
-    void Process(ND::TReconObjectContainer *inputPatterns, ND::TReconObjectContainer *mergedPatterns);
+  void Process(std::vector<trex::TTRExPattern>& inputPatterns, std::vector<trex::TTRExPatterns>& mergedPatterns);
 
   private:
 
     void CleanUp();
-    double PathToPatternMatch( ND::THandle<ND::TTPCPath> PathA, ND::THandle<ND::TTPCPattern> PatternB, ND::THandle<ND::TTPCPath> &bestPathB);
-    void MatchBrokenPaths(std::vector< ND::THandle<ND::TTPCPattern> > patterns);
+    double PathToPatternMatch( trex::TTRExPath& PathA, trex::TTRExPattern& PatternB, trex::TTRExPath* bestPathB);
+    void MatchBrokenPaths(std::vector< trex::TTRExPattern>& patterns);
         
-    void MatchThroughJunctions(ND::THandle<ND::TTPCPattern> pattern);
-    ND::THandle<ND::TTPCPattern> MergeAll();
+    void MatchThroughJunctions(trex::TTRExPattern& pattern);
+    trex::TTRExPattern* MergeAll();
 
 
     class MatchingTracker{
       private:
-        ND::THandle<ND::TTPCPath> fRawPath[2];
-        ND::THandle<ND::TTPCPath> fMergedPath;
-        ND::THandle<ND::TTPCJunction> fJunction;
-        bool fMergeMe;
-        int fChain;
+      trex::TTRExPath* fRawPath[2];
+      trex::TTRExPath* fMergedPath;
+      std::vector<trex::TTPCHitPad>* fJunction;
+      bool fMergeMe;
+      int fChain;
 
       public: 
         /// Default constructor.
-        MatchingTracker(ND::THandle<ND::TTPCPath> Path1, ND::THandle<ND::TTPCPath> Path2, ND::THandle<ND::TTPCJunction> Junction){
-          fRawPath[0] = Path1;
-          fRawPath[1] = Path2;
-          fJunction = Junction;
-          fMergeMe = true;
-          fChain = -1;
+      MatchingTracker(trex::TTRExPath& Path1, trex::TTRExPath& Path2, std::vector<trex::TTPCHitPad>& Junction){
+	fRawPath[0] = &Path1;
+	fRawPath[1] = &Path2;
+	fJunction = &Junction;
+	fMergeMe = true;
+	fChain = -1;
           
-        }
-        MatchingTracker(ND::THandle<ND::TTPCPath> Path1, ND::THandle<ND::TTPCPath> Path2){
-          fRawPath[0] = Path1;
-          fRawPath[1] = Path2;
-          fJunction = ND::THandle<ND::TTPCJunction> ();
-          fMergeMe = true;
-          fChain = -1;
-          
-        }
-        MatchingTracker( ND::THandle<ND::TTPCJunction> Junction){
-          fRawPath[0] = ND::THandle<ND::TTPCPath> ();
-          fRawPath[1] = ND::THandle<ND::TTPCPath> ();
-          fMergedPath = ND::THandle<ND::TTPCPath> ();
-          fJunction = Junction;
-          fMergeMe = false;
-          fChain = -1;
-        }
-        /// Default destructor.
-        virtual ~MatchingTracker() {};
-        bool NeedsMerging(){return (fMergeMe && fChain<0) ;};
-        bool HasThisPath(ND::THandle<ND::TTPCPath> testPath){ return (fRawPath[0] == testPath || fRawPath[1] == testPath);};
-        ND::THandle<ND::TTPCPath> GetRawPath(int i) {return fRawPath[i];};
-        ND::THandle<ND::TTPCPath> GetMergedPath() {return fMergedPath;};
-        void SetMergedPath(ND::THandle<ND::TTPCPath> merged) {fMergedPath = merged;};
-        bool IsMergingChainOk(int ChainId) {return (fChain == ChainId);};
-        void SetMergingChain(int ChainId) {fChain = ChainId; fMergeMe = false;};
-        ND::THandle<ND::TTPCJunction> GetJunction() {
-          if (!fJunction) return ND::THandle<ND::TTPCJunction> ();
-          return fJunction;
-        };
+      }
+      MatchingTracker(trex::TTRExPath& Path1, trex::TTRExPath& Path2){
+	fRawPath[0] = *Path1;
+	fRawPath[1] = *Path2;
+	fJunction = 0;
+	fMergeMe = true;
+	fChain = -1;
+        
+      }
+      MatchingTracker( std::vector<trex::TTPCHitPad>& Junction){
+	fRawPath[0] = 0;
+	fRawPath[1] = 0;
+	fMergedPath = 0;
+	fJunction = &Junction;
+	fMergeMe = false;
+	fChain = -1;
+      }
+      /// Default destructor.
+      virtual ~MatchingTracker() {};
+      bool NeedsMerging(){return (fMergeMe && fChain<0) ;};
+      bool HasThisPath(trex::TTRExPath& testPath){ return (fRawPath[0] == &testPath || fRawPath[1] == &testPath);};
+      trex::TTRExPath* GetRawPath(int i) {return fRawPath[i];};
+      trex::TTRExPath* GetMergedPath() {return fMergedPath;};
+      void SetMergedPath(trex::TTRExPath& merged) {fMergedPath = &merged;};
+      bool IsMergingChainOk(int ChainId) {return (fChain == ChainId);};
+      void SetMergingChain(int ChainId) {fChain = ChainId; fMergeMe = false;};
+      std::vector<trex::TTPCHitPad>* GetJunction() {
+	return fJunction;
+      };
     };
 
     std::vector<MatchingTracker> fMTracker;
-    ND::THandle<ND::TTPCPattern> fPatternChain[MAXPATTERNCHAIN];
+    trex::TTRExPattern* fPatternChain[MAXPATTERNCHAIN];
     int fNbPatternChained;
 
 

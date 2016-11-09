@@ -1,17 +1,8 @@
 #include "TTPCSeeding.hxx" 
-#include "TTPCRecPackUtils.hxx"
-
 #include <TVector.h> 
 
-#include "TTPCCalibration.hxx" 
 #include "TTPCHVCluster.hxx" 
 #include "TTPCUtils.hxx" 
-#include "TTPCDebug.hxx" 
-
-#include <TOARuntimeParameters.hxx>
-#include <TND280Event.hxx>
-#include <TEventFolder.hxx>
-#include <TrackingUtils.hxx>
 
 //*****************************************************************************
 trex::TTPCSeeding::TTPCSeeding( ){
@@ -100,6 +91,7 @@ void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
   // are not selected as good enough for the seeding.
   // So just propagate to the shortest distance.
 
+  bool firstcluvertical=HVClu.begin()->IsVertical();
   trex::TTPCHelixPropagator& hp=trex::helixPropagator();
   hp.InitHelixPosDirQoP(propagState,firstcluvertical);
   double pthLength = 0.0;

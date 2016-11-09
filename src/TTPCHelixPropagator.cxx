@@ -1,7 +1,4 @@
 #include "TTPCHelixPropagator.hxx"
-#include "TTPCDebug.hxx"
-#include <TrackingUtils.hxx>
-
 
 /// The static member pointer to the singleton.
 ND::TTPCHelixPropagator* ND::TTPCHelixPropagator::_helixPropagator = NULL;
