@@ -959,10 +959,16 @@ std::vector<trex::TTRExHVCluster> trex::TTPCOrderedVolGroup::GetClusters(){
     bool hasCluster = (*id)->GetHasCluster();
     //std::cout << "This hit has clustered friends" << std::endl;
     bool IsVertical = (*id)->GetIsVertical();
+    TVector3 pos = (*id)->GetPos();
+    double charge = (*id)->GetQ();
+
 
     trex::TTRExHVCluster HVcluster;
     HVcluster.SetHits(hits);
     HVcluster.SetIsVertical(IsVertical);
+    HVcluster.SetPosition(pos);
+    HVcluster.SetCharge(charge);
+
 
     clusters.push_back(HVcluster);
   }

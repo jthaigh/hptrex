@@ -3,6 +3,7 @@
 
 //c++
 #include <vector>
+#include <TVector3>
 
 //TREx
 #include "TTPCHitPad.hxx" 
@@ -15,7 +16,7 @@ namespace trex{
 
   public:
 
-    TTRExHVCluster() : fcHitPtrs(0), fIsVertical(0) {};
+    TTRExHVCluster() : fcHitPtrs(0), fIsVertical(0), fOkForSeed(0), fPosition(0), fCharge(0) {};
 
     //TTRExHVCluster(bool HV, std::vector<trex::TTPCHitPad> cHits) {
 
@@ -29,7 +30,7 @@ namespace trex{
       
       fIsVertical = HV;
       fcHitPtrs = cHits;
-
+      fOkForSeed = true;
     }
     
     void SetHits(std::vector<trex::TTPCHitPad*> cHits){
@@ -38,6 +39,21 @@ namespace trex{
 
     void SetIsVertical(bool HV){
       fIsVertical = HV;
+    }
+
+    void SetOkForSeed(bool ok){
+
+      fOkForSeed = ok;
+    }
+
+    void SetPosition(TVector3 pos){
+    
+      fPosition = pos;  
+    }
+
+    void SetCharge(double charge){
+      
+      fCharge = charge;
     }
 
     bool IsVertical() {
@@ -50,6 +66,11 @@ namespace trex{
       return (not fIsVertical);
     }
 
+    bool IsOkForSeed(){
+      
+      return fOkForSeed;
+    }
+
     std::vector<trex::TTPCHitPad*> GetClusterHits(){
       
       return fcHitPtrs;
@@ -60,6 +81,18 @@ namespace trex{
       
       return fcHitPtrs.size();
       
+    }
+
+    double X() {
+      return fPosition.X();
+    }
+
+    double Y() {
+      return fPosition.Y();
+    }
+
+    double Z() {
+      return fPosition.Z();
     }
     
     //GetOutputCluster() {
@@ -91,10 +124,12 @@ namespace trex{
 
   private:
 
+    TVector3 fPosition;
+    double fCharge;
     std::vector<trex::TTPCHitPad*> fcHitPtrs;
     //std::vector<trex::TTPCHitPad> fcHits;
     bool fIsVertical;
-    
+    bool fOkForSeed;
     
   };
   
