@@ -22,23 +22,23 @@ namespace ND {
 }
 
 class ND::TTPCTracking {
-
-  public:
-    TTPCTracking();
-    ~TTPCTracking();
-
-    void Process(ND::THandle<ND::TTPCPattern> Pattern);
-
-  private:
-    void LikelihoodFit(ND::THandle<ND::TTPCPath> thePath);
-
-    TTPCLikFitPath *fLklhdFitPath;
-    TTPCClusterCorrection *fClusterCorrection;
-
-    bool fRunLikelihoodFit;
-    bool fUseTruthAsFitResult;
-
-	  unsigned int fMinNumberOfClusters;
+  
+public:
+  TTPCTracking();
+  ~TTPCTracking();
+  
+  void Process(ND::THandle<ND::TTPCPattern> Pattern);
+  
+private:
+  void LikelihoodFit(ND::THandle<ND::TTPCPath> thePath);
+  
+  TTPCLikFitPath *fLklhdFitPath;
+  TTPCClusterCorrection *fClusterCorrection;
+  
+  bool fRunLikelihoodFit;
+  bool fUseTruthAsFitResult;
+  
+  unsigned int fMinNumberOfClusters;
 };
 
 
