@@ -20,6 +20,26 @@ namespace trex {
   class TTPCTracking;
 }
 
+<<<<<<< HEAD
+class ND::TTPCTracking {
+  
+public:
+  TTPCTracking();
+  ~TTPCTracking();
+  
+  void Process(ND::THandle<ND::TTPCPattern> Pattern);
+  
+private:
+  void LikelihoodFit(ND::THandle<ND::TTPCPath> thePath);
+  
+  TTPCLikFitPath *fLklhdFitPath;
+  TTPCClusterCorrection *fClusterCorrection;
+  
+  bool fRunLikelihoodFit;
+  bool fUseTruthAsFitResult;
+  
+  unsigned int fMinNumberOfClusters;
+=======
 class trex::TTPCTracking {
 
   public:
@@ -36,6 +56,7 @@ class trex::TTPCTracking {
     bool fRunLikelihoodFit;
 
     unsigned int fMinNumberOfClusters;
+>>>>>>> f16ce8c049259cf9b1316b15dcac015a103a47d8
 };
 
 

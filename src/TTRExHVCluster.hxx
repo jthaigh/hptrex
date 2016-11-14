@@ -4,9 +4,11 @@
 //c++
 #include <vector>
 
+//root
+#include <TVector3.h>
+
 //TREx
 #include "TTPCHitPad.hxx" 
-
 
 namespace trex{
   
@@ -15,7 +17,7 @@ namespace trex{
 
   public:
 
-    TTRExHVCluster() : fcHitPtrs(0), fIsVertical(0) {};
+    TTRExHVCluster() : fcHitPtrs(0), fIsVertical(0), fPosition(), fCharge(0), fOkForSeed(0) {};
 
     //TTRExHVCluster(bool HV, std::vector<trex::TTPCHitPad> cHits) {
 
@@ -29,7 +31,7 @@ namespace trex{
       
       fIsVertical = HV;
       fcHitPtrs = cHits;
-
+      fOkForSeed = true;
     }
 
     double X(){return fPosition.X();}
@@ -46,6 +48,21 @@ namespace trex{
       fIsVertical = HV;
     }
 
+    void SetOkForSeed(bool ok){
+
+      fOkForSeed = ok;
+    }
+
+    void SetPosition(TVector3 pos){
+    
+      fPosition = pos;  
+    }
+
+    void SetCharge(double charge){
+      
+      fCharge = charge;
+    }
+
     bool IsVertical() {
 
       return fIsVertical;
@@ -54,6 +71,11 @@ namespace trex{
     bool IsHorizontal() {
 
       return (not fIsVertical);
+    }
+
+    bool IsOkForSeed(){
+      
+      return fOkForSeed;
     }
 
     std::vector<trex::TTPCHitPad*> GetClusterHits(){
@@ -66,6 +88,18 @@ namespace trex{
       
       return fcHitPtrs.size();
       
+    }
+
+    double X() {
+      return fPosition.X();
+    }
+
+    double Y() {
+      return fPosition.Y();
+    }
+
+    double Z() {
+      return fPosition.Z();
     }
     
     //GetOutputCluster() {
@@ -100,11 +134,14 @@ namespace trex{
     //This will calculate mean cluster position
     void CloseHits(){}
 
+    bool fIsVertical;
+    TVector3 fPosition;    
+    TVector3 fPosition;
+    double fCharge;
     std::vector<trex::TTPCHitPad*> fcHitPtrs;
     //std::vector<trex::TTPCHitPad> fcHits;
     bool fIsVertical;
-    TVector3 fPosition;
-    
+    bool fOkForSeed;
     
   };
   
