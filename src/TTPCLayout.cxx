@@ -6,7 +6,8 @@ trex::TTPCLayout::TTPCLayout(){
   //MDH
   //This all needs reimplementing, and we need to think about if we really need
   //all these parameters...
-  
+
+  fBField=1.;
 
   //MDH
   //PLACEHOLDER!!!

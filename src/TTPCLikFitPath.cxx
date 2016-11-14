@@ -936,10 +936,10 @@ void TTPCLikFitPath::StoreFittedState(){
   fMinuit->GetParameter(TANYORZPARAM,tanyorz,etanyorz);
   fMinuit->GetParameter(CURVPARAM,curv,ecurv);
 
-  EVector minuitVect = EVector(6,0);
-  EMatrix minuitCova = EMatrix(6,6,0);
-  EVector resultVect = EVector(7,0);
-  EMatrix resultCova = EMatrix(7,7,0);
+  std::vector<double> minuitVect(6);
+  //EMatrix minuitCova = EMatrix(6,6,0);
+  std::vector<double> resultVect(7);
+  //EMatrix resultCova = EMatrix(7,7,0);
 
   minuitVect[0] = x;
   minuitVect[1] = y;
@@ -952,10 +952,10 @@ void TTPCLikFitPath::StoreFittedState(){
   int    nfree,ntot,istat;
   fMinuit->mnstat(MinVal,Edm,errdef,nfree,ntot,istat);
 
-  double covar[nfree][nfree];
-  bzero(covar,nfree*nfree*sizeof(double));
+  //double covar[nfree][nfree];
+  //bzero(covar,nfree*nfree*sizeof(double));
 
-  fMinuit->mnemat(&covar[0][0],nfree);
+  //fMinuit->mnemat(&covar[0][0],nfree);
 
   // Conversion from minuit matrix of free parameters only into the RP matrix
   // of all parameters.
@@ -971,29 +971,28 @@ void TTPCLikFitPath::StoreFittedState(){
   FPar[3] = TANYORZPARAM;
   FPar[4] = CURVPARAM;
   NParTot = 5;
-
+  /*
   if( fFitYPosParam ) 
-    minuitCova[ZPARAM][ZPARAM] = 0.00001; // Non zero to initialize the ZPARAM
+  //  minuitCova[ZPARAM][ZPARAM] = 0.00001; // Non zero to initialize the ZPARAM
   else 
-    minuitCova[YPARAM][YPARAM] = 0.00001; // Non zero to initialize the YPARAM
-
+  //  minuitCova[YPARAM][YPARAM] = 0.00001; // Non zero to initialize the YPARAM
+  
   for (unsigned int i = 0; i < NParTot ; ++i){
     for (unsigned int j = 0; j <= i; ++j) {
       int l = FPar[i]; 
       int m = FPar[j]; 
-      minuitCova[l][m] = covar[i][j];
-      minuitCova[m][l] = minuitCova[l][m]; 
+   //   minuitCova[l][m] = covar[i][j];
+   //   minuitCova[m][l] = minuitCova[l][m]; 
     }
   }
-
-  trex::helixPropagator().PosTanCurvToPosDirQoP(minuitVect, minuitCova, resultVect, resultCova);
+  */
+  trex::helixPropagator().PosTanCurvToPosDirQoP(minuitVect, resultVect);
 
   //MDH TODO: What state info do we actually need here? If any, we need to create some new objects...
-  std::vector<double> RPState;
-  RPState.set_hv(HyperVector(resultVect, resultCova));
-  RPState.set_hv(RP::sense, HyperVector(1,0));  
-  RPState.set_name(RP::representation,RP::pos_dir_curv);
-  fFitResults.FitState = RPState;
+  //  RPState.set_hv(HyperVector(resultVect, resultCova));
+  //RPState.set_hv(RP::sense, HyperVector(1,0));  
+  //RPState.set_name(RP::representation,RP::pos_dir_curv);
+  fFitResults.FitState = resultVect;
   fFitResults.IsFitReliable = fReliableFit;
 
   fFitResults.LogLikelihood = fLogLklhd;

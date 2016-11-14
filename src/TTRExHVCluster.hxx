@@ -33,6 +33,12 @@ namespace trex{
       fcHitPtrs = cHits;
       fOkForSeed = true;
     }
+
+    double X(){return fPosition.X();}
+
+    double Y(){return fPosition.Y();}
+
+    double Z(){return fPosition.Z();}
     
     void SetHits(std::vector<trex::TTPCHitPad*> cHits){
       fcHitPtrs = cHits;
@@ -125,6 +131,11 @@ namespace trex{
 
   private:
 
+    //This will calculate mean cluster position
+    void CloseHits(){}
+
+    bool fIsVertical;
+    TVector3 fPosition;    
     TVector3 fPosition;
     double fCharge;
     std::vector<trex::TTPCHitPad*> fcHitPtrs;

@@ -1,16 +1,13 @@
 #ifndef TTPCHelixPropagator_hxx_seen
 #define TTPCHelixPropagator_hxx_seen
 
-#include <TND280Event.hxx>
-#include <TRecPackManager.hxx>
+#include "TTRExHVCluster.hxx"
 
-#include "TTPCHVCluster.hxx"
-
-namespace ND {
+namespace trex {
   class TTPCHelixPropagator;
 }
 
-class ND::TTPCHelixPropagator {
+class trex::TTPCHelixPropagator {
 public:
 
   virtual ~TTPCHelixPropagator() {};
@@ -24,12 +21,11 @@ public:
   void Reset();
 
 
-  bool InitHelixPosDirQoP(State &RPState, bool FirstCluIsVertical);
-  bool InitHelixPosDirQoP(double *Param, bool FirstCluIsVertical);
+  bool InitHelixPosDirQoP(std::vector<double> Param, bool FirstCluIsVertical);
 
-  void ReloadHelixPosTanCurv(double *Param);
-  bool ReloadHelixPosDirQoP(State &RPState);
-  bool ReloadHelixPosDirQoP(double *Param);
+  void ReloadHelixPosTanCurv(std::vector<double> Param);
+
+  bool ReloadHelixPosDirQoP(std::vector<double> Param);
 
   /// Just return the quadrant where first cluster is.
   int GetQuadrant();
@@ -45,19 +41,19 @@ public:
     depending on the topology of the track, you may get the wrong position
     on the helix.
   */
-  bool PropagateToHVCluster(ND::THandle<ND::TTPCHVCluster> Cluster);
+  bool PropagateToHVCluster(trex::TTRExHVCluster& Cluster);
 
   /// Return the results in position, direction (3D vector) and curvature.
-  void GetHelixPosDirCurv(double *Result);
+  void GetHelixPosDirCurv(std::vector<double>& Result);
 
   /// Return the results in position, tangent x, tangent y or z (depends on the quadrant) and curvature.
-  void GetHelixPosTanCurv(double *Result);
+  void GetHelixPosTanCurv(std::vector<double>& Result);
 
   /// Return the results in position, direction (3D vector) and charge over momentum.
-  void GetHelixPosDirQoP(double *Result);
+  void GetHelixPosDirQoP(std::vector<double>& Result);
 
   /// Convert vector and covariance from PosDirCurv representation to PosDirQoP.
-  void PosTanCurvToPosDirQoP(EVector &ptcVect, EMatrix &ptcCova, EVector &pdqpVect, EMatrix &pdqpCova );
+  void PosTanCurvToPosDirQoP(std::vector<double> &ptcVect, std::vector<double> &pdqpVect);
 
 
 private:
@@ -111,7 +107,7 @@ private:
 };
 
 
-namespace ND{
+namespace trex{
   TTPCHelixPropagator& helixPropagator();
 };
 
