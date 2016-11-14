@@ -21,11 +21,10 @@ public:
   void Reset();
 
 
-  bool InitHelixPosDirQoP(std::vector<double> RPState, bool FirstCluIsVertical);
   bool InitHelixPosDirQoP(std::vector<double> Param, bool FirstCluIsVertical);
 
   void ReloadHelixPosTanCurv(std::vector<double> Param);
-  bool ReloadHelixPosDirQoP(std::vector<double> RPState);
+
   bool ReloadHelixPosDirQoP(std::vector<double> Param);
 
   /// Just return the quadrant where first cluster is.
@@ -54,7 +53,7 @@ public:
   void GetHelixPosDirQoP(std::vector<double>& Result);
 
   /// Convert vector and covariance from PosDirCurv representation to PosDirQoP.
-  void PosTanCurvToPosDirQoP(EVector &ptcVect, EMatrix &ptcCova, EVector &pdqpVect, EMatrix &pdqpCova );
+  void PosTanCurvToPosDirQoP(std::vector<double> &ptcVect, std::vector<double> &pdqpVect);
 
 
 private:
@@ -108,7 +107,7 @@ private:
 };
 
 
-namespace ND{
+namespace trex{
   TTPCHelixPropagator& helixPropagator();
 };
 

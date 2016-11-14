@@ -4,6 +4,25 @@
 
 namespace TTPCUtils {
 
+  bool Curvature_to_MomentumAndCharge(const TVector3& pos, const TVector3& dir, double curv, double& p, double& q) {
+    //*****************************************************************************
+
+    trex::TTPCLayout layout;
+
+    double B = layout.GetBField;
+    // project into the bending plane
+    double factor = -(0.3 * B) / sqrt(1. - dir.X() * dir.X());
+
+    if (fabs(curv) > 0 && factor != 0) {
+      p = fabs(factor / curv);
+      q = -curv / fabs(curv);
+      return true;
+    }
+
+    return false;
+  }
+
+
   //*****************************************************************************
   bool SafeSort( double first, double second ){
     // Use int because I don't trust the ordering of doubles

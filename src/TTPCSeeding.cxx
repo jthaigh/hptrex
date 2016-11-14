@@ -294,20 +294,7 @@ double ND::TTPCSeeding::R2( std::vector<trex::TTRExHVCluster>& HVclu, std::vecto
   double p;
   double q;
   
-  //implement this properly...
-  /*
-  TrackingUtils::Curvature_to_MomentumAndCharge(Pos,Dir,R2rho,p,q);
-  double B = COMET::IFieldManager::GetFieldValue(pos).Mag() / unit::tesla;
-  // project into the bending plane
-  double factor = -(0.3 * B) / sqrt(1. - dir.X() * dir.X());
-  if (fabs(curv) > 0 && factor != 0) {
-    p = fabs(factor / curv);
-    q = -curv / fabs(curv);
-    return true;
-  }
-  
-  return false;  
-  */
+  TTPCUtils::Curvature_to_MomentumAndCharge(Pos,Dir,R2rho,p,q);
 
   outVect[6] = q/p;
 
@@ -442,20 +429,8 @@ double trex::TTPCSeeding::Riemann( std::vector<TTRExHVCluster>& HVclu, std::vect
   double p;
   double q;
   
-  //implement this properly...
-  /*
-  TrackingUtils::Curvature_to_MomentumAndCharge(Pos,Dir,Rierho,p,q);
-  double B = COMET::IFieldManager::GetFieldValue(pos).Mag() / unit::tesla;
-  // project into the bending plane
-  double factor = -(0.3 * B) / sqrt(1. - dir.X() * dir.X());
-  if (fabs(curv) > 0 && factor != 0) {
-    p = fabs(factor / curv);
-    q = -curv / fabs(curv);
-    return true;
-  }
   
-  return false;  
-  */
+  TTPCUtils::Curvature_to_MomentumAndCharge(Pos,Dir,Rierho,p,q);
 
   outVect[6] = q/p;
 
@@ -511,11 +486,10 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu
   double ypred,zpred;
   double yclu,zclu;
 
-  EVector Vect = finalState.vector();
-  EMatrix Cova = finalState.matrix();
-
   // First start by setting the sense
   //MDH TODO: Figure out which vector element is the sense
+  //Remove this code for now - is sense needed outside of recpack?
+  /*
   std::vector<trex::TTRExHVCluster>::const_iterator Hit = HVclu.begin();
   trex::TTRExHVCluster& Cluster = (*Hit);
   if (Cluster.IsVertical()){
@@ -529,7 +503,8 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu
     else
       finalState.set_hv(RP::sense, HyperVector(-1,0));
   }
-    
+  */
+
   std::vector<double> propagState = finalState;
   double deltaPhi = 0.0;
   std::vector<double> prevState;
@@ -543,11 +518,13 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu
     if( !Cluster.isOkForSeed() ) continue;
     prevState = propagState;
     double length = 0.0;
+
+    //MDH TODO: replace this
     if (!TTPCRecPackUtils::PropagateToHVCluster(Cluster, propagState, length))
       continue;
 
-    ypred = propagState.vector()[1];
-    zpred = propagState.vector()[2];
+    ypred = propagState[1];
+    zpred = propagState[2];
     yclu = Cluster->Y();
     zclu = Cluster->Z();
     double delta = TMath::Sqrt((yclu-ypred)*(yclu-ypred)+(zclu-zpred)*(zclu-zpred));
@@ -573,12 +550,11 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu
   rms /= (double)ntot;
 
   double deltaX = ClusterX2-ClusterX1;
-  Vect[3] = deltaX / TMath::Sqrt(deltaX*deltaX + (deltaPhi*deltaPhi)/(rho*rho));
-  double Renorm = TMath::Sqrt((1 - Vect[3]*Vect[3])/(Vect[4]*Vect[4] + Vect[5]*Vect[5]));
-  Vect[4] *= Renorm;
-  Vect[5] *= Renorm;
-  Vect[6] *= sqrt(1. - Vect[3]*Vect[3]);
-  finalState.set_hv(HyperVector(Vect,Cova));
+  finalState[3] = deltaX / TMath::Sqrt(deltaX*deltaX + (deltaPhi*deltaPhi)/(rho*rho));
+  double Renorm = TMath::Sqrt((1 - finalState[3]*finalState[3])/(finalState[4]*finalState[4] + finalState[5]*finalState[5]));
+  finalState[4] *= Renorm;
+  finalState[5] *= Renorm;
+  finalState[6] *= sqrt(1. - finalState[3]*finalState[3]);
 
   // Something went wrong, don't trust the result
   if ( ! (rms > 0.0) )

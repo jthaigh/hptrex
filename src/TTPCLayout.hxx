@@ -167,6 +167,8 @@ namespace trex{
 
     TVector3 GetMaxPos(){return TVector3(fMaxX,fMaxY,fMaxZ);}
 
+    double GetBField(){return fBField;}
+
     private:
 
       /// Distance between MM pad centres in y direction
@@ -303,6 +305,8 @@ namespace trex{
 
       /// Maximum isolated clusters at the start of a path before they're merged into a nearby vertex
       int fHVClusterMaxIso;
+
+    double fBField;
 
   };
 }
