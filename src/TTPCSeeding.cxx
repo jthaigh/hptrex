@@ -1,4 +1,4 @@
-#include "TTPCSeeding.hxx" 
+l#include "TTPCSeeding.hxx" 
 #include "TTPCRecPackUtils.hxx"
 
 #include <TVector.h> 
@@ -12,6 +12,7 @@
 #include <TND280Event.hxx>
 #include <TEventFolder.hxx>
 #include <TrackingUtils.hxx>
+
 
 //*****************************************************************************
 trex::TTPCSeeding::TTPCSeeding( ){
@@ -28,10 +29,10 @@ void trex::TTPCSeeding::Process(trex::TTRExPattern& Pattern){
   std::vector<trex::TTRExPath> Paths = Pattern->GetPaths();
   
   for (auto pth = Paths.begin(); pth != Paths.end(); pth++) {
-    trex::TTPCPath& path = *pth;
+    trex::TTRExPath& path = *pth;
     // If there is already a seed result, don't seed again.
     if ( path->CheckStatus(trex::kChi2Fit) || 
-               path->CheckStatus(trex::kRan)){
+	 path->CheckStatus(trex::kRan)){
       continue;
     }
     // TODO: Reset all the seed variables for safety
