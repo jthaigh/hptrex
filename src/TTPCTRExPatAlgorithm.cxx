@@ -205,7 +205,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
     //
 
-    std::vector<std::vector<trex::TTRExHVCluster> >& subPaths= alg.GetPaths();
+    std::vector<trex::TTRExPath>& subPaths= alg.GetPaths();
     std::vector<std::vector<trex::TTPCHitPad*> >& subJuncts=alg.GetJunctions();
     std::vector< std::vector<unsigned int> >& subJPMap=alg.GetJunctionsToPathsMap();
 
@@ -214,7 +214,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
 
     // containers for paths and junctions to create a pattern from 
-    std::vector<std::vector<trex::TTRExHVCluster> > pathsContainer;
+    std::vector<trex::TTRExPath> pathsContainer;
     std::vector<std::vector<trex::TTPCHitPad> > junctsContainer;
 
 
@@ -223,11 +223,10 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
     for(auto iPath=subPaths.begin(); iPath!=subPaths.end(); ++iPath) {
       
-      vector<trex::TTRExHVCluster> path;
+      vector<trex::TTRExHVCluster> clusters = iPath->GetClusters();
+      for(auto iCluster=clusters.begin(); iCluster!=clusters.end(); ++iCluster){
 
-      for(auto iCluster=iPath->begin(); iCluster!=iPath->end(); ++iCluster){
-
-	path.push_back(*iCluster);
+	//path.push_back(*iCluster);
 	
 	vector<trex::TTPCHitPad*> cHits = (*iCluster).GetClusterHits();
 
@@ -242,8 +241,9 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 	}	
       }
 
-      pathsContainer.push_back(path);                                            
-      path.clear();     
+      //trex::TTREXPath path(std::move(clusters))
+      pathsContainer.push_back(*iPath);                                            
+      clusters.clear();     
     }
 
 
@@ -328,8 +328,6 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   std::cout << "Have created Event" << std::endl;
   patternContainer.clear();
   }
-
-
 
 
 

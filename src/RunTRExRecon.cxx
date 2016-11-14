@@ -16,7 +16,6 @@
 #include "TRint.h"
 
 
-
 int main(int argc, char** argv){
   
   gROOT->ProcessLine(".class trex::TTPCHitPad");
@@ -104,16 +103,11 @@ int main(int argc, char** argv){
       std::cout << "PATTERN NUMBER " << k << std::endl;
 
       //Print out Path information for debugging
-      for(int l=0; l<event->GetPatterns().at(k).GetPaths().size(); ++l){
-	
-	for (int m=0; m<event->GetPatterns().at(k).GetPaths().at(l).size(); ++m){
-	  
-	  std::cout << "PATH hits have content: " << std::endl;
-	  std::cout << "____________________________" << std::endl;
-	  event->GetPatterns().at(k).GetPaths().at(l).at(m).Print();
-	  std::cout << "____________________________" << std::endl;
-	  
-	}
+      for(int l=0; l<event->GetPatterns().at(k).GetPaths().size(); ++l){	
+	std::cout << "PATH " << l << " contains the following: " << std::endl;
+	std::cout << "____________________________" << std::endl;
+	event->GetPatterns().at(k).GetPaths().at(l).Print();
+	std::cout << "____________________________" << std::endl;
       } 
       
       //Print out Junction Information for debugging

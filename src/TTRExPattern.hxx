@@ -3,7 +3,7 @@
 
 #include "TTPCHitPad.hxx"
 #include "TTRExHVCluster.hxx"
-
+#include "TTRExPath.hxx"
 
 namespace trex{
   
@@ -51,18 +51,18 @@ namespace trex{
       
       TTRExPattern() : fPaths(0),fJunctions(0),fPathsToJunctionMap(0){};
       
-      TTRExPattern(std::vector<std::vector<trex::TTRExHVCluster> > paths, std::vector<std::vector<trex::TTPCHitPad> > junctions, std::vector< std::vector<unsigned int> > map){
+      TTRExPattern(std::vector<trex::TTRExPath> paths, std::vector<std::vector<trex::TTPCHitPad> > junctions, std::vector< std::vector<unsigned int> > map){
 	  fPaths = paths;
 	  fJunctions = junctions;
 	  fPathsToJunctionMap = map;
 	};
 
 
-      std::vector<std::vector<trex::TTRExHVCluster> > GetPaths(){
+      std::vector<trex::TTRExPath>& GetPaths(){
 	return fPaths;
       }
 
-      std::vector<std::vector<trex::TTPCHitPad> > GetJunctions(){
+      std::vector<std::vector<trex::TTPCHitPad> >& GetJunctions(){
 	return fJunctions;
       }
 
@@ -71,7 +71,7 @@ namespace trex{
       }
 
 
-      void SetPaths(std::vector<std::vector<trex::TTRExHVCluster> > paths){
+      void SetPaths(std::vector<trex::TTRExPath> paths){
 	fPaths = paths;
       }
 
@@ -109,9 +109,7 @@ namespace trex{
 	
 	for(int i=0; i<pathSize; ++i){
 	  std::cout << " Path # " << i << " contains the following Hits: " << std::endl;
-	  for(int j=0; j<fPaths[i].size(); ++j){
-	    fPaths[i][j].Print(); 
-	  }
+	  fPaths[i].Print();	  
 	}
 	
 	
@@ -127,7 +125,7 @@ namespace trex{
       
     private:
       
-      std::vector<std::vector<trex::TTRExHVCluster> > fPaths;
+      std::vector<trex::TTRExPath> fPaths;
       std::vector<std::vector<trex::TTPCHitPad> > fJunctions;
       std::vector< std::vector<unsigned int> > fPathsToJunctionMap;
 	

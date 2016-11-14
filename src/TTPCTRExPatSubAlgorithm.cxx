@@ -241,7 +241,9 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used
     std::vector<trex::TTRExHVCluster> clusters = track.GetClusters();
     if(!clusters.size()) continue;
 
-    fPaths.emplace_back(std::move(clusters));
+    trex::TTRExPath path(std::move(clusters));
+
+    fPaths.emplace_back(path);
 
     // and save if the path is in the x direction
     //    if(track->GetIsXPath()){
@@ -301,7 +303,8 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used
   std::cout<<"  "<<fPaths.size()<<" paths"<<std::endl;
   std::cout<<"  and  "<<fJunctions.size()<<" junctions"<<std::endl;
   for(int i=0;i<fPaths.size();++i){
-    std::cout<<"   Path "<<i<<" has "<<fPaths[i].size()<<" hits"<<std::endl;
+    std::vector<trex::TTRExHVCluster> clusters = fPaths[i].GetClusters();
+    std::cout<<"   Path "<<i<<" has "<<clusters.size()<<" clusters"<<std::endl;
     std::cout<<"  **********"<<std::endl;
   }
   for(int i=0;i<fJunctions.size();++i){

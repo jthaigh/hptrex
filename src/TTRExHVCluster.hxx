@@ -3,11 +3,12 @@
 
 //c++
 #include <vector>
-#include <TVector3>
+
+//root
+#include <TVector3.h>
 
 //TREx
 #include "TTPCHitPad.hxx" 
-
 
 namespace trex{
   
@@ -16,7 +17,7 @@ namespace trex{
 
   public:
 
-    TTRExHVCluster() : fcHitPtrs(0), fIsVertical(0), fOkForSeed(0), fPosition(0), fCharge(0) {};
+    TTRExHVCluster() : fcHitPtrs(0), fIsVertical(0), fPosition(), fCharge(0), fOkForSeed(0) {};
 
     //TTRExHVCluster(bool HV, std::vector<trex::TTPCHitPad> cHits) {
 

@@ -7,7 +7,7 @@ COPTS	= -Wall -g -fPIC -DLINUX -O2 -std=c++11 -Wl,-rpath,$(shell brew --prefix)/
 
 #LIBS	= -L/usr/local/lib -lftd2xx
 
-OBJ = TTPCAStar.o TTPCHitPad.o TTPCLayout.o TTPCOrderedVolGroup.o TTPCPathVolume.o TTPCTRExPatAlgorithm.o TTPCTRExPatSubAlgorithm.o TTPCUnitVolume.o TTPCVolGroup.o TTPCVolGroupMan.o GasTPCDataLib.o TSimLoader.o GasTPCDataLibDict.o TTRExPattern.o TTRExPatternDict.o TTRExHVCluster.o
+OBJ = TTPCAStar.o TTPCHitPad.o TTPCLayout.o TTPCOrderedVolGroup.o TTPCPathVolume.o TTPCTRExPatAlgorithm.o TTPCTRExPatSubAlgorithm.o TTPCUnitVolume.o TTPCVolGroup.o TTPCVolGroupMan.o GasTPCDataLib.o TSimLoader.o GasTPCDataLibDict.o TTRExPattern.o TTRExPatternDict.o TTRExHVCluster.o TTRExPath.o
 
 ROOT_LIBS   = $(shell root-config --libs --glibs)
 ROOT_CFLAGS = $(shell root-config --cflags)
@@ -35,6 +35,9 @@ TTRExPatternDict.cxx:
 
 TTRExHVCluster.cxx:
 	rootcint TTRExHVCluster.cxx TTRExHVCluster.hxx OutLink.hh
+
+TTRExPath.cxx:
+	rootcint TTRExPath.cxx TTRExPath.hxx OutLink.hh
 
 clean:
 	rm *.o *.so *.exe

@@ -7,8 +7,10 @@
 #define SQRT2     1.414213562373095 // TMath::Sqrt(2.)
 
 
-TTPCQLikelihood::TTPCQLikelihood(){ 
-  fMinimumPhi_Eta = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.MinPhiEta");
+TTPCQLikelihood::TTPCQLikelihood(){
+
+  //MDH TODO: Figure out what this should be
+  fMinimumPhi_Eta = 0.00001;
 }
 
 TTPCQLikelihood::~TTPCQLikelihood(){ ;}
@@ -37,15 +39,6 @@ double TTPCQLikelihood::eta( double b, double phi, double sigma,double longi,dou
     result = 0.5*(  u1*TMath::Erf(l1)- u2*TMath::Erf(l2)
         + u3*TMath::Erf(l3)- u4*TMath::Erf(l4));
 
-    if( isnan(result) ) {
-	  if( ND::tpcDebug().LikFit(DB_ERROR)){
-        std::cout << " Is not a Number in eta calculation in likelihood TPC recon " << std::endl; 
-        std::cout << " u1 = " << u1 << "  u2 =  " << u2 << "  u3 =  " << u3 << " u4 =  " << u4 << std::endl; 
-        std::cout << " l1 = " << l1 << "  l2 =  " << l2 << "  l3 =  " << l3 << " l4 =  " << l4 << std::endl; 
-        std::cout << " erf(l1) = " << TMath::Erf(l1) << " erf(l2) =  " << TMath::Erf(l2) << " erf(l3) = " << TMath::Erf(l3) << " erf(l4) =  " << TMath::Erf(l4) << std::endl;
-      }
-    }
-
     result += sigma/SQRTTWOPI*(TMath::Exp(-l1*l1)-TMath::Exp(-l2*l2)
         +TMath::Exp(-l3*l3)-TMath::Exp(-l4*l4));    
   }
@@ -54,14 +47,6 @@ double TTPCQLikelihood::eta( double b, double phi, double sigma,double longi,dou
     double u2 = ((b-t)/SQRT2/sigma);
     result = TMath::Abs(TMath::Erf(u1)-TMath::Erf(u2));
 
-    if( isnan(result) ) {
-	  if( ND::tpcDebug().LikFit(DB_ERROR)){
-        std::cout << " Is not a Number in eta calculation in likelihood TPC recon " << std::endl; 
-        std::cout << " u1 = " << u1 << " u2 =   " << u2 << std::endl;
-        std::cout << " erf(u1) = " << TMath::Erf(u1) << " erf(u2) =  " << TMath::Erf(u2) << std::endl;
-        std::cout << " b " << b << " t " << t << " sigma " << sigma << std::endl; 
-      }
-    }
   }
 
   return result;
