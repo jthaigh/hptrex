@@ -1,7 +1,5 @@
 #include "TTPCLikFitPath.hxx"
 
-#include <TrackingUtils.hxx>
-
 #include "TTRExHVCluster.hxx"
 #include "TTPCHitPad.hxx"
 #include "TTPCHelixPropagator.hxx"
@@ -9,7 +7,7 @@
 ////////////////////// Minuit global section //////////////////////////////
 // We need these global variables for Minuit's fcn function.
 
-TTPCLikFitPath *LikFitPtr;
+trex::TTPCLikFitPath *LikFitPtr;
 
 bool gLastCall = false;
 
@@ -22,7 +20,8 @@ static void likfitpath_fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *pa
     gLastCall = true;
   }
 
-  f = LikFitPtr->log_likelihood(par); 
+  std::vector<double> state(par,par+7);
+  f = LikFitPtr->log_likelihood(state); 
 
   gLastCall = false;
 }
@@ -60,7 +59,7 @@ trex::TTPCLikFitPath::TTPCLikFitPath(bool CalculatorMode)  {
 
 
   //MDH TODO: Fill in these values
-  fMinuitMaxIterations = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.MinuitMaxIt");
+  /*  fMinuitMaxIterations = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.MinuitMaxIt");
   fMinuitPrintLevel = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.MinuitPrintLevel");
 
   fPadWidth = ND::TGeomInfo::Get().TPC().GetPadXPitch();
@@ -114,7 +113,7 @@ trex::TTPCLikFitPath::TTPCLikFitPath(bool CalculatorMode)  {
   fBFieldAt0 = ND::TFieldManager::GetFieldValue(TVector3(0.0,0.0,0.0)).Mag() / unit::tesla;
 
   fStoreLklhdWithMScCorr = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.StoreLklhdWithMScCorr");
-
+  */
   Reset();
 }
 
@@ -134,7 +133,7 @@ void trex::TTPCLikFitPath::Reset(void){
   fFitYPosParam = true; // just a default.
   fMScCorr = 1.;
 
-  fFitClu.reset();
+  fFitClu.clear();
 
   fMeanDrift=0.0;
 
@@ -178,7 +177,7 @@ void trex::TTPCLikFitPath::DefaultFixedParameters(void){
 
 // *********************************************************************************
 // Setup variables and stuff for the minimization
-void trex::TTPCLikFitPath::SetupLogLklhdMinimizer(const trex::TTRExPath& Path, bool UseSeedAsInit){
+void trex::TTPCLikFitPath::SetupLogLklhdMinimizer(trex::TTRExPath& Path, bool UseSeedAsInit){
   if (fMinuit) delete fMinuit;
 
   fMinuit = new TMinuit(NPARAM);
@@ -186,7 +185,7 @@ void trex::TTPCLikFitPath::SetupLogLklhdMinimizer(const trex::TTRExPath& Path, b
   fMinuit->SetPrintLevel(fMinuitPrintLevel);
 
   // Fit the Z origin of the track rather than Y for high angle tracks.
-  trex::TTRExHVCluster& firstClu = *(Path.GetHits().begin());
+  trex::TTRExHVCluster& firstClu = *(Path.GetClusters().begin());
   if (firstClu.IsVertical())
     fFitYPosParam = true;
   else
@@ -211,7 +210,7 @@ void trex::TTPCLikFitPath::SetupLogLklhdMinimizer(const trex::TTRExPath& Path, b
     initState = Path.GetFrontFitState();
   }
 
-  fPathLength = Path.GetLength();
+  //fPathLength = Path.GetLength();
   StateToInitValues(initState);
 
   fInitValues[SGMPARAM] = fInitialSigma;
@@ -242,7 +241,7 @@ void trex::TTPCLikFitPath::SetupLogLklhdMinimizer(const trex::TTRExPath& Path, b
 
 // *********************************************************************************
 // Setup variables and stuff for the minimization
-bool trex::TTPCLikFitPath::SetupLogLklhdCalculator(std::vector<double> helixState, std::vector<trex::TTRExHVCluster> inputClusters, double inputLength){
+bool trex::TTPCLikFitPath::SetupLogLklhdCalculator(std::vector<double> helixState, std::vector<trex::TTRExHVCluster*> inputClusters, double inputLength){
 
   trex::helixPropagator().Reset();
 
@@ -250,7 +249,7 @@ bool trex::TTPCLikFitPath::SetupLogLklhdCalculator(std::vector<double> helixStat
     return false;
   }
 
-  trex::TTRExHVCluster& firstClu = *(inputClusters.begin());
+  trex::TTRExHVCluster& firstClu = **(inputClusters.begin());
 
   // We don't fit the coordinates here but we still need to know the orientation
   // for the proper initialization of the HelixPropagator
@@ -260,7 +259,7 @@ bool trex::TTPCLikFitPath::SetupLogLklhdCalculator(std::vector<double> helixStat
     fFitYPosParam = false;
 
   
-  fPathLength = inputLength;
+  //fPathLength = inputLength;
   StateToInitValues(helixState);
 
   fFitClu = inputClusters;
@@ -279,9 +278,9 @@ bool trex::TTPCLikFitPath::SetupLogLklhdCalculator(std::vector<double> helixStat
 void trex::TTPCLikFitPath::StateToInitValues( std::vector<double> inputState){
 
   trex::helixPropagator().InitHelixPosDirQoP(inputState, fFitYPosParam);
-  double Momentum = fabs(1./inputState[6]);
+  //  double Momentum = fabs(1./inputState[6]);
   
-  double *tmpArray = new double[6];
+  std::vector<double> tmpArray(7);
   trex::helixPropagator().GetHelixPosTanCurv(tmpArray);
   fInitValues[XPARAM] = tmpArray[0];
   fInitValues[YPARAM] = tmpArray[1];
@@ -292,8 +291,6 @@ void trex::TTPCLikFitPath::StateToInitValues( std::vector<double> inputState){
 
   fInitQoP = inputState[6];
   
-  delete[] tmpArray;
-
 }
 
 // *********************************************************************************
@@ -311,30 +308,12 @@ void trex::TTPCLikFitPath::SelectClusters(std::vector<trex::TTRExHVCluster>& inp
   CluSel.NSuspiciousPadTiming = 0; 
   CluSel.NSaturation = 0; 
   
-  for (ND::THitSelection::const_iterator tmpClu = inputClu.begin(); tmpClu != inputClu.end(); tmpClu++) {
-    std::vector<trex::TTRExHVCluster>& Clu = *tmpClu;
+  for (auto tmpClu = inputClu.begin(); tmpClu != inputClu.end(); tmpClu++) {
+    trex::TTRExHVCluster& Clu = *tmpClu;
 
 
     //MDH TODO: See if any of this is still necessary for hptpc
     Clu.SetOkForFit(true);  // Make sure that we start with fresh sample.
-
-    if( Clu.GetMaxNPeaks() > 1 && fExcludeClusterWithManyPeaks )  {
-      Clu.SetOkForFit(false);
-      CluSel.NMaxPeaks++; 
-      continue;
-    }
-
-    if( fExcludeClusterAtEdge ) {
-      if( Clu.IsAtVertEdge() > 0  && Clu.IsHorizontal()){
-        Clu.SetOkForFit(false);
-        CluSel.NVertMMEdge++; 
-        continue;
-      } else if( Clu.IsAtHoriEdge() > 0  && Clu.IsVertical()){
-        Clu.SetOkForFit(false);
-        CluSel.NHoriMMEdge++; 
-        continue;
-      } 
-    }
 
     if( Clu.GetCharge()*fabs(XDirection) < fMinimumCharge ||  Clu.GetCharge()*fabs(XDirection) > fMaximumCharge ) {
       Clu.SetOkForFit(false);
@@ -348,22 +327,11 @@ void trex::TTPCLikFitPath::SelectClusters(std::vector<trex::TTRExHVCluster>& inp
       continue; 
     }
 
-    if( Clu.GetHits().size() > fMaxPadsPerCluster)  {
+    if( Clu.GetClusterHits().size() > fMaxPadsPerCluster)  {
       Clu.SetOkForFit(false);
       CluSel.NTooManyPadsPerClu++;
       continue;
     } 
-    if( Clu.HasSuspiciousPadTiming() && fExcludeSuspiciousPadTiming ){
-      Clu.SetOkForFit(false);
-      CluSel.NSuspiciousPadTiming++;
-      continue;
-    }
-    if( Clu.GetNSaturated() > 0  && fExcludeSaturatedClusters ) {
-      Clu.SetOkForFit(false);
-      CluSel.NSaturation++;
-      continue;
-    }
-
     // Cluster selected !
     if( Clu.IsVertical() ){
       CluSel.NSelVert++;
@@ -385,7 +353,6 @@ void trex::TTPCLikFitPath::PrepareClustersForFitting(std::vector<trex::TTRExHVCl
 
   // ==> PASS 2: with saturation rejection off
   if( (double)ClusterSelResults.NSaturation > 0.3*(inputClu.size()) && fExcludeSaturatedClusters) {
-    }
 
     fExcludeSaturatedClusters = 0;
     SelectClusters(inputClu, XDirection, ClusterSelResults);
@@ -428,7 +395,7 @@ void trex::TTPCLikFitPath::ResetMinuitParam(){
 
 // *********************************************************************************
 // Minimize the log likelihood for the given hits
-int trex::TTPCLikFitPath::LogLklhdMinimizer(std::vector<trex::TTRExHVCluster>& inputClusters){
+int trex::TTPCLikFitPath::LogLklhdMinimizer(std::vector<trex::TTRExHVCluster*>& inputClusters){
   GetReadyForMinimization(inputClusters);
 
   fFitXProj = true; 
@@ -480,9 +447,6 @@ int trex::TTPCLikFitPath::LogLklhdMinimizer(std::vector<trex::TTRExHVCluster>& i
       arglist[0] = fMinuitMaxIterations;
       fMinuit->mnexcm("MINI",arglist,1,fIErrorFlag);
       if( fIErrorFlag ) {
-        if ( ND::tpcDebug().LikFit(DB_VERBOSE)){
-          std::cout << " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Definitely failing Y coordinate fit ( " << fIErrorFlag << " )"<<std::endl;
-        }
         return fIErrorFlag; 
       }
     }
@@ -510,9 +474,6 @@ int trex::TTPCLikFitPath::LogLklhdMinimizer(std::vector<trex::TTRExHVCluster>& i
     fFitSteps += 10;
 
     if( fIErrorFlag ) {
-      if ( ND::tpcDebug().LikFit(DB_VERBOSE)){
-        std::cout << " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Failing X coordinate fit " << std::endl; 
-      }
       return fIErrorFlag; 
     }
 
@@ -584,7 +545,7 @@ int trex::TTPCLikFitPath::LogLklhdMinimizer(std::vector<trex::TTRExHVCluster>& i
 
 // *********************************************************************************
 // Does little preparations just before minimizing
-void trex::TTPCLikFitPath::GetReadyForMinimization(std::vector<trex::TTRExHVCluster>& inputClusters){
+void trex::TTPCLikFitPath::GetReadyForMinimization(std::vector<trex::TTRExHVCluster*>& inputClusters){
   fFitClu = inputClusters;
 
   // Find the mean drift distance for this track
@@ -592,7 +553,7 @@ void trex::TTPCLikFitPath::GetReadyForMinimization(std::vector<trex::TTRExHVClus
   fMeanDrift=0.0;
   int nmeas=0;
   for (auto tmpClu = fFitClu.begin() ; tmpClu != fFitClu.end(); tmpClu++) {
-    trex::TTRExHVCluster& Cluster = *tmpClu;
+    trex::TTRExHVCluster& Cluster = **tmpClu;
     fMeanDrift += Cluster.GetDriftDistance();
     nmeas++;
     
@@ -644,7 +605,7 @@ int trex::TTPCLikFitPath::SimpleLogLklhdMinimizer(bool ParamIsFree[NPARAM]){
 // *********************************************************************************
 // Little clean up after minimizing
 void trex::TTPCLikFitPath::CleanUpAfterMinimization(){
-  fFitClu.reset();
+  fFitClu.clear();
 }
 
 
@@ -659,7 +620,7 @@ void trex::TTPCLikFitPath::MinuitPrintout(){
 // *********************************************************************************
 // *********************************************************************************
 // Minimize the log likelihood for the given hits
-TTPCLogLikelihood trex::TTPCLikFitPath::LogLklhdCalculator(){
+trex::TTPCLogLikelihood trex::TTPCLikFitPath::LogLklhdCalculator(){
 
   fFitXProj = true; 
   fFitYProj = true; 
@@ -669,8 +630,8 @@ TTPCLogLikelihood trex::TTPCLikFitPath::LogLklhdCalculator(){
   fMeanDrift=0.0;
   int nmeas=0;
   for (auto tmpClu = fFitClu.begin() ; tmpClu != fFitClu.end(); tmpClu++) {
-    trex::TTRExHVCluster& Cluster = *tmpClu;
-    fMeanDrift += Cluster->GetDriftDistance();
+    trex::TTRExHVCluster& Cluster = **tmpClu;
+    fMeanDrift += Cluster.GetDriftDistance();
     nmeas++;
     
   }
@@ -678,19 +639,18 @@ TTPCLogLikelihood trex::TTPCLikFitPath::LogLklhdCalculator(){
 
   // TODO: decide here to do both projections or may only X or only Y
 
-  double *tmpArray = new double[7];
-  tmpArray[0] = fInitValues[XPARAM];
-  tmpArray[1] = fInitValues[YPARAM];
-  tmpArray[2] = fInitValues[ZPARAM];
-  tmpArray[3] = fInitValues[TANXPARAM];
-  tmpArray[4] = fInitValues[TANYORZPARAM];
-  tmpArray[5] = fInitValues[CURVPARAM];
-  tmpArray[6] = fInitialSigma;
+  std::vector<double> tmpArray;
+  tmpArray.push_back(fInitValues[XPARAM]);
+  tmpArray.push_back(fInitValues[YPARAM]);
+  tmpArray.push_back(fInitValues[ZPARAM]);
+  tmpArray.push_back(fInitValues[TANXPARAM]);
+  tmpArray.push_back(fInitValues[TANYORZPARAM]);
+  tmpArray.push_back(fInitValues[CURVPARAM]);
+  tmpArray.push_back(fInitialSigma);
 
   log_likelihood(tmpArray);
   
-  delete[] tmpArray;
-  fFitClu.reset();
+  fFitClu.clear();
 
   return fLogLklhd;
 }
@@ -700,7 +660,7 @@ TTPCLogLikelihood trex::TTPCLikFitPath::LogLklhdCalculator(){
 // The logLikelihood
 // function to calculate the likelihood for all rows -> to get sigma_w
 // *********************************************************************************
-double trex::TTPCLikFitPath::log_likelihood(double* x){
+double trex::TTPCLikFitPath::log_likelihood(std::vector<double>& x){
   double llX  = 0.0;
   double llHV = 0.0;
   double llX_NoMSc  = 0.0;
@@ -751,10 +711,10 @@ double trex::TTPCLikFitPath::log_likelihoodHV(){
 
   unsigned int iclu = 0;
 
-  double *helixState = new double[7];
+  std::vector<double> helixState(7);
 
   for (auto tmpClu = fFitClu.begin() ; tmpClu != fFitClu.end(); tmpClu++, iclu++) {
-    trex::TTRExHVCluster& Cluster = *tmpClu;
+    trex::TTRExHVCluster& Cluster = **tmpClu;
     double yPred;
     double zPred;
     double yDirPred;
@@ -866,12 +826,11 @@ double trex::TTPCLikFitPath::log_likelihoodHV(){
 
   // If the RecPack propagation failed, then something must
   // be wrong with this set of parameters.
-  if( result == 0.0 || isnan(result) ) {
+  if( result == 0.0 || std::isnan(result) ) {
 
     result = 2.01e+21;
   }
 
-  delete[] helixState;
   return result;
 }
 
@@ -882,13 +841,13 @@ double trex::TTPCLikFitPath::log_likelihoodX(){
 
   unsigned int iclu = 0;
 
-  double *helixState = new double[7];
+  std::vector<double> helixState(7);
 //  std::cout<<" =============================================="<<std::endl;
 //  std::cout<<" =                   X fit                    ="<<std::endl;
 //  std::cout<<" =============================================="<<std::endl;
 
   for (auto tmpClu = fFitClu.begin() ; tmpClu != fFitClu.end(); tmpClu++, iclu++) {
-    trex::TTRExHVCluster& Cluster = *tmpClu;
+    trex::TTRExHVCluster& Cluster = **tmpClu;
     double xPred;
     bool ok = trex::helixPropagator().PropagateToHVCluster(Cluster);
     if(fCalculatorMode && !ok){
@@ -904,7 +863,7 @@ double trex::TTPCLikFitPath::log_likelihoodX(){
     trex::helixPropagator().GetHelixPosDirCurv(helixState);
     xPred = helixState[0];
 
-    double xClu = Cluster.CalibX();
+    double xClu = Cluster.X();
     result += (xPred - xClu) * (xPred - xClu) * Cluster.GetCharge();
 // if(fCalculatorMode){
 //   std::cout<<" ---->>> X => "<<xPred<<" - "<<xClu<<"  -> "<< (xPred - xClu) * (xPred - xClu) * Cluster->GetCharge()<<std::endl;
@@ -912,16 +871,15 @@ double trex::TTPCLikFitPath::log_likelihoodX(){
 // }
   }
 
-  if( result == 0.0 || isnan(result) ) result = 2.01e+21;
+  if( result == 0.0 || std::isnan(result) ) result = 2.01e+21;
 
-  delete[] helixState;
   return result;
 }
 
 
 
 // *********************************************************************************
-void TTPCLikFitPath::StoreFittedState(){
+void trex::TTPCLikFitPath::StoreFittedState(){
   double x,ex;
   double y,ey;
   double z,ez;
@@ -1013,14 +971,10 @@ void trex::TTPCLikFitPath::StoreFittedSigma(){
 // *********************************************************************************
 void trex::TTPCLikFitPath::SaveFitResults(trex::TTRExPath& Path){
   Path.SaveFitState(fFitResults);
-  Path.SaveInRealDatum("likFit_Sigma", fFitResults.Sigma);
-  Path.SaveInRealDatum("likFit_SigmaUnc", fFitResults.eSigma);
-  Path.SaveInRealDatum("likFit_MeanDrift", fMeanDrift);
-
 }
 
 
 // *********************************************************************************
-TTPCPathFitResults trex::TTPCLikFitPath::GetFitResults(){
+trex::TTPCPathFitResults trex::TTPCLikFitPath::GetFitResults(){
   return fFitResults;
 }

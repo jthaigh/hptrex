@@ -1,8 +1,6 @@
 #ifndef TTPCLikelihoodMerge_hxx_seen
 #define TTPCLikelihoodMerge_hxx_seen
 
-#include <TReconBase.hxx>
-
 #include "TTRExPattern.hxx"
 #include "TTRExPath.hxx"
 #include "TTPCHitPad.hxx"
@@ -24,7 +22,7 @@ class trex::TTPCLikelihoodMerge {
     virtual ~TTPCLikelihoodMerge() {};
 
     /// Perform the matching and merging
-  void Process(std::vector<trex::TTRExPattern>& inputPatterns, std::vector<trex::TTRExPatterns>& mergedPatterns);
+  void Process(std::vector<trex::TTRExPattern>& inputPatterns, std::vector<trex::TTRExPattern>& mergedPatterns);
 
   private:
 
@@ -33,20 +31,20 @@ class trex::TTPCLikelihoodMerge {
     void MatchBrokenPaths(std::vector< trex::TTRExPattern>& patterns);
         
     void MatchThroughJunctions(trex::TTRExPattern& pattern);
-    trex::TTRExPattern* MergeAll();
+  void MergeAll(std::vector<trex::TTRExPattern>& outputVector);
 
 
     class MatchingTracker{
       private:
       trex::TTRExPath* fRawPath[2];
       trex::TTRExPath* fMergedPath;
-      std::vector<trex::TTPCHitPad>* fJunction;
+      trex::TTRExJunction* fJunction;
       bool fMergeMe;
       int fChain;
 
       public: 
         /// Default constructor.
-      MatchingTracker(trex::TTRExPath& Path1, trex::TTRExPath& Path2, std::vector<trex::TTPCHitPad>& Junction){
+      MatchingTracker(trex::TTRExPath& Path1, trex::TTRExPath& Path2, trex::TTRExJunction& Junction){
 	fRawPath[0] = &Path1;
 	fRawPath[1] = &Path2;
 	fJunction = &Junction;
@@ -55,14 +53,14 @@ class trex::TTPCLikelihoodMerge {
           
       }
       MatchingTracker(trex::TTRExPath& Path1, trex::TTRExPath& Path2){
-	fRawPath[0] = *Path1;
-	fRawPath[1] = *Path2;
+	fRawPath[0] = &Path1;
+	fRawPath[1] = &Path2;
 	fJunction = 0;
 	fMergeMe = true;
 	fChain = -1;
         
       }
-      MatchingTracker( std::vector<trex::TTPCHitPad>& Junction){
+      MatchingTracker( trex::TTRExJunction& Junction){
 	fRawPath[0] = 0;
 	fRawPath[1] = 0;
 	fMergedPath = 0;
@@ -79,7 +77,7 @@ class trex::TTPCLikelihoodMerge {
       void SetMergedPath(trex::TTRExPath& merged) {fMergedPath = &merged;};
       bool IsMergingChainOk(int ChainId) {return (fChain == ChainId);};
       void SetMergingChain(int ChainId) {fChain = ChainId; fMergeMe = false;};
-      std::vector<trex::TTPCHitPad>* GetJunction() {
+      trex::TTRExJunction* GetJunction() {
 	return fJunction;
       };
     };

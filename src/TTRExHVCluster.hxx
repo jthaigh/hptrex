@@ -17,15 +17,7 @@ namespace trex{
 
   public:
 
-    TTRExHVCluster() : fcHitPtrs(0), fIsVertical(0), fPosition(), fCharge(0), fOkForSeed(0) {};
-
-    //TTRExHVCluster(bool HV, std::vector<trex::TTPCHitPad> cHits) {
-
-    //fIsVertical = HV;
-    //fcHits = cHits;
-      
-    // }
-
+    TTRExHVCluster() : fcHitPtrs(0), fIsVertical(0), fPosition(), fCharge(0), fOkForSeed(1), fOkForFit(1), fIsUsable(1){};
     
     TTRExHVCluster(bool HV, std::vector<trex::TTPCHitPad*> cHits){
       
@@ -40,6 +32,12 @@ namespace trex{
 
     double Z(){return fPosition.Z();}
     
+    TVector3 GetPosition(){return fPosition;}
+
+    bool isOkForFit(){return fOkForFit;}
+
+    void SetOkForFit(bool isOk){fOkForFit=isOk;}
+
     void SetHits(std::vector<trex::TTPCHitPad*> cHits){
       fcHitPtrs = cHits;
     }
@@ -90,18 +88,21 @@ namespace trex{
       
     }
 
-    double X() {
-      return fPosition.X();
-    }
+    void SetUsable(bool isUsable){fIsUsable=isUsable;}
 
-    double Y() {
-      return fPosition.Y();
-    }
+    bool isUsable(){return fIsUsable;}
 
-    double Z() {
-      return fPosition.Z();
-    }
+    //MDH TODO: Implement these
+    double GetCharge(){return fCharge;}
     
+    double GetDeltaDrift(){return 0.;}
+
+    double GetDeltaY(){return 0.;}
+
+    double GetDeltaZ(){return 0.;}
+
+    double GetDriftDistance(){return 0.;}
+
     //GetOutputCluster() {
       
     //std::vector<trex::TTPCHitPad> hits;
@@ -131,18 +132,19 @@ namespace trex{
 
   private:
 
+    //MDH TODO: Implement this
     //This will calculate mean cluster position
     void CloseHits(){}
 
+    std::vector<trex::TTPCHitPad*> fcHitPtrs;
     bool fIsVertical;
-    TVector3 fPosition;    
     TVector3 fPosition;
     double fCharge;
-    std::vector<trex::TTPCHitPad*> fcHitPtrs;
     //std::vector<trex::TTPCHitPad> fcHits;
-    bool fIsVertical;
     bool fOkForSeed;
-    
+    bool fOkForFit;
+    bool fIsUsable;
+
   };
   
   

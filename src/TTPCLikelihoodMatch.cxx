@@ -2,6 +2,8 @@
 
 #include "TTPCHitPad.hxx"
 #include "TTPCUtils.hxx"
+#include "TTRExJunction.hxx"
+#include "TTPCHelixPropagator.hxx"
 
 //*****************************************************************************
 trex::TTPCLikelihoodMatch::TTPCLikelihoodMatch( ){
@@ -21,13 +23,13 @@ trex::TTPCLikelihoodMatch::~TTPCLikelihoodMatch( ){
 void trex::TTPCLikelihoodMatch::Process( std::vector<trex::TTRExPattern>& allPatterns){
 //*****************************************************************************
 
-  for (auto patit allPatterns.begin(); patit != allPatterns.end(); patit++) {
-    trex::TTRExPattern&=*patit;
-    if ( Pattern.GetConstituents()->size() != 1)
+  for (auto patit=allPatterns.begin(); patit != allPatterns.end(); patit++) {
+    trex::TTRExPattern& Pattern=*patit;
+    if ( Pattern.GetPaths().size() != 1)
       MatchAcrossJunctions(Pattern);
 
-    for (auto constit = Pattern.GetConstituents()->begin(); constit != Pattern.GetConstituents()->end(); constit++) {
-      path->SetEndClustersToNodes();
+    for (auto constit = Pattern.GetPaths().begin(); constit != Pattern.GetPaths().end(); constit++) {
+      constit->SetEndClustersToNodes();
     }
   }
 
@@ -38,37 +40,35 @@ void trex::TTPCLikelihoodMatch::Process( std::vector<trex::TTRExPattern>& allPat
 //*****************************************************************************
 void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern){
 //*****************************************************************************
-
+  
   // Loop through the paths
-  std::vector< std::vector<trex::TTPCHitPad> >& Junctions = Pattern.GetJunctions();
-  std::vector<trex::TTRExPath> Paths = Pattern.GetPaths();
-  for (std::vector< auto jct = Junctions.begin(); jct != Junctions.end(); jct++) {
-      std::vector<trex::TTPCHitPad>& junction = *jct;
+  std::vector< trex::TTRExJunction >& Junctions = Pattern.GetJunctions();
+  std::vector<trex::TTRExPath>& Paths = Pattern.GetPaths();
+  for (auto jct = Junctions.begin(); jct != Junctions.end(); jct++) {
+    trex::TTRExJunction& junction = *jct;
     
-      //MDH TODO: Write new code to get paths connected to this junction
-      // Extract the connected paths
-      std::vector< trex::TTRExPath* > ConnectedPaths;
-    for (std::vector< ND::THandle<ND::TTPCPath> >::iterator pth = Paths.begin(); pth != Paths.end(); pth++) {
-      ND::THandle<ND::TTPCPath> path = *pth;
-      if(junction->IsPathConnected(path->GetId()))
-        ConnectedPaths.push_back(path);
+    // Extract the connected paths
+    std::vector< trex::TTRExPath* > ConnectedPaths;
+    for (auto pth = Paths.begin(); pth != Paths.end(); pth++) {
+      trex::TTRExPath& path = *pth;
+      if(junction.IsPathConnected(path.GetId()))
+	ConnectedPaths.push_back(&path);
     }
-
     std::vector< trex::TTRExPath* >::iterator coPthA;
     std::vector< trex::TTRExPath* >::iterator coPthB;
     for (coPthA = ConnectedPaths.begin(); coPthA != ConnectedPaths.end(); coPthA++) {
       trex::TTRExPath& pathA = **coPthA;
       coPthB = coPthA + 1;
       for (; coPthB != ConnectedPaths.end(); coPthB++) {
-	trex::TTRExPath& pathB = *coPthB;
-        // Propagate A to B
-        if (pathA.HasFitState()){
-          MatchPathsAtJunction(pathA, pathB, junction.GetId());
-        }
-        // Propagate B to A
-        if (pathB.HasFitState()){
-          MatchPathsAtJunction(pathB, pathA, junction.GetId());
-        }
+	trex::TTRExPath& pathB = **coPthB;
+	// Propagate A to B
+	if (pathA.HasFitState()){
+	  MatchPathsAtJunction(pathA, pathB, junction.GetId());
+	}
+	// Propagate B to A
+	if (pathB.HasFitState()){
+	  MatchPathsAtJunction(pathB, pathA, junction.GetId());
+	}
       } 
     }
   } 
@@ -89,38 +89,41 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
   //MDH TODO: Fix this to get junction connections properly
   // Front state is connected to this junction
   if ( Path1.GetConnectedEnd(JunctionId) == -1){
-    propagState = Path1->GetFrontFitState();
+    propagState = Path1.GetFrontFitState();
     // We want to propagate towards the "outside" of the track.
-    ND::tman().ReverseStateSenseAndCharge(propagState);
+    TTPCUtils::ReverseStateSenseAndCharge(propagState);
   // Back state is connected to this junction
-  } else if ( Path1->GetConnectedEnd(JunctionId) == 1){
-    propagState = Path1->GetBackFitState();
+  } else if ( Path1.GetConnectedEnd(JunctionId) == 1){
+    propagState = Path1.GetBackFitState();
   } else {
     // PROBLEM. Don't do anything.
     return;
-  }
+    }
 
-  trex::TTRExHVCluster* targetClu;
+  trex::TTRExHVCluster* targetCluPtr;
   if ( Path2.GetConnectedEnd(JunctionId) == -1) {
-    targetClu = *(Path2.GetClusterHits()->begin());
-  } else if ( Path2->GetConnectedEnd(JunctionId) == 1) {
-    targetClu = *(Path2->GetHits()->rbegin());
+    targetCluPtr = &*(Path2.GetClusters().begin());
+  } else if ( Path2.GetConnectedEnd(JunctionId) == 1) {
+    targetCluPtr = &*(Path2.GetClusters().rbegin());
   } else {
     // PROBLEM. Don't do anything.
     return;
-  }
+    }
+  trex::TTRExHVCluster& targetClu=*targetCluPtr;
 
   int targetSense = TTPCUtils::SenseFromTwoClusters(Path2, targetClu);
 
   if( CheckClusterMatch(propagState, targetClu, targetSense, true)) {
-    ND::THandle<ND::THitSelection> orderedClusters;
-    if ( Path2->GetConnectedEnd(JunctionId) == 1) {
-      orderedClusters = ND::THandle<ND::THitSelection>(new ND::THitSelection());
-      for (ND::THitSelection::const_reverse_iterator Clu = Path2->GetHits()->rbegin(); Clu != Path2->GetHits()->rend(); Clu++) {
-        orderedClusters->push_back(*Clu);
+    std::vector<trex::TTRExHVCluster*> orderedClusters;
+    if ( Path2.GetConnectedEnd(JunctionId) == 1) {
+      for (auto Clu = Path2.GetClusters().rbegin(); Clu != Path2.GetClusters().rend(); Clu++) {
+        orderedClusters.push_back(&*Clu);
       }
-    } else {
-      orderedClusters = Path2->GetHits();
+    } 
+    else {
+      for(auto iHit=Path2.GetClusters().begin();iHit!=Path2.GetClusters().end();++iHit){
+	orderedClusters.push_back(&*iHit);
+      }
     }
     Likelihood = GetMatchLikelihood(propagState, orderedClusters, false);
     if (!Likelihood.Total){
@@ -128,24 +131,25 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
       Likelihood.X = 1e14;
       Likelihood.HV = 1e14;
     }
-  } else {
-    Likelihood.Total = 2e13;
-    Likelihood.X = 1e13;
-    Likelihood.HV = 1e13;
+    else {
+      Likelihood.Total = 2e13;
+      Likelihood.X = 1e13;
+      Likelihood.HV = 1e13;
+    }
   }
-  Path1->SaveMatchedPath(Path2->GetId(), Likelihood);
+  Path1.SaveMatchedPath(Path2.GetId(), Likelihood);
 
 }
 
 //*****************************************************************************
-void trex::TTPCLikelihoodMatch::MatchBrokenPaths(std::vector< ND::TTRExPattern >& inPatterns){
+void trex::TTPCLikelihoodMatch::MatchBrokenPaths(std::vector< trex::TTRExPattern >& inPatterns){
 //*****************************************************************************
 
   for (auto patitA = inPatterns.begin(); patitA != inPatterns.end(); patitA++) {
     trex::TTRExPattern& PatternA = *patitA;
     // Loop over the paths in this pattern
     for (auto constitA = PatternA.GetPaths().begin(); constitA != PatternA.GetPaths().end(); constitA++) {
-      ND::TTRExPath& PathA = *constitA;
+      trex::TTRExPath& PathA = *constitA;
       if ( !PathA.HasFitState())
         continue;
 
@@ -189,51 +193,47 @@ void trex::TTPCLikelihoodMatch::MatchBrokenPaths(std::vector< ND::TTRExPattern >
           //   - No junction => Try to match to both ends
           //   - 1 junction => Use only one end
           bool matchedLastClu = false;
-          State firstState = StateA;
-          State lastState = StateA;
+	  std::vector<double> firstState = StateA;
+	  std::vector<double> lastState = StateA;
           if ( PathB.IsFrontConnected() && PathB.IsBackConnected() ){
             continue;
           } else if ( (!PathB.IsFrontConnected()) && (!PathB.IsBackConnected()) ){
             // 1) Try matching to the first B cluster
-            trex::TTPCHVCluster& firstClu = *(PathB.GetHits().begin());
+            trex::TTRExHVCluster& firstClu = *(PathB.GetClusters().begin());
             double firstMatchDist = 999999.;
 
-	    //MDH TODO: Implement this...
-	    //int targetSense = TTPCUtils::SenseFromTwoClusters(PathB, firstClu);
+	    int targetSense = TTPCUtils::SenseFromTwoClusters(PathB, firstClu);
             bool firstOk = CheckClusterMatch(firstState, firstClu, targetSense, ForceSense, firstMatchDist);
             // 2) Try matching to the last B cluster
-            trex::TTRExHVCluster> lastClu = *(PathB.GetHits().rbegin());
+            trex::TTRExHVCluster& lastClu = *(PathB.GetClusters().rbegin());
             double lastMatchDist = 999999.;
-            //targetSense = TTPCUtils::SenseFromTwoClusters(PathB, lastClu);
+            targetSense = TTPCUtils::SenseFromTwoClusters(PathB, lastClu);
             bool lastOk = CheckClusterMatch(lastState, lastClu, targetSense, ForceSense, lastMatchDist);
             // Which one is best ?
             if ( (!firstOk) && (!lastOk)) {
               continue;
             } else if ( firstOk && (!lastOk)) {
               // ===> Use first cluster !
-              if ( ND::tpcDebug().LikelihoodMatch(DB_VVERBOSE))
             } else if ( lastOk && (!firstOk)) {
               // ===> Use last cluster !
               matchedLastClu = true;
             } else {
               matchedLastClu = firstMatchDist > lastMatchDist;
-              }
-            }
-          } else {
+	    }
+	  }
+	  else {
             ForceSense = true;
             if ( (!PathB.IsFrontConnected()) && PathB.IsBackConnected() ){
               // Try matching to the first B cluster
-              trex::TTRExHVCluster& firstClu = *(PathB.GetHits().begin());
-              //MDH TODO: As above
-	      //int targetSense = TTPCUtils::SenseFromTwoClusters(PathB, firstClu);
+              trex::TTRExHVCluster& firstClu = *(PathB.GetClusters().begin());
+              int targetSense = TTPCUtils::SenseFromTwoClusters(PathB, firstClu);
               if( !CheckClusterMatch(firstState, firstClu, targetSense, ForceSense)){
                 continue;
               }
             } else {
               // Try matching to the last B cluster
-              trex::TTRExHVCluster& lastClu = *(PathB.GetHits().rbegin());
-              //MDH TODO: As above
-	      //int targetSense = TTPCUtils::SenseFromTwoClusters(PathB, lastClu);
+              trex::TTRExHVCluster& lastClu = *(PathB.GetClusters().rbegin());
+	      int targetSense = TTPCUtils::SenseFromTwoClusters(PathB, lastClu);
               if( !CheckClusterMatch(lastState, lastClu, targetSense, ForceSense)){
                 continue;
               }
@@ -244,15 +244,16 @@ void trex::TTPCLikelihoodMatch::MatchBrokenPaths(std::vector< ND::TTRExPattern >
           std::vector<trex::TTRExHVCluster*> orderedClusters;
 	  std::vector<double> propagState;
           if ( matchedLastClu) {
-            for (auto Clu = PathB.GetHits().rbegin(); Clu != PathB.GetHits().rend(); Clu++) {
-              orderedClusters.push_back(&Clu);
+            for (auto Clu = PathB.GetClusters().rbegin(); Clu != PathB.GetClusters().rend(); Clu++) {
+              orderedClusters.push_back(&*Clu);
             }
             propagState = lastState;
           } else {
-	    for (auto Clu = PathB.GetHits().begin(); Clu != PathB.GetHits().end(); Clu++) {
-              orderedClusters.push_back(&Clu);            
+	    for (auto Clu = PathB.GetClusters().begin(); Clu != PathB.GetClusters().end(); Clu++) {
+              orderedClusters.push_back(&*Clu);
+	    }            
 	      propagState = firstState;
-          }
+	    }
           // TODO: Should I worry about the direction/sense at the matched cluster ???
           // Calculate the likelihood 
           TTPCLogLikelihood Likelihood;
@@ -272,31 +273,34 @@ void trex::TTPCLikelihoodMatch::MatchBrokenPaths(std::vector< ND::TTRExPattern >
  
 
 //*****************************************************************************
-bool trex::TTPCLikelihoodMatch::CheckClusterMatch(std::vector<double> &propState, trex::TTRExHVCluster& Target, int targetSense, bool ForcePropagSense){
+bool trex::TTPCLikelihoodMatch::CheckClusterMatch(std::vector<double> propState, trex::TTRExHVCluster& Target, int targetSense, bool ForcePropagSense){
 //*****************************************************************************
   double matchDistance = 999999.;
   return CheckClusterMatch(propState, Target, targetSense, ForcePropagSense, matchDistance);
 }
 
 //*****************************************************************************
-bool trex::TTPCLikelihoodMatch::CheckClusterMatch(std::vector<double>& &propState, trex::TTRExHVCluster& Target, int targetSense, bool ForcePropagSense, double &matchDistance){
+bool trex::TTPCLikelihoodMatch::CheckClusterMatch(std::vector<double> propState, trex::TTRExHVCluster& Target, int targetSense, bool ForcePropagSense, double &matchDistance){
 //*****************************************************************************
 
   trex::TTPCHelixPropagator& hp=trex::helixPropagator();
   hp.InitHelixPosDirQoP(propState,Target.IsVertical());
-  double pthLength = 0.0;
 
-  bool ok = hp.PropagateToHVCluster(Target, propState);
+  bool ok = hp.PropagateToHVCluster(Target);
 
   // The propagation failed !
   if (!ok){
     return false;
   }
 
+  //MDH TODO: Make sure I finish fixing this tomorrow!!!
+
+  std::vector<double> newState(7);
+  hp.GetHelixPosDirQoP(newState);
   // SAFETY CUT. We shouldn't try to use this match if the
   // state is super far from the cluster's position !
-  const TVector3 CluPos = Target.GetCalibPosition();
-  TVector3 PropPos(propState[0], propState[1], propState[2]);
+  const TVector3 CluPos = Target.GetPosition();
+  TVector3 PropPos(newState[0], newState[1], newState[2]);
   matchDistance = (CluPos - PropPos).Mag();
   if ( matchDistance > 100.){
     return false;
@@ -315,17 +319,17 @@ bool trex::TTPCLikelihoodMatch::CheckClusterMatch(std::vector<double>& &propStat
 }
 
 //*****************************************************************************
-TTPCLogLikelihood trex::TTPCLikelihoodMatch::GetMatchLikelihood(std::vector<double> trkState, std::vector<TTRExHVCluster>& cluToMatch, double trkLength){
+trex::TTPCLogLikelihood trex::TTPCLikelihoodMatch::GetMatchLikelihood(std::vector<double> trkState, std::vector<TTRExHVCluster*>& cluToMatch, double trkLength){
 //*****************************************************************************
-  std::vector<trex::TTRExHVCluster> selectedClu;
+  std::vector<trex::TTRExHVCluster*> selectedClu;
   for (auto tmpClu = cluToMatch.begin(); tmpClu != cluToMatch.end(); tmpClu++) {
-    ND::TTPCHVCluster Cluster = *tmpClu;
-    if( !Cluster.isOkForFit() ) { continue;}  // Check that the plane is actually enabled.
+    trex::TTRExHVCluster* Cluster = *tmpClu;
+    if( !Cluster->isOkForFit() ) { continue;}  // Check that the plane is actually enabled.
     selectedClu.push_back(Cluster);
   }
 
   if ( !fLklhdCalc->SetupLogLklhdCalculator(trkState, selectedClu, trkLength)){
-    TTPCLogLikelihood tmpLogLklhd;
+    trex::TTPCLogLikelihood tmpLogLklhd;
     tmpLogLklhd.Total = 2e12;
     tmpLogLklhd.X = 1e12;
     tmpLogLklhd.HV = 1e12;
@@ -333,7 +337,7 @@ TTPCLogLikelihood trex::TTPCLikelihoodMatch::GetMatchLikelihood(std::vector<doub
   }
 
   // Calc likelihood
-  TTPCLogLikelihood LogLikelihood = fLklhdCalc->LogLklhdCalculator();
+  trex::TTPCLogLikelihood LogLikelihood = fLklhdCalc->LogLklhdCalculator();
 
   return LogLikelihood;
 }

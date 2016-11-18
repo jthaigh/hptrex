@@ -1,22 +1,21 @@
 #include "TTPCQLikelihood.hxx"
 #include <TMath.h>
-#include <TOARuntimeParameters.hxx>
 
 #define PI        3.14159265358979312
 #define SQRTTWOPI 2.506628274631  // TMath::Sqrt(TMath::TwoPi())
 #define SQRT2     1.414213562373095 // TMath::Sqrt(2.)
 
 
-TTPCQLikelihood::TTPCQLikelihood(){
+trex::TTPCQLikelihood::TTPCQLikelihood(){
 
   //MDH TODO: Figure out what this should be
   fMinimumPhi_Eta = 0.00001;
 }
 
-TTPCQLikelihood::~TTPCQLikelihood(){ ;}
+trex::TTPCQLikelihood::~TTPCQLikelihood(){ ;}
 
 // *********************************************************************************
-double TTPCQLikelihood::eta( double b, double phi, double sigma,double longi,double trans){
+double trex::TTPCQLikelihood::eta( double b, double phi, double sigma,double longi,double trans){
   double result;
   double cosphi = TMath::Cos(phi);;
   double hsinphi = longi*0.5*TMath::Abs(TMath::Sin(phi));
@@ -54,7 +53,7 @@ double TTPCQLikelihood::eta( double b, double phi, double sigma,double longi,dou
 
 // *********************************************************************************
 // expected charge on a certain pad
-double TTPCQLikelihood::q_exp( double b, double phi, double sigma,double longi,double trans){
+double trex::TTPCQLikelihood::q_exp( double b, double phi, double sigma,double longi,double trans){
   double result;
 
   result = eta(b,phi,sigma,longi,trans);

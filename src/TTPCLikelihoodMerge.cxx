@@ -32,7 +32,7 @@ void trex::TTPCLikelihoodMerge::Process(std::vector<trex::TTRExPattern>& inputPa
 //*****************************************************************************
 
   for (auto patit = inputPatterns.begin(); patit != inputPatterns.end(); patit++) {
-    trex::TTPCPattern& Pattern = *patit;
+    trex::TTRExPattern& Pattern = *patit;
     Pattern.SetUsable(true);
   }
 
@@ -50,7 +50,7 @@ void trex::TTPCLikelihoodMerge::Process(std::vector<trex::TTRExPattern>& inputPa
     
     // Now check all the patterns in the chain to see if they have matches through the junctions
     for (int pidx = 0; pidx < fNbPatternChained; pidx++){
-      MatchThroughJunctions(&(fPatternChain[pidx]));
+      MatchThroughJunctions(*(fPatternChain[pidx]));
     }
     
     bool mergingNeeded = false;
@@ -68,7 +68,7 @@ void trex::TTPCLikelihoodMerge::Process(std::vector<trex::TTRExPattern>& inputPa
       continue;
     }
     // All matches are found so now merge !
-    mergedPatterns.push_back(MergeAll());
+    MergeAll(mergedPatterns);
     
     // Clean up after each chain of matching.
     CleanUp();
@@ -88,7 +88,7 @@ void trex::TTPCLikelihoodMerge::CleanUp(){
 
 
 //*****************************************************************************
-double trex::TTPCLikelihoodMerge::PathToPatternMatch( trex::ND::TTRExPath& PathA, trex::TTRExPattern& PatternB, trex::TTRExPath* bestPathB){
+double trex::TTPCLikelihoodMerge::PathToPatternMatch( trex::TTRExPath& PathA, trex::TTRExPattern& PatternB, trex::TTRExPath* bestPathB){
   double bestDLL = 1.e13;
   unsigned int bestEndA = 2;
   unsigned int bestEndB = 2;
@@ -101,7 +101,7 @@ double trex::TTPCLikelihoodMerge::PathToPatternMatch( trex::ND::TTRExPath& PathA
         if ( int(tmpPath.GetId()) == PathA.GetPatternMatchPathId(m)){
           PathB = &tmpPath;
           // If there are no free ends on this path, stop here.
-          if ( !PathB.NbEndsFreeToMatch()){
+          if ( !PathB->NbEndsFreeToMatch()){
             break;
           }
           break;
@@ -158,7 +158,7 @@ void trex::TTPCLikelihoodMerge::MatchBrokenPaths(std::vector< trex::TTRExPattern
     trex::TTRExPattern* PatternA = fPatternChain[pidx];
   
     for (auto patitB = patterns.begin(); patitB != patterns.end() && fNbPatternChained < MAXPATTERNCHAIN; patitB++) {
-      trex::TTRExPattern* PatternB = *patitB;
+      trex::TTRExPattern* PatternB = &*patitB;
       if ( !PatternB->IsUsable())
         continue;
 
@@ -184,7 +184,7 @@ void trex::TTPCLikelihoodMerge::MatchBrokenPaths(std::vector< trex::TTRExPattern
         trex::TTRExPath& PathB = *constit;
 
         trex::TTRExPath* tmpPath;
-        double tmpDLL = PathToPatternMatch(PathB, PatternA, tmpPath);
+        double tmpDLL = PathToPatternMatch(PathB, *PatternA, tmpPath);
         if (tmpPath && tmpDLL < BestMatchDLL){
           BestMatchDLL = tmpDLL;
           BestMatchPaths[0] = tmpPath;
@@ -195,8 +195,8 @@ void trex::TTPCLikelihoodMerge::MatchBrokenPaths(std::vector< trex::TTRExPattern
       // Did we find a match between these patterns ?
       if (BestMatchPaths[0] && BestMatchPaths[1]){
         fMTracker.push_back( MatchingTracker(*(BestMatchPaths[0]), *(BestMatchPaths[1])) );
-        fPatternChain[fNbPatternChained] = &PatternB;
-        PatternB.SetUsable(false);
+        fPatternChain[fNbPatternChained] = PatternB;
+        PatternB->SetUsable(false);
         fNbPatternChained++;
       }
     }
@@ -217,17 +217,14 @@ void trex::TTPCLikelihoodMerge::MatchThroughJunctions(trex::TTRExPattern& patter
   //MDH TODO: Implement this properly using path-to-junction map in pattern
   bool atLeastOneMatch = false;
   ////// Look for a match across each junction
-  for (auto constit = pattern.GetJunctions().begin(); constit != pattern.GetJunctions()->end(); constit++) {
-    ND::THandle<ND::TTPCJunction> junction = (*constit);
-    if (!junction)
-      continue;
-    int NbPath = junction->GetConstituents()->size();
-    std::vector< ND::THandle<ND::TTPCPath> > Paths;
-    for (ND::TReconObjectContainer::iterator pathit = junction->GetConstituents()->begin(); pathit != junction->GetConstituents()->end(); pathit++) {
+  for (auto constit = pattern.GetJunctions().begin(); constit != pattern.GetJunctions().end(); constit++) {
+    trex::TTRExJunction& junction = (*constit);
+    std::vector< trex::TTRExPath* > Paths;
+    int NbPath = 0;//junction.GetConstituents()->size();
+    /*for (ND::TReconObjectContainer::iterator pathit = junction->GetConstituents()->begin(); pathit != junction->GetConstituents()->end(); pathit++) {
       ND::THandle<ND::TTPCPath> Path = *pathit;
       Paths.push_back(Path);
-    }
-
+      }*/
     // 1) Create dynamic size LogLikelihood matrix NxN with N = number of paths connected to junction
     double** LklhdMatrix = new double*[NbPath];
     for ( int i = 0;  i < NbPath; ++i){
@@ -237,7 +234,6 @@ void trex::TTPCLikelihoodMerge::MatchThroughJunctions(trex::TTRExPattern& patter
       for ( int j = 0;  j < NbPath; ++j)
         LklhdMatrix[i][j] = 0xABCDEF;
     }
-
     /*
     The matrix is built to have:
               clusters
@@ -324,7 +320,7 @@ void trex::TTPCLikelihoodMerge::MatchThroughJunctions(trex::TTRExPattern& patter
 
 
 //*****************************************************************************
-trex::TTRExPattern* trex::TTPCLikelihoodMerge::MergeAll(){
+void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& outputVector){
 //*****************************************************************************
 
 //MDH TODO: Fixing this to make sure we get the right objects out and keep the old ones
@@ -489,6 +485,7 @@ trex::TTRExPattern* trex::TTPCLikelihoodMerge::MergeAll(){
   }
 
   /////// New pattern !!!!!!
+  outputVector.emplace_back();
   ND::THandle<ND::TTPCPattern> NewPattern = ND::THandle<ND::TTPCPattern>( new ND::TTPCPattern() );
   TTPCT0 T0(ND::tpcCalibration().GetDefaultT0());
 
@@ -501,7 +498,6 @@ trex::TTRExPattern* trex::TTPCLikelihoodMerge::MergeAll(){
   NewPattern->InitialSetup();
   NewPattern->SetT0(T0);
 
-  return NewPattern;
 */
 }
 

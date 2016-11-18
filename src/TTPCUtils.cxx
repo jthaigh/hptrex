@@ -139,4 +139,5 @@ namespace TTPCUtils {
     return newPath;
   }
 
-
+  //MDH TODO: Implement this...
+  void ReverseStateSenseAndCharge(std::vector<double>& propagState){}

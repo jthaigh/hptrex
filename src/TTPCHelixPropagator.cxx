@@ -179,7 +179,7 @@ bool trex::TTPCHelixPropagator::ReloadHelixPosDirQoP(std::vector<double> Param){
   TVector3 Direction(fDirX0, fDirY0, fDirZ0);
   double Momentum = fabs(1./Param[6]);
   double Charge = Param[6] / fabs(Param[6]);
-  bool ok = TrackingUtils::MomentumAndCharge_to_Curvature(Position, Direction, Momentum, Charge, fRho0);
+  bool ok = TTPCUtils::MomentumAndCharge_to_Curvature(Position, Direction, Momentum, Charge, fRho0);
 
   if (!ok){
     return false;
@@ -297,20 +297,20 @@ bool trex::TTPCHelixPropagator::PropagateToHVCluster(trex::TTRExHVCluster& Clust
 
   if ( fQuadrant == 1 ){
     fX0 = fX0 + DeltaX;
-    fY0 = Cluster->Y();
+    fY0 = Cluster.Y();
     fZ0 = fZ0 + DeltaZorY;
   } else if ( fQuadrant == 2 ){
     fX0 = fX0 + DeltaX;
     fY0 = fY0 + DeltaZorY;
-    fZ0 = Cluster->Z();
+    fZ0 = Cluster.Z();
   } else if ( fQuadrant == 3 ){
     fX0 = fX0 + DeltaX;
-    fY0 = Cluster->Y();
+    fY0 = Cluster.Y();
     fZ0 = fZ0 - DeltaZorY;
   } else if ( fQuadrant == 4 ){
     fX0 = fX0 + DeltaX;
     fY0 = fY0 - DeltaZorY;
-    fZ0 = Cluster->Z();
+    fZ0 = Cluster.Z();
   }
 
   return true;
@@ -376,14 +376,10 @@ void trex::TTPCHelixPropagator::GetHelixPosDirQoP(std::vector<double>& Result){
 
 //*****************************************************************************
 void trex::TTPCHelixPropagator::PosTanCurvToPosDirQoP(std::vector<double> &ptcVect, std::vector<double> &pdqpVect){
-  // First convert the vector
-  double *tmpVect = new double[6];
-  for ( int i = 0; i < 6; i++)
-    tmpVect[i] = ptcVect[i];
 
   pdqpVect.resize(7);
 
-  ReloadHelixPosTanCurv(tmpVect);
+  ReloadHelixPosTanCurv(ptcVect);
   pdqpVect[0] = fX0;
   pdqpVect[1] = fY0;
   pdqpVect[2] = fZ0;

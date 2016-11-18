@@ -1,12 +1,9 @@
 #ifndef TTPCLikFitPath_hxx_seen
 #define TTPCLikFitPath_hxx_seen
 
-#include <THandle.hxx>
 #include <TMinuit.h>
-// #include <RecPackConverters.hxx>
-
 #include "TTPCQLikelihood.hxx"
-#include "TTPCPath.hxx"
+#include "TTRExPath.hxx"
 #include "TTPCUtils.hxx"
 
 
@@ -53,11 +50,11 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
     /// Minimize the log likelihood for the given hits.
     /// This is the place where parameters will be fixed or released but nothing else.
     /// Use SetupLogLklhdMinimizer to setup the parameters, there initial values, the step sizes, etc...
-  int LogLklhdMinimizer(std::vector<trex::TTRExHVCluster>& inputClusters);
+  int LogLklhdMinimizer(std::vector<trex::TTRExHVCluster*>& inputClusters);
 
     /// A few little calls to prepare for a minimization.
     /// Must be called explicitely before calling SimpleLogLklhdMinimizer
-  void GetReadyForMinimization(std::vector<trex::TTRExHVCluster>& inputClusters);
+  void GetReadyForMinimization(std::vector<trex::TTRExHVCluster*>& inputClusters);
 
     /// Some clean of containers after the minimization.
     /// Must be called explicitely after calling SimpleLogLklhdMinimizer
@@ -73,7 +70,7 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
     /// Setup various parameters of the log likelihood calculation
     /// Use this to setup the calculation of the log likelihood for a given set of clusters.
     /// Needs to know if the front of back likelihood state should be used for the propagation.
-  bool SetupLogLklhdCalculator(std::vector<double> helixState, std::vector<trex::TTRExHVCluster> inputClusters, double inputLength);
+  bool SetupLogLklhdCalculator(std::vector<double> helixState, std::vector<trex::TTRExHVCluster*> inputClusters, double inputLength);
 
     /// Minimize the log likelihood for the hits given to SetupLogLklhdCalculator.
     /// This is the place where parameters will be fixed or released but nothing else.
@@ -87,7 +84,7 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
     void Reset(void);
 
     /// Retrieves the value of the likelihood.
-    double log_likelihood(double* x);
+  double log_likelihood(std::vector<double>& x);
 
     void StoreFittedState();
     void StoreFittedSigma();
@@ -128,7 +125,7 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
     };
 
     /// Performs the selection of the clusters suitable for the fit
-  void SelectClusters(std::vector<trex::TTRExHVCluster> inputClu, double XDirection, ClusterSelection &CluSel);
+  void SelectClusters(std::vector<trex::TTRExHVCluster>& inputClu, double XDirection, ClusterSelection &CluSel);
 
     /// Retrieves the value of the likelihood in Y along the vertical direction.
     double log_likelihoodHV();
@@ -275,7 +272,7 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
 
 
     ///
-    std::vector<trex::TTRExHVCluster> fFitClu;
+    std::vector<trex::TTRExHVCluster*> fFitClu;
 
     /// Value of the total likelihood
   //MDH TODO: Fix class here  

@@ -4,6 +4,7 @@
 #include "TTPCHitPad.hxx"
 #include "TTRExHVCluster.hxx"
 #include "TTRExPath.hxx"
+#include "TTRExJunction.hxx"
 
 namespace trex{
   
@@ -49,9 +50,9 @@ namespace trex{
       
     public:
       
-      TTRExPattern() : fPaths(0),fJunctions(0),fPathsToJunctionMap(0){};
+      TTRExPattern() : fPaths(0),fJunctions(0),fPathsToJunctionMap(0), fIsUsable(true){};
       
-      TTRExPattern(std::vector<trex::TTRExPath> paths, std::vector<std::vector<trex::TTPCHitPad> > junctions, std::vector< std::vector<unsigned int> > map){
+      TTRExPattern(std::vector<trex::TTRExPath>& paths, std::vector<trex::TTRExJunction>& junctions, std::vector< std::vector<unsigned int> > map){
 	  fPaths = paths;
 	  fJunctions = junctions;
 	  fPathsToJunctionMap = map;
@@ -62,7 +63,7 @@ namespace trex{
 	return fPaths;
       }
 
-      std::vector<std::vector<trex::TTPCHitPad> >& GetJunctions(){
+      std::vector<trex::TTRExJunction>& GetJunctions(){
 	return fJunctions;
       }
 
@@ -75,7 +76,7 @@ namespace trex{
 	fPaths = paths;
       }
 
-      void SetJunctions(std::vector<std::vector<trex::TTPCHitPad> > junctions){
+      void SetJunctions(std::vector<trex::TTRExJunction> junctions){
 	fJunctions = junctions;
       }
 
@@ -112,23 +113,32 @@ namespace trex{
 	  fPaths[i].Print();	  
 	}
 	
-	
 	for(int i=0; i<junctSize; ++i){
 	  std::cout << " Junction # " << i << " contains the following Hits: " << std::endl;
-          for(int j=0; j<fJunctions[i].size(); ++j){
-            fJunctions[i][j].Print();
+	  const std::vector<trex::TTPCHitPad*> jHits;
+          for(auto iHit=jHits.begin(); iHit!=jHits.end(); ++iHit){
+            (**iHit).Print();
           }
-        }
+	  }
 	
       }
+
+      unsigned int GetId(){return fId;}
+
+      void SetId(unsigned int id){fId=id;}
       
-      
+      void SetUsable(bool isUsable){fIsUsable=isUsable;}
+
+      bool IsUsable(){return fIsUsable;}
+
     private:
       
+      unsigned int fId;
       std::vector<trex::TTRExPath> fPaths;
-      std::vector<std::vector<trex::TTPCHitPad> > fJunctions;
+      std::vector<trex::TTRExJunction> fJunctions;
       std::vector< std::vector<unsigned int> > fPathsToJunctionMap;
-	
+      bool fIsUsable;
+
     };
 	
 	
