@@ -280,8 +280,12 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used
           found = true;
         };
       };
+
+
       // if not alread found, create a new one
       if(!found){
+
+
 	/*        TVector3 tempVect3 = junctionGroup->GetAverageVol()->GetPos();
         double tempTime = junctionGroup->GetAverageVol()->GetTime();
         // Get a guess X position based on a default T0 of 0.0 just to have a useful X position downstream.
@@ -289,6 +293,8 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used
         tempVect3.SetX(tempX);
         TLorentzVector tempPosition(tempVect3, tempTime);
 	*/
+
+
 	fJunctions.emplace_back(junctionGroup->GetHits());
         fJunctionsToPathsMap.emplace_back();
 	fJunctionsToPathsMap.back().push_back(fPaths.size()-1);
@@ -308,7 +314,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used
     std::cout<<"  **********"<<std::endl;
   }
   for(int i=0;i<fJunctions.size();++i){
-    std::cout<<"   Junction "<<i<<" has "<<fJunctions[i].size()<<" hits"<<std::endl;
+    std::cout<<"   Junction "<<i<<" has "<<fJunctions[i].GetHits().size()<<" hits"<<std::endl;
     std::cout<<"   and is linked to paths:";
     for(int j=0;j<fJunctionsToPathsMap[i].size();++j){
       std::cout<<(j==0?" ":", ")<<fJunctionsToPathsMap[i][j]<<std::endl;

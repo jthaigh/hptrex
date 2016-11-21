@@ -206,7 +206,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     //
 
     std::vector<trex::TTRExPath>& subPaths= alg.GetPaths();
-    std::vector<std::vector<trex::TTPCHitPad*> >& subJuncts=alg.GetJunctions();
+    std::vector<trex::TTRExJunction>& subJuncts=alg.GetJunctions();
     std::vector< std::vector<unsigned int> >& subJPMap=alg.GetJunctionsToPathsMap();
 
     std::cout << "MARKER 1 SubPaths Size: " << subPaths.size() << std::endl;
@@ -215,7 +215,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
     // containers for paths and junctions to create a pattern from 
     std::vector<trex::TTRExPath> pathsContainer;
-    std::vector<std::vector<trex::TTPCHitPad> > junctsContainer;
+    std::vector<trex::TTRExJunction > junctsContainer;
 
 
     //PD NEED TO PUT BETTER FILLING METHOD HERE
@@ -283,21 +283,18 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
 
     //PD NEED TO PUT BETTER FILLING METHOD HERE
-    //extract junction hits from subAlgorithm and build non pointer hit objects to fill the junctions with
+    //Fill the junctsContainer with junctions fromt he subevent
     
     for(auto iJunct=subJuncts.begin(); iJunct!=subJuncts.end(); ++iJunct) {      
-      
-      std::vector<trex::TTPCHitPad> junction;
             
-      //std::cout << "Managed to get into outer loop" << std::endl;
+      std::cout << "Managed to get into outer loop" << std::endl;
       
-      for(auto iHit=iJunct->begin(); iHit!=iJunct->end(); ++iHit) {
+      std::vector<trex::TTPCHitPad*> hits = iJunct->GetHits();
+
+      for(auto iHit=hits.begin(); iHit!=hits.end(); ++iHit) {
 	
 	std::cout << "Managed to get into inner loop" << std::endl;
 	std::cout << "Junction Hit Pad is accessible " << (*iHit)->Print() << std::endl;
-	TLorentzVector pos((*iHit)->GetPosition(), 0);
-	trex::TTPCHitPad pad((*iHit)->GetCharge(), pos);
-	junction.push_back(pad);
 	
 	//fill usedTREx
 	if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
@@ -309,8 +306,8 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 	}
       }
       std::cout << "Exited the junction loop" << std::endl;
-      junctsContainer.push_back(junction);
-      junction.clear();
+      junctsContainer.push_back(*iJunct);
+      hits.clear();
     }
     
     std::cout << "Exited the junction list loop" << std::endl;

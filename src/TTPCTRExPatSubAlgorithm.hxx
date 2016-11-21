@@ -26,6 +26,7 @@
 #include "TTPCVolGroup.hxx"
 #include "TTRExHVCluster.hxx"
 #include "TTRExPath.hxx"
+#include "TTRExJunction.hxx"
 
 namespace trex{
   /// Main algorithm for pattern recognition for path finding.  Processes a sub-event of connected hits and returns a set of paths.
@@ -68,7 +69,7 @@ namespace trex{
     //NEED TO CHANGE RETURN TYPE HERE
 
     std::vector<trex::TTRExPath>& GetPaths(){return fPaths;}
-    std::vector<std::vector<trex::TTPCHitPad*> >& GetJunctions(){return fJunctions;}
+    std::vector<trex::TTRExJunction>& GetJunctions(){return fJunctions;}
 
 
 
@@ -155,7 +156,7 @@ namespace trex{
     //NEED TO CHANGE DEFINITIONS HERE
 
     std::vector<trex::TTRExPath> fPaths;
-    std::vector<std::vector<trex::TTPCHitPad*> > fJunctions;						       
+    std::vector<trex::TTRExJunction> fJunctions;						       
     std::vector< std::vector<unsigned int> > fJunctionsToPathsMap;
 
   };

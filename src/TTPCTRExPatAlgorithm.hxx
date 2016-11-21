@@ -30,6 +30,7 @@
 #include "TTPCVolGroup.hxx"
 #include "TTRExHVCluster.hxx"
 #include "TTRExPath.hxx"
+#include "TTRExJunction.hxx"
 
 namespace trex{
   /// Pattern recognition for TPC tracks based on path finding.

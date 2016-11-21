@@ -113,13 +113,11 @@ int main(int argc, char** argv){
       //Print out Junction Information for debugging
       for(int l=0; l<event->GetPatterns().at(k).GetJunctions().size(); ++l){
 	
-	for (int m=0; m<event->GetPatterns().at(k).GetJunctions().at(l).size(); ++m){
-	  
-	  std::cout << "JUNCTION hits have content: " << std::endl;
-	  std::cout << "____________________________" << std::endl;
-	  event->GetPatterns().at(k).GetJunctions().at(l).at(m).Print();
-	  std::cout << "____________________________" << std::endl;
-	}
+	std::cout << "JUNCTION " << l << "contains the following: " << std::endl;
+	std::cout << "____________________________" << std::endl;
+	event->GetPatterns().at(k).GetJunctions().at(l).Print();
+	std::cout << "____________________________" << std::endl;
+	
       }
       
       

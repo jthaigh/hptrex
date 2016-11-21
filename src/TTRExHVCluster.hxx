@@ -71,7 +71,7 @@ namespace trex{
       return (not fIsVertical);
     }
 
-    bool IsOkForSeed(){
+    bool isOkForSeed(){
       
       return fOkForSeed;
     }
