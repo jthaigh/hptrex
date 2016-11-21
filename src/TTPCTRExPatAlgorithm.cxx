@@ -314,7 +314,9 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     }
     
     std::cout << "Exited the junction list loop" << std::endl;
-    patternContainer.push_back(trex::TTRExPattern(pathsContainer,junctsContainer, subJPMap));
+
+    //MDH TODO: Have to build proper junction objects before instantiating a pattern
+    //    patternContainer.push_back(trex::TTRExPattern(pathsContainer,junctsContainer, subJPMap));
     std::cout << "Have created pattern" << std::endl;
     pathsContainer.clear();
     junctsContainer.clear();
