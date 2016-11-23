@@ -395,6 +395,18 @@ void trex::TTPCLikFitPath::ResetMinuitParam(){
 
 // *********************************************************************************
 // Minimize the log likelihood for the given hits
+
+int trex::TTPCLikFitPath::LogLklhdMinimizer(std::vector<trex::TTRExHVCluster>& inputClusters){
+
+  std::vector<trex::TTRExHVCluster*> ptrVect;
+
+  for(auto iCl=inputClusters.begin();iCl!=inputClusters.end();++iCl){
+    ptrVect.push_back(&*iCl);
+  }
+
+  return LogLklhdMinimizer(ptrVect);
+}
+
 int trex::TTPCLikFitPath::LogLklhdMinimizer(std::vector<trex::TTRExHVCluster*>& inputClusters){
   GetReadyForMinimization(inputClusters);
 

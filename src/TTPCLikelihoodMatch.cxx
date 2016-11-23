@@ -172,8 +172,7 @@ void trex::TTPCLikelihoodMatch::MatchBrokenPaths(std::vector< trex::TTRExPattern
           StateA = PathA.GetFrontFitState();
           // We want to propagate towards the "outside" of the track.
           
-	  //MDH TODO: Implement reversing state and charge ourselves
-	  //ND::tman().ReverseStateSenseAndCharge(StateA);
+	  TTPCUtils::ReverseStateSenseAndCharge(StateA);
         } else {
           StateA = PathA.GetBackFitState();
         }
@@ -292,8 +291,6 @@ bool trex::TTPCLikelihoodMatch::CheckClusterMatch(std::vector<double> propState,
   if (!ok){
     return false;
   }
-
-  //MDH TODO: Make sure I finish fixing this tomorrow!!!
 
   std::vector<double> newState(7);
   hp.GetHelixPosDirQoP(newState);

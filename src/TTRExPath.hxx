@@ -42,12 +42,15 @@ class TTPCPathFitResults {
     
   public:
     
-    TTRExPath() : fClusters(0), fHasChi2Fit(false), fHasRunFit(false){};
+    TTRExPath() : fClusters(0), fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false){};
     
-    TTRExPath(std::vector<trex::TTRExHVCluster> clusters) : fHasChi2Fit(false), fHasRunFit(false){
+    TTRExPath(std::vector<trex::TTRExHVCluster> clusters) : fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false){
       fClusters = clusters;
     }
-    
+
+
+    //MDH TODO: Do we want the path to own these clusters? I think they should somehow be owned by an event...
+    //Need to think about this.
     void SetClusters(std::vector<trex::TTRExHVCluster> clusters){
       fClusters = clusters;
     }
@@ -119,9 +122,13 @@ class TTPCPathFitResults {
 
     bool HasRunFit(){return fHasRunFit;}
 
+    bool HasLikelihoodFit(){return fHasLikelihoodFit;}
+
     void SetHasChi2Fit(bool hasChi2Fit){fHasChi2Fit=hasChi2Fit;}
 
     void SetHasRunFit(bool hasRunFit){fHasRunFit=hasRunFit;}
+
+    void SetHasLikelihoodFit(bool hasLikelihoodFit){fHasLikelihoodFit=hasLikelihoodFit;}
 
   private:
     
@@ -135,6 +142,8 @@ class TTPCPathFitResults {
     bool fHasChi2Fit;
 
     bool fHasRunFit;
+
+    bool fHasLikelihoodFit;
 
     std::vector<double> fFrontSeedState;
 

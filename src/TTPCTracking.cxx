@@ -1,12 +1,7 @@
 #include "TTPCTracking.hxx" 
 
-#include "TTPCCalibration.hxx" 
-#include "TTPCHVCluster.hxx" 
+#include "TTRExHVCluster.hxx" 
 #include "TTPCUtils.hxx" 
-
-#include <TOARuntimeParameters.hxx>
-#include <TND280Event.hxx>
-#include <TEventFolder.hxx>
 
 //*****************************************************************************
 trex::TTPCTracking::TTPCTracking( ){
@@ -35,7 +30,7 @@ void trex::TTPCTracking::Process(trex::TTRExPattern& Pattern){
   for (auto pth = Paths.begin(); pth != Paths.end(); pth++) {
     trex::TTRExPath& path = *pth;
     // Having a seed is a requirement to the likelihood fit
-    if (fRunLikelihoodFit && path.CheckStatus(trex::kChi2Fit) && !path->CheckStatus(trex::kRan)){ 
+    if (fRunLikelihoodFit && path.HasChi2Fit() && !path.HasRunFit()){ 
       LikelihoodFit( path);
     }
 
@@ -44,15 +39,15 @@ void trex::TTPCTracking::Process(trex::TTRExPattern& Pattern){
 
 
 // *****************************************************************************
-void trex::TTPCTracking::LikelihoodFit(trex::TTRExPath>& thePath){
+void trex::TTPCTracking::LikelihoodFit(trex::TTRExPath& thePath){
 // *****************************************************************************
   // Clear status bit
-  thePath.ClearStatus(trex::kLikelihoodFit);
-  thePath.SetStatus(trex::kRan);
+  thePath.SetHasLikelihoodFit(false);
+  thePath.SetHasRunFit(true);
 
-  std::vector<TTRExHVCluster>& allClusters = thePath.GetHits();
+  std::vector<TTRExHVCluster>& allClusters = thePath.GetClusters();
 
-  if( allClusters->size() == 0 ) {
+  if( allClusters.size() == 0 ) {
     return; 
   }
 
@@ -75,6 +70,6 @@ void trex::TTPCTracking::LikelihoodFit(trex::TTRExPath>& thePath){
 
   //MDH TODO: Is this still needed?
   // Important to prevent memory leaks
-  if( selectedClu->size() > 0 ) selectedClu->erase(selectedClu->begin(),selectedClu->end());
+  if( selectedClu.size() > 0 ) selectedClu.erase(selectedClu.begin(),selectedClu.end());
 
 }

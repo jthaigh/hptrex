@@ -9,14 +9,15 @@ namespace trex{
 
   public:
 
-    TTRExJunction();
+
+    TTRExJunction(){};
     TTRExJunction(const std::vector<trex::TTPCHitPad*> &Hits){
       fHits = Hits;
     }
 
-    TTRExJunction(const TVector3 &Position);
+    TTRExJunction(const TVector3 &Position){};
     
-    virtual ~TTRExJunction();
+    virtual ~TTRExJunction(){};
 
     void SetHits(std::vector<TTPCHitPad*>& theHits){fHits=theHits;}
     void SetId(unsigned int theId){fId=theId;}
@@ -49,8 +50,6 @@ private:
     
   };
 }
-
-
 
 
 
