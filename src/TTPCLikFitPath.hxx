@@ -52,6 +52,8 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
     /// Use SetupLogLklhdMinimizer to setup the parameters, there initial values, the step sizes, etc...
   int LogLklhdMinimizer(std::vector<trex::TTRExHVCluster*>& inputClusters);
 
+  int LogLklhdMinimizer(std::vector<trex::TTRExHVCluster>& inputClusters);
+
     /// A few little calls to prepare for a minimization.
     /// Must be called explicitely before calling SimpleLogLklhdMinimizer
   void GetReadyForMinimization(std::vector<trex::TTRExHVCluster*>& inputClusters);

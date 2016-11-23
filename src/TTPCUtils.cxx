@@ -1,6 +1,7 @@
 #include "TTPCUtils.hxx"
 #include "TTRExHVCluster.hxx"
 #include "TTPCHitPad.hxx"
+#include "TTPCLayout.hxx"
 
 namespace TTPCUtils {
 
@@ -9,7 +10,7 @@ namespace TTPCUtils {
 
     trex::TTPCLayout layout;
 
-    double B = layout.GetBField;
+    double B = layout.GetBField();
     // project into the bending plane
     double factor = -(0.3 * B) / sqrt(1. - dir.X() * dir.X());
 
@@ -41,15 +42,15 @@ namespace TTPCUtils {
     trex::TTRExHVCluster* tmprClu;
     trex::TTRExHVCluster* nextClu;
     auto Clu = Path2.GetClusters().begin();
-    auto rClu = Path2.GetClusters()->rbegin();
-    tmpClu = *Clu;
-    tmprClu = *rClu;
-    if (ChosenClu == tmpClu){
+    auto rClu = Path2.GetClusters().rbegin();
+    tmpClu = &*Clu;
+    tmprClu = &*rClu;
+    if (&ChosenClu == tmpClu){
       Clu++;
-      nextClu = *Clu;
-    } else if (ChosenClu == tmprClu){
+      nextClu = &*Clu;
+    } else if (&ChosenClu == tmprClu){
       rClu++;
-      nextClu = *rClu;
+      nextClu = &*rClu;
     } else {
       // PROBLEM. That will probably be a bigger problem outside of this function regardless of the sense.
       return 0;
@@ -57,11 +58,11 @@ namespace TTPCUtils {
 
     // Find the crude track "sense" in z(y) when the first two clusters are vertical(horizontal).
     // If the first two clusters have different orientation, just use 0 and deal with it later.
-    if ( ChosenClu->IsVertical() == nextClu->IsVertical()){
-      if (ChosenClu->IsVertical()){
-        sense = nextClu->Z() - ChosenClu->Z();
+    if ( ChosenClu.IsVertical() == nextClu->IsVertical()){
+      if (ChosenClu.IsVertical()){
+        sense = nextClu->Z() - ChosenClu.Z();
       }else{
-        sense = nextClu->Y() - ChosenClu->Y();
+        sense = nextClu->Y() - ChosenClu.Y();
       }
     }
     return sense;
@@ -71,10 +72,10 @@ namespace TTPCUtils {
   //*****************************************************************************
   void FindClosestEnds(trex::TTRExPath& PathA, trex::TTRExPath& PathB, unsigned int &EndA, unsigned int &EndB){
     // TODO: Add check on the presence of clusters and use exception if not there.
-    trex::TTRExHVCluster& FirstCluA = *(PathA->GetHits()->begin());
-    trex::TTRExHVCluster& LastCluA = *(PathA->GetHits()->rbegin());
-    trex::TTRExHVCluster& FirstCluB = *(PathB->GetHits()->begin());
-    trex::TTRExHVCluster& LastCluB = *(PathB->GetHits()->rbegin());
+    trex::TTRExHVCluster& FirstCluA = *(PathA.GetClusters().begin());
+    trex::TTRExHVCluster& LastCluA = *(PathA.GetClusters().rbegin());
+    trex::TTRExHVCluster& FirstCluB = *(PathB.GetClusters().begin());
+    trex::TTRExHVCluster& LastCluB = *(PathB.GetClusters().rbegin());
     std::vector<double> Sorter;
     double FtFt = (FirstCluA.GetPosition() - FirstCluB.GetPosition()).Mag();
     double FtLt = (FirstCluA.GetPosition() - LastCluB.GetPosition()).Mag();
@@ -99,7 +100,7 @@ namespace TTPCUtils {
   }
 
   //*****************************************************************************
-  trex::TTRExPath* MergePaths(trex::TTRExPath& PathA, TREx::TTRExPath& PathB){
+  trex::TTRExPath* MergePaths(trex::TTRExPath& PathA, trex::TTRExPath& PathB){
     trex::TTRExPath* newPath = new trex::TTRExPath();
 
     // Create a new path putting in the clusters from the two matched paths.
@@ -120,18 +121,18 @@ namespace TTPCUtils {
       }
     } else {
       if (UseEndB == 1 ){
-	std::vector<trex::TTRExHVCluster>& clusters = PathB.GetHits();
+	std::vector<trex::TTRExHVCluster>& clusters = PathB.GetClusters();
         newClusters = clusters;
         for (auto hit = PathA.GetClusters().begin(); hit != PathA.GetClusters().end(); ++hit)
-          newClusters->push_back(*hit);
+          newClusters.push_back(*hit);
       } else {
         for (auto hit = PathB.GetClusters().rbegin(); hit != PathB.GetClusters().rend(); ++hit)
-          newClusters->push_back(*hit);
-        for (auto hit = PathA.GetHits().begin(); hit != PathA.GetHits().end(); ++hit)
-          newClusters->push_back(*hit);
+          newClusters.push_back(*hit);
+        for (auto hit = PathA.GetClusters().begin(); hit != PathA.GetClusters().end(); ++hit)
+          newClusters.push_back(*hit);
       }
     }
-    newPath->SetHits(newClusters);
+    newPath->SetClusters(newClusters);
 
     //MDH TODO: Manage IDs properly (do we use them for anything?)
     //newPath->SetId(ND::tpcCalibration().GetPathId());
@@ -139,5 +140,15 @@ namespace TTPCUtils {
     return newPath;
   }
 
-  //MDH TODO: Implement this...
-  void ReverseStateSenseAndCharge(std::vector<double>& propagState){}
+  void ReverseStateSenseAndCharge(std::vector<double>& propagState){
+
+    //Velocity components
+    propagState[3]*=-1;
+    propagState[4]*=-1;
+    propagState[5]*=-1;
+
+    //Charge
+    propagState[6]*=-1;
+  }
+
+}

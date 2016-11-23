@@ -9,9 +9,9 @@ namespace trex{
 
   public:
 
-    TTRExJunction();
-    TTRExJunction(const TVector3 &Position);
-    virtual ~TTRExJunction();
+    TTRExJunction(){};
+    TTRExJunction(const TVector3 &Position){};
+    virtual ~TTRExJunction(){};
 
     void SetHits(std::vector<TTPCHitPad*>& theHits){fHits=theHits;}
     void SetId(unsigned int theId){fId=theId;}

@@ -502,8 +502,8 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu
       finalState.set_hv(RP::sense, HyperVector(1,0));
     else
       finalState.set_hv(RP::sense, HyperVector(-1,0));
-  }
-  */
+      }*/
+  
 
   std::vector<double> propagState = finalState;
   double deltaPhi = 0.0;
