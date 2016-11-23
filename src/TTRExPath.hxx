@@ -42,9 +42,9 @@ class TTPCPathFitResults {
     
   public:
     
-    TTRExPath() : fClusters(0) {};
+    TTRExPath() : fClusters(0), fHasChi2Fit(false), fHasRunFit(false){};
     
-    TTRExPath(std::vector<trex::TTRExHVCluster> clusters){
+    TTRExPath(std::vector<trex::TTRExHVCluster> clusters) : fHasChi2Fit(false), fHasRunFit(false){
       fClusters = clusters;
     }
     
@@ -84,6 +84,11 @@ class TTPCPathFitResults {
 
     bool HasSeedState(){return false;}
 
+    void SaveSeedStates(std::vector<double>& frontSeedState, std::vector<double>& backSeedState){
+      fFrontSeedState=frontSeedState;
+      fBackSeedState=backSeedState;
+    }
+
     void SaveMatchedPath(unsigned int id,trex::TTPCLogLikelihood likelihood){}
     void SaveMatchedPattern(unsigned int patternId, unsigned int pathId, trex::TTPCLogLikelihood likelihood){}
 
@@ -110,6 +115,14 @@ class TTPCPathFitResults {
 
     void SetEndNotFreeToMatch(int end){}
 
+    bool HasChi2Fit(){return fHasChi2Fit;}
+
+    bool HasRunFit(){return fHasRunFit;}
+
+    void SetHasChi2Fit(bool hasChi2Fit){fHasChi2Fit=hasChi2Fit;}
+
+    void SetHasRunFit(bool hasRunFit){fHasRunFit=hasRunFit;}
+
   private:
     
     unsigned int fId;
@@ -118,6 +131,14 @@ class TTPCPathFitResults {
     //INCLUDE MORE TRACKING AND FIT VARIABLES HERE
 
     trex::TTPCPathFitResults fFitState;
+
+    bool fHasChi2Fit;
+
+    bool fHasRunFit;
+
+    std::vector<double> fFrontSeedState;
+
+    std::vector<double> fBackSeedState;
     
   };
 }

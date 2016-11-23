@@ -1,9 +1,9 @@
-
 #include "TTPCSeeding.hxx" 
 #include <TVector.h> 
 
-#include "TTPCHVCluster.hxx" 
+#include "TTRExHVCluster.hxx" 
 #include "TTPCUtils.hxx" 
+#include "TTPCHelixPropagator.hxx"
 
 
 //*****************************************************************************
@@ -18,13 +18,13 @@ trex::TTPCSeeding::TTPCSeeding( ){
 void trex::TTPCSeeding::Process(trex::TTRExPattern& Pattern){
 //*****************************************************************************
   // return false when no seed was found for any path ???
-  std::vector<trex::TTRExPath> Paths = Pattern->GetPaths();
+  std::vector<trex::TTRExPath>& Paths = Pattern.GetPaths();
   
   for (auto pth = Paths.begin(); pth != Paths.end(); pth++) {
     trex::TTRExPath& path = *pth;
     // If there is already a seed result, don't seed again.
-    if ( path->CheckStatus(trex::kChi2Fit) || 
-	 path->CheckStatus(trex::kRan)){
+    if ( path.HasChi2Fit() || 
+	 path.HasRunFit()){
       continue;
     }
     // TODO: Reset all the seed variables for safety
@@ -37,14 +37,14 @@ void trex::TTPCSeeding::Process(trex::TTRExPattern& Pattern){
 void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
 //*****************************************************************************
 
-  std::vector<TTRExHVCluster>& HVclu = thePath->GetHits();
+  std::vector<TTRExHVCluster>& HVclu = thePath.GetClusters();
   if( !HVclu.size() ) return;
 
-  PrepareSeeding(HVclusters);
+  PrepareSeeding(HVclu);
 
   // Do we have enough valid clusters to get a decent seed ?
   int NbValidPlanes = 0;
-  for (auto Hit = HVclu->begin(); Hit != HVclu->end(); Hit++) {
+  for (auto Hit = HVclu.begin(); Hit != HVclu.end(); Hit++) {
     trex::TTRExHVCluster& HV = (*Hit);
     if( HV.isOkForSeed() ) NbValidPlanes++;
   }
@@ -52,7 +52,7 @@ void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
   if (NbValidPlanes < 4 ){
     // TODO: Somehow save the fact that we tried to make a seed but failed.
 
-    thePath->SetStatus(trex::kRan);
+    thePath.SetHasRunFit(true);
     return;
   }
     
@@ -62,12 +62,12 @@ void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
   std::vector<double> R2Helix;
   double R2Error = R2(HVclu, R2Helix);
 
-  bool RiemannIsBad = ( isnan(RiemannError) || RiemannError > 1.e6); 
-  bool R2IsBad = ( isnan(R2Error) || R2Error > 1.e6); 
+  bool RiemannIsBad = ( std::isnan(RiemannError) || RiemannError > 1.e6); 
+  bool R2IsBad = ( std::isnan(R2Error) || R2Error > 1.e6); 
 
   if( RiemannIsBad && R2IsBad ) {
     // TODO: Save "seeding failed" in path ?
-    thePath->SetStatus(trex::kRan);
+    thePath.SetHasRunFit(true);
     return;
   }
 
@@ -82,7 +82,7 @@ void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
 
   if( ! IsResultValid(HVclu, frontSeedState) ) {
     // TODO: Save "seeding failed" in path ?
-    thePath->SetStatus(trex::kRan);
+    thePath.SetHasRunFit(true);
     return;
   }
 
@@ -95,21 +95,17 @@ void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
   // are not selected as good enough for the seeding.
   // So just propagate to the shortest distance.
 
-  bool firstcluvertical=HVClu.begin()->IsVertical();
+  bool firstcluvertical=HVclu.begin()->IsVertical();
   trex::TTPCHelixPropagator& hp=trex::helixPropagator();
   hp.InitHelixPosDirQoP(propagState,firstcluvertical);
-  double pthLength = 0.0;
   for (auto Hit = HVclu.begin(); Hit != HVclu.end(); Hit++) {
     trex::TTRExHVCluster& Cluster = *Hit;
 
-    double localLength = 0.0;
-    
-    if (!hp.PropagateToHVCluster(Cluster, localLength)){
+    if (!hp.PropagateToHVCluster(Cluster)){
       continue;
     }
-    pthLength += localLength;
     
-    if (&Hit == (&*(HVclu.begin()))){
+    if (&*(Hit) == (&*(HVclu.begin()))){
       frontSeedState = propagState;
     }
   }
@@ -118,7 +114,6 @@ void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
   // Or should we instead change the propagation sign ?
   // Not sure what's the best option.
   backSeedState = propagState;
-  thePath.SetLength(pthLength);
   
   thePath.SaveSeedStates(frontSeedState, backSeedState);
 
@@ -142,7 +137,7 @@ void trex::TTPCSeeding::PrepareClustersForSeeding( std::vector<trex::TTRExHVClus
   bool FirstClu = true;
   
   for (auto tmpClu = HVclu.begin(); tmpClu != HVclu.end(); tmpClu++) {
-    trex::TTPCHVCluster& Clu = *tmpClu;
+    trex::TTRExHVCluster& Clu = *tmpClu;
 
     Clu.SetOkForSeed(true);  // Make sure that we start with fresh sample.
 
@@ -174,18 +169,9 @@ void trex::TTPCSeeding::PrepareClustersForSeeding( std::vector<trex::TTRExHVClus
   // We removed the clusters starting at the 3rd change or orientation.
   // So record only the first 2 changes.
   if (fNbOrientChange > 2){
-      std::cout << " WARNING: The cluster orientation changed "<<fNbOrientChange<<" times !!! This is not good !" << std::endl; 
-      fNbOrientChange = 2;
+    fNbOrientChange = 2;
   }
   
-  std::cout << " ------- Hit selection prior to seeding."<<std::endl;
-  std::cout << " Original number of clusters: " << HVclu->size() << std::endl; 
-  std::cout << " Number of selected clusters:"<<std::endl;
-  std::cout << "    Vertical:   " << NSelVert << std::endl;
-  std::cout << "    Horizontal: " << NSelHori << std::endl;
-  std::cout << "    Total:      " << (NSelVert + NSelHori) << std::endl;
-  
-
 }
 
 
@@ -211,7 +197,7 @@ void trex::TTPCSeeding::PrepareSeeding( std::vector<trex::TTRExHVCluster>& HVclu
   int NbSelectedClu = 0;
 
   for (auto hit = HVclu.begin(); hit != HVclu.end(); hit++) {
-    trex::TTPCHVCluster& clu = *hit;
+    trex::TTRExHVCluster& clu = *hit;
     if( !clu.isOkForSeed() ) continue; 
 
     xclu = clu.X();
@@ -236,7 +222,7 @@ void trex::TTPCSeeding::PrepareSeeding( std::vector<trex::TTRExHVCluster>& HVclu
   NbSelectedClu = 0;
 
   for (auto hitit = HVclu.begin(); hitit != HVclu.end(); hitit++){
-    ND::TTPCHVCluster& clu = *hitit;
+    trex::TTRExHVCluster& clu = *hitit;
     if( !clu.isOkForSeed() ) continue;
 
     // Search for Zmid.
@@ -253,7 +239,7 @@ void trex::TTPCSeeding::PrepareSeeding( std::vector<trex::TTRExHVCluster>& HVclu
 //*****************************************************************************
 // R2 (3 point seeding method)
 //*****************************************************************************
-double ND::TTPCSeeding::R2( std::vector<trex::TTRExHVCluster>& HVclu, std::vector<double>& Helix){
+double trex::TTPCSeeding::R2( std::vector<trex::TTRExHVCluster>& HVclu, std::vector<double>& Helix){
   
   double dy12 = fYfirst-fYmid; 
   double ay12 = fYfirst+fYmid; 
@@ -281,7 +267,7 @@ double ND::TTPCSeeding::R2( std::vector<trex::TTRExHVCluster>& HVclu, std::vecto
 
   double r2 = (fYfirst-yl0)*(fYfirst-yl0)+(fZfirst-zl0)*(fZfirst-zl0); 
 
-  if( isnan(yl0) || isnan(zl0) ) r2 = 1.e-20;
+  if( std::isnan(yl0) || std::isnan(zl0) ) r2 = 1.e-20;
 
   double R2rho = 1./TMath::Sqrt(r2);
   
@@ -311,7 +297,7 @@ double ND::TTPCSeeding::R2( std::vector<trex::TTRExHVCluster>& HVclu, std::vecto
   
   TTPCUtils::Curvature_to_MomentumAndCharge(Pos,Dir,R2rho,p,q);
 
-  outVect[6] = q/p;
+  Helix[6] = q/p;
 
   return FinalizeSeed(HVclu, R2rho, Helix);
 }
@@ -447,7 +433,7 @@ double trex::TTPCSeeding::Riemann( std::vector<TTRExHVCluster>& HVclu, std::vect
   
   TTPCUtils::Curvature_to_MomentumAndCharge(Pos,Dir,Rierho,p,q);
 
-  outVect[6] = q/p;
+  Helix[6] = q/p;
 
   return FinalizeSeed(HVclu, Rierho, Helix);
 
@@ -504,10 +490,9 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu
   // First start by setting the sense
   //MDH TODO: Figure out which vector element is the sense
   //Remove this code for now - is sense needed outside of recpack?
-  /*
-  std::vector<trex::TTRExHVCluster>::const_iterator Hit = HVclu.begin();
+  std::vector<trex::TTRExHVCluster>::iterator Hit = HVclu.begin();
   trex::TTRExHVCluster& Cluster = (*Hit);
-  if (Cluster.IsVertical()){
+  /*  if (Cluster.IsVertical()){
     if ( Vect[5] > 0)
       finalState.set_hv(RP::sense, HyperVector(1,0));
     else
@@ -525,7 +510,7 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu
   std::vector<double> prevState;
   double ClusterX1;
   double ClusterX2 = 0.0;
-  ClusterX1 = Cluster.CalibX();
+  ClusterX1 = Cluster.X();
   bool doDeltaPhi = true;
   double suspicious =0.0;
   for ( ; Hit != HVclu.end(); Hit++) {
@@ -535,13 +520,13 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu
     double length = 0.0;
 
     //MDH TODO: replace this
-    if (!TTPCRecPackUtils::PropagateToHVCluster(Cluster, propagState, length))
-      continue;
+    //    if (!TTPCRecPackUtils::PropagateToHVCluster(Cluster, propagState, length))
+    //  continue;
 
     ypred = propagState[1];
     zpred = propagState[2];
-    yclu = Cluster->Y();
-    zclu = Cluster->Z();
+    yclu = Cluster.Y();
+    zclu = Cluster.Z();
     double delta = TMath::Sqrt((yclu-ypred)*(yclu-ypred)+(zclu-zpred)*(zclu-zpred));
     if ( fabs(delta) > 100.){
       propagState = prevState;
@@ -551,7 +536,7 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu
       
     if (doDeltaPhi)
       deltaPhi += length * rho;
-    ClusterX2 = Cluster->CalibX();
+    ClusterX2 = Cluster.X();
     if (deltaPhi > TMath::Pi() && doDeltaPhi){
       doDeltaPhi = false;
     }
@@ -580,7 +565,7 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu
 
 
 //*****************************************************************************
-bool ND::TTPCSeeding::IsResultValid( std::vector<trex::TTRExHVCluster>& HVclu, std::vector<double>& Result){
+bool trex::TTPCSeeding::IsResultValid( std::vector<trex::TTRExHVCluster>& HVclu, std::vector<double>& Result){
 //*****************************************************************************
 
   // For bad fits give tracks in X only and we can't fit those anyway.
