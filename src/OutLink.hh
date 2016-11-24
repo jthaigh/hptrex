@@ -31,6 +31,11 @@
 
 #pragma link C++ class trex::TTRExPath+;
 #pragma link C++ class std::vector<trex::TTRExPath>+;
+#pragma link C++ class std::vector<trex::TTRExPath*>+;
+
+#pragma link C++ class trex::TTRExJunction+;
+#pragma link C++ class std::vector<trex::TTRExJunction>+;
+#pragma link C++ class std::vector<trex::TTRExJunction*>+;
 
                    
 //#pragma link C++ class std::vector<std::vector<trex::TTPCHitPad*> >+;
