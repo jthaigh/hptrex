@@ -225,8 +225,6 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
       
       vector<trex::TTRExHVCluster> clusters = iPath->GetClusters();
       for(auto iCluster=clusters.begin(); iCluster!=clusters.end(); ++iCluster){
-
-	//path.push_back(*iCluster);
 	
 	vector<trex::TTPCHitPad*> cHits = (*iCluster).GetClusterHits();
 
@@ -245,42 +243,6 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
       pathsContainer.push_back(*iPath);                                            
       clusters.clear();     
     }
-
-
-
-    /*
-
-    for(auto iPath=subPaths.begin(); iPath!=subPaths.end(); ++iPath) {
-      std::vector<trex::TTPCHitPad> path;
- 
-      //std::cout << "Managed to get into outer loop" << std::endl;
-
-      for(auto iHit=iPath->begin(); iHit!=iPath->end(); ++iHit) {
-
-	//std::cout << "Managed to get into inner loop" << std::endl;
-
-	//std::cout << "Path Hit Pad is accessible " << (*iHit)->Y() << std::endl;
-	TLorentzVector pos((*iHit)->GetPosition(), (*iHit)->GetTime());
-	trex::TTPCHitPad pad((*iHit)->GetCharge(), pos);
-	path.push_back(pad);
-	
-
-	//fill usedTREx
-        if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
-          usedTREx.push_back(*iHit);
-        }
-        else{
-	  std::cout<<"Hit shared between objects!"<<std::endl;
-          //exit(1);                                                
-	}
-      }
-      
-      pathsContainer.push_back(path);
-      path.clear();
-    }
-
-    */
-
 
     //PD NEED TO PUT BETTER FILLING METHOD HERE
     //Fill the junctsContainer with junctions fromt he subevent
@@ -313,7 +275,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     std::cout << "Exited the junction list loop" << std::endl;
 
     //MDH TODO: Have to build proper junction objects before instantiating a pattern
-    //    patternContainer.push_back(trex::TTRExPattern(pathsContainer,junctsContainer, subJPMap));
+    patternContainer.push_back(trex::TTRExPattern(pathsContainer,junctsContainer, subJPMap));
     std::cout << "Have created pattern" << std::endl;
     pathsContainer.clear();
     junctsContainer.clear();
