@@ -208,6 +208,11 @@ int trex::TTPCHelixPropagator::GetSense(){
 
 //*****************************************************************************
 bool trex::TTPCHelixPropagator::PropagateToHVCluster(trex::TTRExHVCluster& Cluster){
+
+  //MDH TODO: Looks like this may only work if propagation requires a change of <90deg
+  //in phi. Will this work for matching paths between patterns?
+  //Otherwise I think I understand what this is doing.
+
   // Start by checking the orientation of the cluster.
   // If the mode doesn't match the quadrant, change the PhiQuad accordingly.
   // If we are already in the right quadrant, don't do anything.

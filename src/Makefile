@@ -7,7 +7,7 @@ COPTS	= -Wall -g -fPIC -DLINUX -O2 -std=c++11 -Wl,-rpath,$(shell brew --prefix)/
 
 #LIBS	= -L/usr/local/lib -lftd2xx
 
-OBJ = TTPCAStar.o TTPCHitPad.o TTPCLayout.o TTPCOrderedVolGroup.o TTPCPathVolume.o TTPCTRExPatAlgorithm.o TTPCTRExPatSubAlgorithm.o TTPCUnitVolume.o TTPCVolGroup.o TTPCVolGroupMan.o GasTPCDataLib.o TSimLoader.o GasTPCDataLibDict.o TTRExPattern.o TTRExPatternDict.o TTRExHVCluster.o TTPCHelixPropagator.o TTPCLikelihoodMatch.o TTPCLikelihoodMerge.o TTPCLikFitPath.o TTPCQLikelihood.o TTPCSeeding.o TTPCTracking.o TTPCUtils.o TTrueHit.o TTRExPath.o TTRExJunction.o
+OBJ = TTPCAStar.o TTPCHitPad.o TTPCLayout.o TTPCOrderedVolGroup.o TTPCPathVolume.o TTPCTRExPatAlgorithm.o TTPCTRExPatSubAlgorithm.o TTPCUnitVolume.o TTPCVolGroup.o TTPCVolGroupMan.o GasTPCDataLib.o TSimLoader.o GasTPCDataLibDict.o TTRExPattern.o TTRExPatternDict.o TTRExHVCluster.o TTPCHelixPropagator.o TTPCLikelihoodMatch.o TTPCLikelihoodMerge.o TTPCLikFitPath.o TTPCQLikelihood.o TTPCSeeding.o TTPCTracking.o TTPCUtils.o TTrueHit.o TTRExPath.o #TTRExJunction.o
 
 ROOT_LIBS   = $(shell root-config --libs --glibs)
 ROOT_CFLAGS = $(shell root-config --cflags)
@@ -33,11 +33,11 @@ GasTPCDataLibDict.cxx:
 TTRExPatternDict.cxx: 
 	rootcint TTRExPatternDict.cxx  TTRExPattern.hxx OutLink.hh
 
-TTRExHVCluster.cxx:
-	rootcint TTRExHVCluster.cxx TTRExHVCluster.hxx OutLink.hh
+TTRExHVClusterDict.cxx:
+	rootcint TTRExHVClusterDict.cxx TTRExHVCluster.hxx OutLink.hh
 
-TTRExPath.cxx:
-	rootcint TTRExPath.cxx TTRExPath.hxx OutLink.hh
+TTRExPathDict.cxx:
+	rootcint TTRExPathDict.cxx TTRExPath.hxx OutLink.hh
 
 clean:
 	rm *.o *.so *.exe
