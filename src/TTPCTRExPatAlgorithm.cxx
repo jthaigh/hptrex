@@ -144,6 +144,16 @@ void trex::TTPCTRExPatAlgorithm::GetPatterns(trex::TReconObjectContainer *foundP
 
 //Top-level code - reimplement
 
+void trex::TTPCTRExPatAlgorithm::ConnectJunctionAndPath(trex::TTRExJunction& junction, trex::TTRExPath& path){
+
+  trex::TTRExPath *pat = path;
+  trex::TTRExJunction *junct = junction;
+
+  junction.AddConnectedPath(pat);
+  path.AddConnectedJunction(junct);
+}
+
+
 void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad> * unused, std::vector<TTrueHit*>& trueHits, trex::TTRExEvent* event){
   
   static unsigned int iEvt=0;
@@ -272,6 +282,14 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
       hits.clear();
     }
     
+    // Connect Paths and Junctions together according to the Map
+    for(int i=0; i<junctsContainer.size(); ++i){
+      for(int j=0; j<subJPMap[i].size(); ++j){
+	int pathIndex = subJPMap[i][j];
+	ConnectJunctionAndPath(junctsContainer[i], pathsContainer[pathIndex]);
+      }
+    }
+
     std::cout << "Exited the junction list loop" << std::endl;
 
     //MDH TODO: Have to build proper junction objects before instantiating a pattern
