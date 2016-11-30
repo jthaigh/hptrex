@@ -146,8 +146,8 @@ void trex::TTPCTRExPatAlgorithm::GetPatterns(trex::TReconObjectContainer *foundP
 
 void trex::TTPCTRExPatAlgorithm::ConnectJunctionAndPath(trex::TTRExJunction& junction, trex::TTRExPath& path){
 
-  trex::TTRExPath *pat = path;
-  trex::TTRExJunction *junct = junction;
+  trex::TTRExPath *pat = &path;
+  trex::TTRExJunction *junct = &junction;
 
   junction.AddConnectedPath(pat);
   path.AddConnectedJunction(junct);

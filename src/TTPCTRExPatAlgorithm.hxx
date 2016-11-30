@@ -44,6 +44,10 @@ namespace trex{
       /// Clean up values from previous processing
       void CleanUp();
 
+
+
+    void ConnectJunctionAndPath(trex::TTRExJunction& junction, trex::TTRExPath& path);
+
     //Output - reimplement
       /// Run the pattern recognition and return TTPCPattern containing result
       //void GetPatterns(TReconObjectContainer *foundPatterns);
