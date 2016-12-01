@@ -57,63 +57,61 @@ trex::TTPCLikFitPath::TTPCLikFitPath(bool CalculatorMode)  {
     fMinuit = NULL;
   }
 
+  //Copied in from ND280 parameters file
+  fMinuitMaxIterations = 1000;
+  fMinuitPrintLevel = -1;
 
-  //MDH TODO: Fill in these values
-  /*  fMinuitMaxIterations = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.MinuitMaxIt");
-  fMinuitPrintLevel = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.MinuitPrintLevel");
+  //MDH TODO: what should these be?
+  fPadWidth = 1.;
+  fPadHeight = 1.;
 
-  fPadWidth = ND::TGeomInfo::Get().TPC().GetPadXPitch();
-  fPadHeight = ND::TGeomInfo::Get().TPC().GetPadYPitch();
+  fFitSigma    = 1;
+  fFitSigmaSeparately = 1;
+  fFitRho      = 1;
+  fFitX        = 1;
+  fFitDir      = 1;
 
-  fFitSigma    = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.FitSigma");
-  fFitSigmaSeparately = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.FitSigmaSeparately");
-  fFitRho      = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.FitRho");
-  fFitX        = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.FitX");
-  fFitDir      = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.FitDir");
+  fMinimumCharge = 0;
+  fMaximumCharge = 1.e6;
+  fMaxDeltaDrift = 1000;
+  fMinPredIntCharge = 1.e-19;
+  fNoise = 0.01;
 
-  fMinimumCharge = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.MinimumCharge");
-  fMaximumCharge = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.MaximumCharge");
-  fMaxDeltaDrift = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.MaxDeltaDrift");
-  fMinPredIntCharge = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.MinPredIntCharge");
-  fNoise = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.Noise");
+  fErrorWeightY = 5.5;
+  fErrorWeightX = 62.;
 
-  fErrorWeightY = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.WeightY");
-  fErrorWeightX = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.WeightX");
-
-  double transDiff = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.TransDiff");
+  //Note parameters file gives units cm/sqrt(cm)
+  double transDiff = 0.025;
 
   // Multiple scattering parameters
-  fEnabledMScCorrection = (bool) ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.EnabledMScCorrection");
-  fErrorWeightYMSc = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.WeightYMSc");
-  fErrorWeightXMSc = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.WeightXMSc");
-  fRadLenHe = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.RadLenHe");
-  fMuonMass = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.MuonMass");
-  fMomChangeForNewMSc = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.MomChangeForNewMSc");
+  fEnabledMScCorrection = true;
+  fErrorWeightYMSc = 13000;
+  fErrorWeightXMSc = 110000;
+  fRadLenHe = 3891051;
+  fMuonMass = 105;
+  fMomChangeForNewMSc = 1;
 
   fInitialSigma = transDiff*transDiff;
 
-  fFirstXYZfit = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.TryXYZFitFirst");
-  fForceXZfit = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.ForceXZFit");
-  fFinalXYZfit = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.FinalXYZFit");
+  fFirstXYZfit = 0;
+  fForceXZfit = 0;
+  fFinalXYZfit = 1;
 
+  fMaxPadsPerCluster = 5;
+  fMinNumberOfClusters  = 2;
+  fMinNumberOfClustersForCalc  = 2;
+
+  fApplyResidualDependentPenalty = 1;
+  fPenaltyThreshold = 50;
+  fPenaltyCoefficient = 0.005;
+
+  TTPCLayout layout;
   
-  fExcludeClusterWithManyPeaks = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.ExcludeClusterWithManyPeaks");
-  fExcludeSaturatedClusters = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.ExcludeSaturatedClusters");
-  fExcludeClusterAtEdge = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.ExcludeClusterAtMMEdge");
-  fExcludeSuspiciousPadTiming = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.ExcludeSuspicious");
-  fMaxPadsPerCluster = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.MaxPadsPerCluster");
-  fMinNumberOfClusters  = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.MinNbClusters");
-  fMinNumberOfClustersForCalc  = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.MinNbClustersForCalculator");
-
-  fApplyResidualDependentPenalty = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.ApplyResidualDependentPenalty");
-  fPenaltyThreshold = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.PenaltyThreshold");
-  fPenaltyCoefficient = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.Reco.LikFit.PenaltyCoefficient");
-
   // Short cut for the multiple scattering correction
-  fBFieldAt0 = ND::TFieldManager::GetFieldValue(TVector3(0.0,0.0,0.0)).Mag() / unit::tesla;
+  fBFieldAt0 = layout.GetBField();
 
-  fStoreLklhdWithMScCorr = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.Reco.LikFit.StoreLklhdWithMScCorr");
-  */
+  fStoreLklhdWithMScCorr = 0;
+
   Reset();
 }
 
@@ -311,8 +309,6 @@ void trex::TTPCLikFitPath::SelectClusters(std::vector<trex::TTRExHVCluster>& inp
   for (auto tmpClu = inputClu.begin(); tmpClu != inputClu.end(); tmpClu++) {
     trex::TTRExHVCluster& Clu = *tmpClu;
 
-
-    //MDH TODO: See if any of this is still necessary for hptpc
     Clu.SetOkForFit(true);  // Make sure that we start with fresh sample.
 
     if( Clu.GetCharge()*fabs(XDirection) < fMinimumCharge ||  Clu.GetCharge()*fabs(XDirection) > fMaximumCharge ) {
@@ -349,25 +345,6 @@ void trex::TTPCLikFitPath::PrepareClustersForFitting(std::vector<trex::TTRExHVCl
 
   // ==> PASS 1: with all the settings as default
   SelectClusters(inputClu, XDirection, ClusterSelResults);
-
-
-  // ==> PASS 2: with saturation rejection off
-  if( (double)ClusterSelResults.NSaturation > 0.3*(inputClu.size()) && fExcludeSaturatedClusters) {
-
-    fExcludeSaturatedClusters = 0;
-    SelectClusters(inputClu, XDirection, ClusterSelResults);
-    // We are going to save the clusters at the end of this pass so clear here.
-    fExcludeSaturatedClusters = 1;
-  }
-
-  // ==> PASS 3: with rejection of clusters at edge of MM off
-  if( (ClusterSelResults.NSelVert+ClusterSelResults.NSelHori) < fMinNumberOfClusters && fExcludeClusterAtEdge){
-    fExcludeClusterAtEdge = 0;
-    SelectClusters(inputClu, XDirection, ClusterSelResults);
-    fReliableFit = false;
-    // We are going to save the clusters at the end of this pass so clear here.
-    fExcludeClusterAtEdge = 1;
-  }
   
   for (auto tmpClu = inputClu.begin(); tmpClu != inputClu.end(); tmpClu++) {
     trex::TTRExHVCluster& Cluster = *tmpClu;
@@ -958,10 +935,6 @@ void trex::TTPCLikFitPath::StoreFittedState(){
   */
   trex::helixPropagator().PosTanCurvToPosDirQoP(minuitVect, resultVect);
 
-  //MDH TODO: What state info do we actually need here? If any, we need to create some new objects...
-  //  RPState.set_hv(HyperVector(resultVect, resultCova));
-  //RPState.set_hv(RP::sense, HyperVector(1,0));  
-  //RPState.set_name(RP::representation,RP::pos_dir_curv);
   fFitResults.FitState = resultVect;
   fFitResults.IsFitReliable = fReliableFit;
 

@@ -93,8 +93,7 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
 
   void SaveFitResults(trex::TTRExPath& Path);
 
-  //MDH TODO: Fix return class
-    TTPCPathFitResults GetFitResults();
+  TTPCPathFitResults GetFitResults();
 
   private: 
     /// Print the event information.
@@ -277,7 +276,6 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
     std::vector<trex::TTRExHVCluster*> fFitClu;
 
     /// Value of the total likelihood
-  //MDH TODO: Fix class here  
   TTPCLogLikelihood fLogLklhd;
     /// Value of the X likelihood
     double fLogLklhdX;
@@ -287,7 +285,6 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
     /// Variable filled with Minuit's trial and used in the likelihood calculation.
     double fSigma;
 
-  //MDH TODO: Fix class here
     TTPCPathFitResults fFitResults;
 
     /// Records for each fit, the stages passed (XYZ fit only ? XZ and YZ fit separated ?)

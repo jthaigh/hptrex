@@ -43,6 +43,8 @@ public:
   */
   bool PropagateToHVCluster(trex::TTRExHVCluster& Cluster);
 
+  bool FullPropagateToHVCluster(trex::TTRExHVCluster& Cluster);
+
   /// Return the results in position, direction (3D vector) and curvature.
   void GetHelixPosDirCurv(std::vector<double>& Result);
 

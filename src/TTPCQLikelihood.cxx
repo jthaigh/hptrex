@@ -8,8 +8,7 @@
 
 trex::TTPCQLikelihood::TTPCQLikelihood(){
 
-  //MDH TODO: Figure out what this should be
-  fMinimumPhi_Eta = 0.00001;
+  fMinimumPhi_Eta = 1.e-20;
 }
 
 trex::TTPCQLikelihood::~TTPCQLikelihood(){ ;}

@@ -321,6 +321,125 @@ bool trex::TTPCHelixPropagator::PropagateToHVCluster(trex::TTRExHVCluster& Clust
   return true;
 }
 
+//*****************************************************************************
+bool trex::TTPCHelixPropagator::FullPropagateToHVCluster(trex::TTRExHVCluster& Cluster){
+
+  //MDH TODO: Looks like this may only work if propagation requires a change of <90deg
+  //in phi. Will this work for matching paths between patterns?
+  //Otherwise I think I understand what this is doing.
+
+  // Start by checking the orientation of the cluster.
+  // If the mode doesn't match the quadrant, change the PhiQuad accordingly.
+  // If we are already in the right quadrant, don't do anything.
+  unsigned int newQuadrant = fQuadrant;
+
+  if ( Cluster.IsVertical() && !(fQuadrant == 2 || fQuadrant == 4)){
+    // Which quadrant ?
+    if (Cluster.Y() > fYc)
+      newQuadrant = 2;
+    else
+      newQuadrant = 4;
+    // Change the PhiQuad to match the new axis of reference.
+    if ( newQuadrant == 2 && fQuadrant == 1 ){
+      fPhiQuad = fPhiQuad - TMath::Pi()/2.0;
+    } else if ( newQuadrant == 2 && fQuadrant == 3 ){
+      fPhiQuad = fPhiQuad + TMath::Pi()/2.0;
+    } else if ( newQuadrant == 4 && fQuadrant == 1 ){
+      fPhiQuad = fPhiQuad + TMath::Pi()/2.0;
+    } else if ( newQuadrant == 4 && fQuadrant == 3 ){
+      fPhiQuad = fPhiQuad - TMath::Pi()/2.0;
+    }
+  } else if ( (!Cluster.IsVertical()) && !(fQuadrant == 1 || fQuadrant == 3)){
+    // Which quadrant ?
+    if (Cluster.Z() > fZc)
+      newQuadrant = 1;
+    else
+      newQuadrant = 3;
+    // Change the PhiQuad to match the new axis of reference.
+    if ( newQuadrant == 1 && fQuadrant == 2 ){
+      fPhiQuad = fPhiQuad + TMath::Pi()/2.0;
+    } else if ( newQuadrant == 1 && fQuadrant == 4 ){
+      fPhiQuad = fPhiQuad - TMath::Pi()/2.0;
+    } else if ( newQuadrant == 3 && fQuadrant == 4 ){
+      fPhiQuad = fPhiQuad + TMath::Pi()/2.0;
+    } else if ( newQuadrant == 3 && fQuadrant == 2 ){
+      fPhiQuad = fPhiQuad - TMath::Pi()/2.0;
+    }
+  }
+  fQuadrant = newQuadrant;
+
+
+  //Calc new phi angle
+  //-If cluster is outside of helix then put it at an extremum
+  //-First use position of cluster in best-defined direction to get angle with 2-fold degeneracy
+  //-Then use the other cluster coordinate (y or z) to resolve degeneracy
+  double newPhi=0.;
+
+  if(cluster.IsVertical()){
+    if(Cluster.Z()>fZc+1./fRho0){
+      newPhi=0.;
+    }
+    else if(Cluster.Z()<fZc-1./fRho0){
+      newPhi=-TMath::Pi();
+    }
+    else{
+      newPhi=TMath::ACos(fRho0*(Cluster.Z()-fZc));
+      if(Cluster.Y()<fYc){
+	newPhi=2.*TMath::Pi()-newPhi;
+      }
+    }
+  }
+  else{    
+    if(Cluster.Y()>fYc+1./fRho0){
+      newPhi=0.5*TMath::Pi();
+    }
+    else if(Cluster.Y()<fYc-1./fRho0){
+      newPhi=1.5*TMath::Pi();
+    }
+    else{
+      newPhi=TMath::ASin(fRho0*(Cluster.Y()-fYc));
+      if(Cluster.Z()<fZc){
+	newPhi=TMath::Pi()-newPhi;
+      }
+    }
+  }
+  double deltaPhi=newPhi-fPhiZY;
+  if(deltaPhi<0.){
+    deltaPhi+=2*TMath::Pi();
+  }
+
+  //Now figure out how many rotations we should go through to reach the cluster...
+  
+  int nRot=floor( (fX0-Cluster.X())*(TMath::Sqrt(fDirY0*fDirY0 + fDirZ0*fDirZ0)/fDirX0*fRho0/2./TMath::Pi())-deltaPhi/2./TMath::Pi()+0.5);
+
+  deltaX=-fDirX0/TMath::Sqrt(fDirY0*fDirY0 + fDirZ0*fDirZ0)*(deltaPhi+2.*TMath::Pi()*nRot)/fRho0;
+
+  fPhiZY = newPhi;
+  if ( fRho0 > 0.0 ){ // Negatively charged track
+    fDirY0 = -TMath::Cos(fPhiZY);
+    fDirZ0 = TMath::Sin(fPhiZY);
+  } else {              // Positively charged track
+    fDirY0 = TMath::Cos(fPhiZY);
+    fDirZ0 = -TMath::Sin(fPhiZY);
+  }
+
+  double Renorm = TMath::Sqrt((1 - fDirX0*fDirX0)/(fDirY0*fDirY0 + fDirZ0*fDirZ0));
+  fDirY0 *= Renorm;
+  fDirZ0 *= Renorm;
+
+  fZ0=fZc+cos(fPhiZY);
+  fY0=fYc+sin(fPhiZY);
+  fX0=fX0+deltaX;
+
+  //MDH TODO: Put some couts here to make sure that the phiZY and centers are not changed
+  //on reinitializing, and that the final X,Y,Z are close to the cluster.
+
+  FindQuadrant();
+
+  CalculatePhisAndCenters();
+
+  return true;
+}
 
 
 //*****************************************************************************
@@ -446,3 +565,4 @@ void trex::TTPCHelixPropagator::PosTanCurvToPosDirQoP(std::vector<double> &ptcVe
   pdqpCova = (Jacobian * ptcCova) * Jacobian.T(); 
   */
 }
+

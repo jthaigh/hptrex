@@ -5,25 +5,13 @@
 trex::TTPCLikelihoodMerge::TTPCLikelihoodMerge(){
 //*****************************************************************************
 
-  //MDH TODO: Implement this properly - which of these do we need?
-
   fRunThroughGoingMerging = true;
   fRunBrokenTracksMerging = true;
   fThruGoDeltaLogLklhdCut = true;
   fBrkTrkDeltaLogLklhdCut = true;
 
-
-  /*
-  fRunThroughGoingMerging = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.RunThroughGoingTracksMerging");
-  fRunBrokenTracksMerging = ND::TOARuntimeParameters::Get().GetParameterI("trexRecon.RunBrokenTracksMerging");
-  if (!fRunThroughGoingMerging)
-    std::cout<<"TRexRecon WARNING: Merging of through going tracks disabled"<<std::endl;
-  if (!fRunBrokenTracksMerging)
-    std::cout<<"TRexRecon WARNING: Merging of broken tracks disabled"<<std::endl;
-
-  fThruGoDeltaLogLklhdCut = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.LikelihoodMerge.ThroughGoing.DeltaLogLklhdCut");
-  fBrkTrkDeltaLogLklhdCut = ND::TOARuntimeParameters::Get().GetParameterD("trexRecon.LikelihoodMerge.BrokenTracks.DeltaLogLklhdCut");
-  */
+  fThruGoDeltaLogLklhdCut = 200;
+  fBrkTrkDeltaLogLklhdCut = 500;
 }
 
 
@@ -114,8 +102,7 @@ double trex::TTPCLikelihoodMerge::PathToPatternMatch( trex::TTRExPath& PathA, tr
       // Check that the closest ends of the paths are actually free for matching
       unsigned int UseEndA, UseEndB;
 
-      //MDH TODO: Implement this
-      //TTPCUtils::FindClosestEnds(PathA, PathB, UseEndA, UseEndB);
+      TTPCUtils::FindClosestEnds(PathA, PathB, UseEndA, UseEndB);
       if ( (!PathA.IsEndFreeToMatch(UseEndA)) || (!PathB->IsEndFreeToMatch(UseEndB)) )
         continue;
 
