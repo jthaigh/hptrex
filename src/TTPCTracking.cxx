@@ -51,8 +51,7 @@ void trex::TTPCTracking::LikelihoodFit(trex::TTRExPath& thePath){
     return; 
   }
 
-  //MDH TODO: Check if this needs to store clusters by reference.
-  std::vector<TTRExHVCluster> selectedClu;
+  std::vector<TTRExHVCluster*> selectedClu;
   std::vector<double> seedState = thePath.GetFrontSeedState();
   fLklhdFitPath->Reset();
   fLklhdFitPath->PrepareClustersForFitting(allClusters, selectedClu, seedState[3]);
@@ -65,11 +64,5 @@ void trex::TTPCTracking::LikelihoodFit(trex::TTRExPath& thePath){
   }
 
   fLklhdFitPath->Reset();
-
-  // We can use the truth as fake seed to check the impact of the seeding
-
-  //MDH TODO: Is this still needed?
-  // Important to prevent memory leaks
-  if( selectedClu.size() > 0 ) selectedClu.erase(selectedClu.begin(),selectedClu.end());
 
 }

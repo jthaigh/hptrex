@@ -5,7 +5,7 @@
 #include "TTPCQLikelihood.hxx"
 #include "TTRExPath.hxx"
 #include "TTPCUtils.hxx"
-
+#include "TTPCLayout.hxx"
 
 #define NPARAM 9
 
@@ -40,7 +40,7 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
       at a time to do the Space Point Resolution study.
       Also store in the cluster using isOkForFit if we used it for fitting or not.
     */
-  void PrepareClustersForFitting(std::vector<trex::TTRExHVCluster>& inputClu, std::vector<trex::TTRExHVCluster>& outputClu, double XDirection);
+  void PrepareClustersForFitting(std::vector<trex::TTRExHVCluster>& inputClu, std::vector<trex::TTRExHVCluster*>& outputClu, double XDirection);
 
     /// Setup various parameters of the log likelihood minimization
     /// Use this to setup the minimization parameters, there initial values, the step sizes, etc...

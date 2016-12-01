@@ -209,10 +209,6 @@ int trex::TTPCHelixPropagator::GetSense(){
 //*****************************************************************************
 bool trex::TTPCHelixPropagator::PropagateToHVCluster(trex::TTRExHVCluster& Cluster){
 
-  //MDH TODO: Looks like this may only work if propagation requires a change of <90deg
-  //in phi. Will this work for matching paths between patterns?
-  //Otherwise I think I understand what this is doing.
-
   // Start by checking the orientation of the cluster.
   // If the mode doesn't match the quadrant, change the PhiQuad accordingly.
   // If we are already in the right quadrant, don't do anything.
@@ -322,11 +318,7 @@ bool trex::TTPCHelixPropagator::PropagateToHVCluster(trex::TTRExHVCluster& Clust
 }
 
 //*****************************************************************************
-bool trex::TTPCHelixPropagator::FullPropagateToHVCluster(trex::TTRExHVCluster& Cluster){
-
-  //MDH TODO: Looks like this may only work if propagation requires a change of <90deg
-  //in phi. Will this work for matching paths between patterns?
-  //Otherwise I think I understand what this is doing.
+bool trex::TTPCHelixPropagator::FullPropagateToHVCluster(trex::TTRExHVCluster& Cluster,double* length){
 
   // Start by checking the orientation of the cluster.
   // If the mode doesn't match the quadrant, change the PhiQuad accordingly.
@@ -375,7 +367,7 @@ bool trex::TTPCHelixPropagator::FullPropagateToHVCluster(trex::TTRExHVCluster& C
   //-Then use the other cluster coordinate (y or z) to resolve degeneracy
   double newPhi=0.;
 
-  if(cluster.IsVertical()){
+  if(Cluster.IsVertical()){
     if(Cluster.Z()>fZc+1./fRho0){
       newPhi=0.;
     }
@@ -412,7 +404,7 @@ bool trex::TTPCHelixPropagator::FullPropagateToHVCluster(trex::TTRExHVCluster& C
   
   int nRot=floor( (fX0-Cluster.X())*(TMath::Sqrt(fDirY0*fDirY0 + fDirZ0*fDirZ0)/fDirX0*fRho0/2./TMath::Pi())-deltaPhi/2./TMath::Pi()+0.5);
 
-  deltaX=-fDirX0/TMath::Sqrt(fDirY0*fDirY0 + fDirZ0*fDirZ0)*(deltaPhi+2.*TMath::Pi()*nRot)/fRho0;
+  double deltaX=-fDirX0/TMath::Sqrt(fDirY0*fDirY0 + fDirZ0*fDirZ0)*(deltaPhi+2.*TMath::Pi()*nRot)/fRho0;
 
   fPhiZY = newPhi;
   if ( fRho0 > 0.0 ){ // Negatively charged track
@@ -437,6 +429,10 @@ bool trex::TTPCHelixPropagator::FullPropagateToHVCluster(trex::TTRExHVCluster& C
   FindQuadrant();
 
   CalculatePhisAndCenters();
+
+  if(length){
+    *length=deltaX*TMath::Sqrt(1.+(fDirY0*fDirY0 + fDirZ0*fDirZ0)/fDirX0/fDirX0);
+  }
 
   return true;
 }

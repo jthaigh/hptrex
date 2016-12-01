@@ -23,6 +23,21 @@ namespace TTPCUtils {
     return false;
   }
 
+  bool MomentumAndCharge_to_Curvature(const TVector3& pos, const TVector3& dir, double p, double q, double& curv){
+
+  trex::TTPCLayout layout;
+  
+  double B = layout.GetBField();
+
+  // project into the bending plane
+  double factor = -(0.3*B)/sqrt(1.-dir.X()*dir.X());
+  if (p > 0){
+    curv = q*factor/fabs(p);
+    return true;
+  }
+   
+  return false;
+}
 
   //*****************************************************************************
   bool SafeSort( double first, double second ){

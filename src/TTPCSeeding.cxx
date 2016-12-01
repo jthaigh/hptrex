@@ -487,24 +487,9 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu
   double ypred,zpred;
   double yclu,zclu;
 
-  // First start by setting the sense
-  //MDH TODO: Figure out which vector element is the sense
-  //Remove this code for now - is sense needed outside of recpack?
   std::vector<trex::TTRExHVCluster>::iterator Hit = HVclu.begin();
   trex::TTRExHVCluster& Cluster = (*Hit);
-  /*  if (Cluster.IsVertical()){
-    if ( Vect[5] > 0)
-      finalState.set_hv(RP::sense, HyperVector(1,0));
-    else
-      finalState.set_hv(RP::sense, HyperVector(-1,0));
-  } else {
-    if ( Vect[4] > 0)
-      finalState.set_hv(RP::sense, HyperVector(1,0));
-    else
-      finalState.set_hv(RP::sense, HyperVector(-1,0));
-      }*/
   
-
   std::vector<double> propagState = finalState;
   double deltaPhi = 0.0;
   std::vector<double> prevState;
@@ -513,15 +498,23 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster>& HVclu
   ClusterX1 = Cluster.X();
   bool doDeltaPhi = true;
   double suspicious =0.0;
+
+  trex::TTPCHelixPropagator& hp=trex::helixPropagator();
+  bool firstcluvertical=HVclu.begin()->IsVertical();
+
   for ( ; Hit != HVclu.end(); Hit++) {
     trex::TTRExHVCluster& Cluster = (*Hit);
     if( !Cluster.isOkForSeed() ) continue;
     prevState = propagState;
     double length = 0.0;
+  
+    hp.InitHelixPosDirQoP(propagState,firstcluvertical);
 
-    //MDH TODO: replace this
-    //    if (!TTPCRecPackUtils::PropagateToHVCluster(Cluster, propagState, length))
-    //  continue;
+    if (!hp.FullPropagateToHVCluster(Cluster,&length)){
+      continue;
+    }
+
+    hp.GetHelixPosDirQoP(propagState);
 
     ypred = propagState[1];
     zpred = propagState[2];

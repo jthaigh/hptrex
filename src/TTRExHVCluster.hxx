@@ -40,6 +40,7 @@ namespace trex{
 
     void SetHits(std::vector<trex::TTPCHitPad*> cHits){
       fcHitPtrs = cHits;
+      CloseHits();
     }
 
     void SetIsVertical(bool HV){
@@ -92,10 +93,11 @@ namespace trex{
 
     bool isUsable(){return fIsUsable;}
 
-    //MDH TODO: Implement these
     double GetCharge(){return fCharge;}
     
-    double GetDeltaDrift(){return 0.;}
+    double GetDeltaDrift(){return fDeltaDrift;}
+
+    //MDH TODO: Implement these
 
     double GetDeltaY(){return 0.;}
 
@@ -132,18 +134,16 @@ namespace trex{
 
   private:
 
-    //MDH TODO: Implement this
-    //This will calculate mean cluster position
-    void CloseHits(){}
+    void CloseHits();
 
     std::vector<trex::TTPCHitPad*> fcHitPtrs;
     bool fIsVertical;
     TVector3 fPosition;
     double fCharge;
-    //std::vector<trex::TTPCHitPad> fcHits;
     bool fOkForSeed;
     bool fOkForFit;
     bool fIsUsable;
+    double fDeltaDrift;
 
   };
   

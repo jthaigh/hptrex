@@ -1,5 +1,6 @@
 #include "TTPCLikFitPath.hxx"
 
+#include "TTPCLayout.hxx"
 #include "TTRExHVCluster.hxx"
 #include "TTPCHitPad.hxx"
 #include "TTPCHelixPropagator.hxx"
@@ -57,13 +58,14 @@ trex::TTPCLikFitPath::TTPCLikFitPath(bool CalculatorMode)  {
     fMinuit = NULL;
   }
 
+  trex::TTPCLayout layout;
+
   //Copied in from ND280 parameters file
   fMinuitMaxIterations = 1000;
   fMinuitPrintLevel = -1;
 
-  //MDH TODO: what should these be?
-  fPadWidth = 1.;
-  fPadHeight = 1.;
+  fPadWidth = layout.GetPadPitchZ();
+  fPadHeight = layout.GetPadPitchY();
 
   fFitSigma    = 1;
   fFitSigmaSeparately = 1;
@@ -105,8 +107,6 @@ trex::TTPCLikFitPath::TTPCLikFitPath(bool CalculatorMode)  {
   fPenaltyThreshold = 50;
   fPenaltyCoefficient = 0.005;
 
-  TTPCLayout layout;
-  
   // Short cut for the multiple scattering correction
   fBFieldAt0 = layout.GetBField();
 
@@ -340,7 +340,7 @@ void trex::TTPCLikFitPath::SelectClusters(std::vector<trex::TTRExHVCluster>& inp
 
 
 // *********************************************************************************
-void trex::TTPCLikFitPath::PrepareClustersForFitting(std::vector<trex::TTRExHVCluster>& inputClu, std::vector<trex::TTRExHVCluster>& outputClu, double XDirection){
+void trex::TTPCLikFitPath::PrepareClustersForFitting(std::vector<trex::TTRExHVCluster>& inputClu, std::vector<trex::TTRExHVCluster*>& outputClu, double XDirection){
   ClusterSelection ClusterSelResults;
 
   // ==> PASS 1: with all the settings as default
@@ -349,7 +349,7 @@ void trex::TTPCLikFitPath::PrepareClustersForFitting(std::vector<trex::TTRExHVCl
   for (auto tmpClu = inputClu.begin(); tmpClu != inputClu.end(); tmpClu++) {
     trex::TTRExHVCluster& Cluster = *tmpClu;
     if( !Cluster.isOkForFit() ) { continue;}  // Check that the plane is actually enabled.
-    outputClu.push_back(Cluster);
+    outputClu.push_back(&Cluster);
     
   }
 

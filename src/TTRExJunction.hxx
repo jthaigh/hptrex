@@ -19,10 +19,6 @@ namespace trex{
       fHits = Hits;
     }
     
-    void SetConnectedPaths(std::vector<trex::TTRExPath*> &paths);
-  
-    void AddConnectedPath(trex::TTRExPath* path);
-    
     TTRExJunction(const TVector3 &Position){};
     
     virtual ~TTRExJunction(){};
@@ -40,9 +36,6 @@ namespace trex{
     unsigned int GetNPaths(){
       return fConnectedPaths.size();
     }
-    
-    /// Check if a path with this Id is connected to this junction
-    bool IsPathConnected(unsigned int WantedPathId);
         
     void Print(){
       for(unsigned int i=0; i<fHits.size(); ++i){
@@ -50,6 +43,13 @@ namespace trex{
       }   
     }
     
+    /// Check if a path with this Id is connected to this junction
+    bool IsPathConnected(unsigned int WantedPathId);
+    
+    void SetConnectedPaths(std::vector<trex::TTRExPath*> &paths);
+  
+    void AddConnectedPath(trex::TTRExPath* path);
+
     
   private:
     unsigned int fId;

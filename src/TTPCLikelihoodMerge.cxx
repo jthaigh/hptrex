@@ -102,7 +102,7 @@ double trex::TTPCLikelihoodMerge::PathToPatternMatch( trex::TTRExPath& PathA, tr
       // Check that the closest ends of the paths are actually free for matching
       unsigned int UseEndA, UseEndB;
 
-      TTPCUtils::FindClosestEnds(PathA, PathB, UseEndA, UseEndB);
+      TTPCUtils::FindClosestEnds(PathA, *PathB, UseEndA, UseEndB);
       if ( (!PathA.IsEndFreeToMatch(UseEndA)) || (!PathB->IsEndFreeToMatch(UseEndB)) )
         continue;
 
