@@ -21,9 +21,6 @@ void ReadTREx(const char * argv) {
   TH1D xJuncts("xPosition", "xPosition", 1200, -600, 600);
   TH1D yJuncts("yPosition", "yPosition", 1200, -600, 600);
   TH1D zJuncts("zPosition", "zPosition", 1200, 0, 1200);
-
-
-
   
   //int entries = ReconTree->GetEntries();
   
