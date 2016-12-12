@@ -84,7 +84,7 @@ namespace trex{
     std::vector<trex::TTPCHitPad*> GetHits();
 
       /// Get hits from algorithm's hit map corresponding to provided path
-    std::vector<trex::TTRExHVCluster> GetHits(trex::TTPCOrderedVolGroup& path);
+    std::vector<trex::TTRExHVCluster*> GetHits(trex::TTPCOrderedVolGroup& path);
 
       /// Get groups of connected cells for defining sub-events
     void GetRegions(std::vector< trex::TTPCVolGroup >& regions);

@@ -183,7 +183,7 @@ void trex::TTPCLikFitPath::SetupLogLklhdMinimizer(trex::TTRExPath& Path, bool Us
   fMinuit->SetPrintLevel(fMinuitPrintLevel);
 
   // Fit the Z origin of the track rather than Y for high angle tracks.
-  trex::TTRExHVCluster& firstClu = *(Path.GetClusters().begin());
+  trex::TTRExHVCluster& firstClu = **(Path.GetClusters().begin());
   if (firstClu.IsVertical())
     fFitYPosParam = true;
   else
@@ -292,7 +292,7 @@ void trex::TTPCLikFitPath::StateToInitValues( std::vector<double> inputState){
 }
 
 // *********************************************************************************
-void trex::TTPCLikFitPath::SelectClusters(std::vector<trex::TTRExHVCluster>& inputClu, double XDirection, ClusterSelection &CluSel){
+void trex::TTPCLikFitPath::SelectClusters(std::vector<trex::TTRExHVCluster*>& inputClu, double XDirection, ClusterSelection &CluSel){
 
   // Select clusters
   CluSel.NMaxPeaks = 0; 
@@ -307,7 +307,7 @@ void trex::TTPCLikFitPath::SelectClusters(std::vector<trex::TTRExHVCluster>& inp
   CluSel.NSaturation = 0; 
   
   for (auto tmpClu = inputClu.begin(); tmpClu != inputClu.end(); tmpClu++) {
-    trex::TTRExHVCluster& Clu = *tmpClu;
+    trex::TTRExHVCluster& Clu = **tmpClu;
 
     Clu.SetOkForFit(true);  // Make sure that we start with fresh sample.
 
@@ -340,16 +340,16 @@ void trex::TTPCLikFitPath::SelectClusters(std::vector<trex::TTRExHVCluster>& inp
 
 
 // *********************************************************************************
-void trex::TTPCLikFitPath::PrepareClustersForFitting(std::vector<trex::TTRExHVCluster>& inputClu, std::vector<trex::TTRExHVCluster*>& outputClu, double XDirection){
+void trex::TTPCLikFitPath::PrepareClustersForFitting(std::vector<trex::TTRExHVCluster*>& inputClu, std::vector<trex::TTRExHVCluster*>& outputClu, double XDirection){
   ClusterSelection ClusterSelResults;
 
   // ==> PASS 1: with all the settings as default
   SelectClusters(inputClu, XDirection, ClusterSelResults);
   
   for (auto tmpClu = inputClu.begin(); tmpClu != inputClu.end(); tmpClu++) {
-    trex::TTRExHVCluster& Cluster = *tmpClu;
-    if( !Cluster.isOkForFit() ) { continue;}  // Check that the plane is actually enabled.
-    outputClu.push_back(&Cluster);
+    trex::TTRExHVCluster* Cluster = *tmpClu;
+    if( !Cluster->isOkForFit() ) { continue;}  // Check that the plane is actually enabled.
+    outputClu.push_back(Cluster);
     
   }
 
@@ -372,17 +372,6 @@ void trex::TTPCLikFitPath::ResetMinuitParam(){
 
 // *********************************************************************************
 // Minimize the log likelihood for the given hits
-
-int trex::TTPCLikFitPath::LogLklhdMinimizer(std::vector<trex::TTRExHVCluster>& inputClusters){
-
-  std::vector<trex::TTRExHVCluster*> ptrVect;
-
-  for(auto iCl=inputClusters.begin();iCl!=inputClusters.end();++iCl){
-    ptrVect.push_back(&*iCl);
-  }
-
-  return LogLklhdMinimizer(ptrVect);
-}
 
 int trex::TTPCLikFitPath::LogLklhdMinimizer(std::vector<trex::TTRExHVCluster*>& inputClusters){
   GetReadyForMinimization(inputClusters);

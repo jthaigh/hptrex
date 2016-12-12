@@ -45,7 +45,7 @@ void trex::TTPCTracking::LikelihoodFit(trex::TTRExPath& thePath){
   thePath.SetHasLikelihoodFit(false);
   thePath.SetHasRunFit(true);
 
-  std::vector<TTRExHVCluster>& allClusters = thePath.GetClusters();
+  std::vector<TTRExHVCluster*>& allClusters = thePath.GetClusters();
 
   if( allClusters.size() == 0 ) {
     return; 

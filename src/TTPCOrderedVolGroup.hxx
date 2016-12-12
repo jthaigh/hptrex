@@ -146,7 +146,7 @@ class trex::TTPCOrderedVolGroup {
   //std::vector<trex::TTPCHitPad*> GetClusters();
 
   //PD: New Definition of GetClusters() to get clustered input for tracking
-  std::vector<trex::TTRExHVCluster> GetClusters();
+  std::vector<trex::TTRExHVCluster*> GetClusters();
 
     /// Set front hits to be a vertex (or not)
     void SetFrontIsVertex(bool isVertex=false){ fFrontIsVertex = isVertex; }
@@ -265,6 +265,8 @@ class trex::TTPCOrderedVolGroup {
     bool fIsXPath;
     /// Whether internal variables have been calculated (open when fHits changes)
     bool fClosed;
+
+  std::vector<trex::TTRExHVCluster> fClusters;
 
     /// Set up initial variables
     void SetUp();

@@ -238,12 +238,10 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used
     trex::TTPCOrderedVolGroup& track = *trackIt;
 
     // ignore if empty
-    std::vector<trex::TTRExHVCluster> clusters = track.GetClusters();
+    std::vector<trex::TTRExHVCluster*> clusters = track.GetClusters();
     if(!clusters.size()) continue;
 
-    trex::TTRExPath path(std::move(clusters));
-
-    fPaths.emplace_back(path);
+    fPaths.emplace_back(clusters);
 
     // and save if the path is in the x direction
     //    if(track->GetIsXPath()){
@@ -309,7 +307,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used
   std::cout<<"  "<<fPaths.size()<<" paths"<<std::endl;
   std::cout<<"  and  "<<fJunctions.size()<<" junctions"<<std::endl;
   for(int i=0;i<fPaths.size();++i){
-    std::vector<trex::TTRExHVCluster> clusters = fPaths[i].GetClusters();
+    std::vector<trex::TTRExHVCluster*> clusters = fPaths[i].GetClusters();
     std::cout<<"   Path "<<i<<" has "<<clusters.size()<<" clusters"<<std::endl;
     std::cout<<"  **********"<<std::endl;
   }
@@ -332,7 +330,7 @@ std::vector<trex::TTPCHitPad*> trex::TTPCTRExPatSubAlgorithm::GetHits(){
 }
 
 
-std::vector<trex::TTRExHVCluster> trex::TTPCTRExPatSubAlgorithm::GetHits(trex::TTPCOrderedVolGroup& path){
+std::vector<trex::TTRExHVCluster*> trex::TTPCTRExPatSubAlgorithm::GetHits(trex::TTPCOrderedVolGroup& path){
   return std::move(path.GetClusters());
 }
 

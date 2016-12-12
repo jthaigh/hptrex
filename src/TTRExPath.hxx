@@ -46,14 +46,13 @@ namespace trex{
     
     TTRExPath() : fClusters(0), fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false){};
     
-    TTRExPath(std::vector<trex::TTRExHVCluster> clusters) : fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false){
+    TTRExPath(std::vector<trex::TTRExHVCluster*> clusters) : fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false){
       fClusters = clusters;
-    }
-    
+    }    
     
     //MDH TODO: Do we want the path to own these clusters? I think they should somehow be owned by an event...
     //Need to think about this.
-    void SetClusters(std::vector<trex::TTRExHVCluster> clusters){
+    void SetClusters(std::vector<trex::TTRExHVCluster*> clusters){
       fClusters = clusters;
     }
         
@@ -66,14 +65,14 @@ namespace trex{
     void SetId(unsigned int id){fId=id;}
     
     
-    std::vector<trex::TTRExHVCluster>&  GetClusters(){
+    std::vector<trex::TTRExHVCluster*>&  GetClusters(){
       return fClusters;
     }
     
     
     void Print() {
       for(unsigned int i=0; i<fClusters.size(); ++i){
-	fClusters[i].Print();
+	fClusters[i]->Print();
       }
     }
     
@@ -141,7 +140,7 @@ namespace trex{
     
     unsigned int fId;
     
-    std::vector<trex::TTRExHVCluster>  fClusters;
+    std::vector<trex::TTRExHVCluster*>  fClusters;
     //INCLUDE MORE TRACKING AND FIT VARIABLES HERE
     
     trex::TTPCPathFitResults fFitState;

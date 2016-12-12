@@ -233,10 +233,10 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
     for(auto iPath=subPaths.begin(); iPath!=subPaths.end(); ++iPath) {
       
-      vector<trex::TTRExHVCluster> clusters = iPath->GetClusters();
+      std::vector<trex::TTRExHVCluster*> clusters = iPath->GetClusters();
       for(auto iCluster=clusters.begin(); iCluster!=clusters.end(); ++iCluster){
 	
-	vector<trex::TTPCHitPad*> cHits = (*iCluster).GetClusterHits();
+	vector<trex::TTPCHitPad*> cHits = (*iCluster)->GetClusterHits();
 
 	for(auto iHit=cHits.begin(); iHit!=cHits.end(); ++iHit){
 	  
@@ -251,7 +251,6 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
       //trex::TTREXPath path(std::move(clusters))
       pathsContainer.push_back(*iPath);                                            
-      clusters.clear();     
     }
 
     //PD NEED TO PUT BETTER FILLING METHOD HERE

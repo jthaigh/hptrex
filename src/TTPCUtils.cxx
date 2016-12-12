@@ -58,14 +58,14 @@ namespace TTPCUtils {
     trex::TTRExHVCluster* nextClu;
     auto Clu = Path2.GetClusters().begin();
     auto rClu = Path2.GetClusters().rbegin();
-    tmpClu = &*Clu;
-    tmprClu = &*rClu;
+    tmpClu = *Clu;
+    tmprClu = *rClu;
     if (&ChosenClu == tmpClu){
       Clu++;
-      nextClu = &*Clu;
+      nextClu = *Clu;
     } else if (&ChosenClu == tmprClu){
       rClu++;
-      nextClu = &*rClu;
+      nextClu = *rClu;
     } else {
       // PROBLEM. That will probably be a bigger problem outside of this function regardless of the sense.
       return 0;
@@ -87,10 +87,10 @@ namespace TTPCUtils {
   //*****************************************************************************
   void FindClosestEnds(trex::TTRExPath& PathA, trex::TTRExPath& PathB, unsigned int &EndA, unsigned int &EndB){
     // TODO: Add check on the presence of clusters and use exception if not there.
-    trex::TTRExHVCluster& FirstCluA = *(PathA.GetClusters().begin());
-    trex::TTRExHVCluster& LastCluA = *(PathA.GetClusters().rbegin());
-    trex::TTRExHVCluster& FirstCluB = *(PathB.GetClusters().begin());
-    trex::TTRExHVCluster& LastCluB = *(PathB.GetClusters().rbegin());
+    trex::TTRExHVCluster& FirstCluA = **(PathA.GetClusters().begin());
+    trex::TTRExHVCluster& LastCluA = **(PathA.GetClusters().rbegin());
+    trex::TTRExHVCluster& FirstCluB = **(PathB.GetClusters().begin());
+    trex::TTRExHVCluster& LastCluB = **(PathB.GetClusters().rbegin());
     std::vector<double> Sorter;
     double FtFt = (FirstCluA.GetPosition() - FirstCluB.GetPosition()).Mag();
     double FtLt = (FirstCluA.GetPosition() - LastCluB.GetPosition()).Mag();
@@ -116,6 +116,8 @@ namespace TTPCUtils {
 
   //*****************************************************************************
   trex::TTRExPath* MergePaths(trex::TTRExPath& PathA, trex::TTRExPath& PathB){
+
+    //MDH TODO: Warning - we are creating a path here.
     trex::TTRExPath* newPath = new trex::TTRExPath();
 
     // Create a new path putting in the clusters from the two matched paths.
@@ -123,9 +125,9 @@ namespace TTPCUtils {
     unsigned int UseEndA, UseEndB;
     FindClosestEnds(PathA, PathB, UseEndA, UseEndB);
 
-    std::vector<trex::TTRExHVCluster>& newClusters = newPath->GetClusters();
+    std::vector<trex::TTRExHVCluster*>& newClusters = newPath->GetClusters();
     if (UseEndA == 1){
-       std::vector<trex::TTRExHVCluster>& clusters = PathA.GetClusters();
+       std::vector<trex::TTRExHVCluster*>& clusters = PathA.GetClusters();
       newClusters = clusters;
       if (UseEndB == 0 ){
         for (auto hit = PathB.GetClusters().begin(); hit != PathB.GetClusters().end(); ++hit)
@@ -136,7 +138,7 @@ namespace TTPCUtils {
       }
     } else {
       if (UseEndB == 1 ){
-	std::vector<trex::TTRExHVCluster>& clusters = PathB.GetClusters();
+	std::vector<trex::TTRExHVCluster*>& clusters = PathB.GetClusters();
         newClusters = clusters;
         for (auto hit = PathA.GetClusters().begin(); hit != PathA.GetClusters().end(); ++hit)
           newClusters.push_back(*hit);
@@ -147,7 +149,7 @@ namespace TTPCUtils {
           newClusters.push_back(*hit);
       }
     }
-    newPath->SetClusters(newClusters);
+    //    newPath->SetClusters(newClusters);
 
     //MDH TODO: Manage IDs properly (do we use them for anything?)
     //newPath->SetId(ND::tpcCalibration().GetPathId());
