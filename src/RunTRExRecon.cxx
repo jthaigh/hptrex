@@ -1,5 +1,9 @@
 
 #include "TTPCTRExPatAlgorithm.hxx"
+#include "TTPCSeeding.hxx"
+#include "TTPCTracking.hxx"
+#include "TTPCLikelihoodMatch.hxx"
+#include "TTPCLikelihoodMerge.hxx"
 #include "TTPCHitPad.hxx"
 #include "TSimLoader.hxx"
 #include "TTrueHit.hxx"
@@ -32,8 +36,8 @@ int main(int argc, char** argv){
 
   str.erase(0,found+1);
   
-  std::cout << "This is what found says: " << found << std::endl;
-  std::cout << "This ist what str says: " << str << std::endl;
+  //  std::cout << "This is what found says: " << found << std::endl;
+  //std::cout << "This ist what str says: " << str << std::endl;
   
   const char * newName = str.c_str();
   
@@ -46,7 +50,7 @@ int main(int argc, char** argv){
   //string inputFile = argv[1];
   //TFile * fFile = new TFile(inputFile.c_str(), "UPDATE");
                                                                                                                         
-  std::cout << "This File has a Name: " << fFile->GetName() << std::endl;
+  //std::cout << "This File has a Name: " << fFile->GetName() << std::endl;
 
 
   TTree * fReconTree = new TTree("TPCRecon", "TPCRecon");
@@ -61,7 +65,7 @@ int main(int argc, char** argv){
   fReconTree->Branch("unusedHits", &unused, 64000, 1);
   fReconTree->Branch("event", &event, 64000, 1);
 
-  for(int i=0;i<2000;++i){//loader.GetNEvents();++i){
+  for(int i=0;i<loader.GetNEvents();++i){
     
     loader.LoadEvent(i);
     
@@ -73,16 +77,37 @@ int main(int argc, char** argv){
     event = new trex::TTRExEvent();
     unused = new std::vector<trex::TTPCHitPad>();
     
-    std::cout << "True hits contains: " << trueHits.size() << " entries. "<< std::endl;
+    //std::cout << "True hits contains: " << trueHits.size() << " entries. "<< std::endl;
 
     //loader.DrawDetector();
     
     trex::TTPCTRExPatAlgorithm trexAlg(&fOut);
-    std::cout<<"EVERYTHING LOADED! - NOW ATTEMPTING TO PROCESS"<<std::endl;
+    trex::TTPCSeeding seedingAlgo;
+    trex::TTPCTracking trackingAlgo;
+    trex::TTPCLikelihoodMatch matchAlgo;
+    trex::TTPCLikelihoodMerge mergeAlgo;
+
+    //    std::cout<<"EVERYTHING LOADED! - NOW ATTEMPTING TO PROCESS"<<std::endl;
     trexAlg.Process(hitPads,usedHits,unused,trueHits,event); 
+
+    if ( !event->GetPatterns().size())
+      {
+	continue;
+      }
+
+    for (auto pattern = event->GetPatterns().begin(); pattern != event->GetPatterns().end(); pattern++) {
+      seedingAlgo.Process(*pattern);
+      trackingAlgo.Process(*pattern);
+    }
+    trex::TTRExEvent* mergedEvt=new trex::TTRExEvent;
+    
+    matchAlgo.Process(event->GetPatterns());
+    mergeAlgo.Process(event->GetPatterns(),mergedEvt->GetPatterns());
+
+
           
     //}
-    
+    /*  
     std::cout << "SIZE OF UNUSED HITS VECTOR " << unused->size() << std::endl;
 
     
@@ -134,12 +159,15 @@ int main(int argc, char** argv){
       }      
       std::cout << "____________________________" << std::endl;
     }
-
+*/
     
 
 
     //DO TRACKING HERE using event object filled above
-    
+
+    for(auto i=event->GetPatterns().begin();i!=event->GetPatterns().end();++i){
+      i->Print();
+    }
 
 
 
@@ -149,6 +177,7 @@ int main(int argc, char** argv){
     
     delete event;
     delete unused;        
+    delete mergedEvt;
     
   }
   //fReconTree->Print();

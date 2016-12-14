@@ -51,21 +51,11 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
   fVoxels.clear();
   fTrueHits.clear();
 
-  std::cout << " PEVIOUS EVENT HAS BEEN CLEANED UP " << std::endl;
-
-  
   fVoxelsTree->GetEntry(i);
   
-  std::cout << "JUST TRIED GETTING ENTRY FROM fTree" << std::endl;
-
   //HitCollection simHits = fSimulDataBranch->getTpcFidHits();
     
-
-  std::cout << "BRANCHES HAVE BEEN SET UP. ENTERING LOOP NOW." << std::endl;
-  
   Int_t nVoxels = fVoxelBranch->GetNbins(); 
-  
-  std::cout << "FOUND " << nVoxels << " Voxels " << std::endl; 
   
   for(int linInd=0; linInd<nVoxels; ++linInd){
     
@@ -111,8 +101,6 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
   fTree->GetEntry(i);
 
   HitCollection simHits = fSimulDataBranch->getTpcFidHits();
-  
-  std::cout << "Size of HitCollection: " << simHits.size() << std::endl;
   
   for(HitCollection::iterator hitIter=simHits.begin();hitIter!=simHits.end();++hitIter){
 

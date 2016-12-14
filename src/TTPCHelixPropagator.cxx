@@ -139,7 +139,6 @@ void trex::TTPCHelixPropagator::ReloadHelixPosTanCurv(std::vector<double> Param)
 
 //*****************************************************************************
 bool trex::TTPCHelixPropagator::InitHelixPosDirQoP(std::vector<double> Param, bool FirstCluIsVertical){
-
   fFirstCluIsVert = FirstCluIsVertical;
   if ( fFirstCluIsVert ){
     // For a vertical cluster, the Z direction cannot be zero !

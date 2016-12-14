@@ -17,18 +17,13 @@ namespace trex{
     
     TTRExEvent() : fPatterns(0) {};
     
-    TTRExEvent(std::vector<trex::TTRExPattern> patterns){
+    TTRExEvent(std::vector<trex::TTRExPattern>& patterns){
       fPatterns=patterns;
     };
 
-    std::vector<trex::TTRExPattern> GetPatterns(){
+    std::vector<trex::TTRExPattern>& GetPatterns(){
       return fPatterns;
     }
-
-    void SetPatterns(std::vector<trex::TTRExPattern> patterns){
-      fPatterns = patterns;
-    }
-
 
     void Clear() {
       
@@ -40,8 +35,7 @@ namespace trex{
   private:
     
     std::vector<trex::TTRExPattern> fPatterns;
-    
-    
+        
   };
     
     

@@ -226,11 +226,11 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
 //  return fPattern;
 //}
 
-void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used){
+void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex::THitSelection* used){
 
-  fPaths.clear();
-  fJunctions.clear();
-  fJunctionsToPathsMap.clear();
+  std::vector< std::vector<unsigned int> > junctionsToPathsMap;
+  std::vector<trex::TTRExPath>& paths=output.GetPaths();
+  std::vector<trex::TTRExJunction>& juncts=output.GetJunctions();
 
   std::vector< trex::TTPCVolGroup* > junctionGroups;
 
@@ -241,7 +241,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used
     std::vector<trex::TTRExHVCluster*> clusters = track.GetClusters();
     if(!clusters.size()) continue;
 
-    fPaths.emplace_back(clusters);
+    paths.emplace_back(clusters);
 
     // and save if the path is in the x direction
     //    if(track->GetIsXPath()){
@@ -258,22 +258,22 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used
       trex::TTPCVolGroup* junctionGroup = *junctionGroupIt;
       bool found = false;
 
-      int iMax = fJunctions.size();
+      int iMax = juncts.size();
       for(int i=0; i<iMax; i++){
 
         // if the junction has the same id as the temporary, add this path to it
         if(junctionGroup->GetID() == junctionGroups[i]->GetID()){
           // if already found, check this path isn't already added and add this path
           bool pathInJunction = false;
-          for(auto constituentIt = fJunctionsToPathsMap[i].begin(); 
-	      constituentIt != fJunctionsToPathsMap[i].end();
+          for(auto constituentIt = junctionsToPathsMap[i].begin(); 
+	      constituentIt != junctionsToPathsMap[i].end();
 	      ++constituentIt){
-            if(fPaths.size()-1 == *constituentIt){
+            if(paths.size()-1 == *constituentIt){
               pathInJunction = true;
               break;
             };
           };
-          if(!pathInJunction) fJunctionsToPathsMap[i].push_back(fPaths.size()-1);
+          if(!pathInJunction) junctionsToPathsMap[i].push_back(paths.size()-1);
 
           found = true;
         };
@@ -293,29 +293,38 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(){//trex::THitSelection* used
 	*/
 
 
-	fJunctions.emplace_back(junctionGroup->GetHits());
-        fJunctionsToPathsMap.emplace_back();
-	fJunctionsToPathsMap.back().push_back(fPaths.size()-1);
+	juncts.emplace_back(junctionGroup->GetHits());
+        junctionsToPathsMap.emplace_back();
+	junctionsToPathsMap.back().push_back(paths.size()-1);
 	junctionGroups.push_back(junctionGroup);
 
       };
     };
   };
 
+  // Connect Paths and Junctions together according to the Map
+  for(int i=0; i<juncts.size(); ++i){
+    for(int j=0; j<junctionsToPathsMap[i].size(); ++j){
+      int pathIndex = junctionsToPathsMap[i][j];
+      ConnectJunctionAndPath(juncts[i], paths[pathIndex]);
+    }
+  }
+
+
   std::cout<<"Built a pattern..."<<std::endl;
   std::cout<<"  from "<<fHitMap.size()<<" available hits"<<std::endl;
-  std::cout<<"  "<<fPaths.size()<<" paths"<<std::endl;
-  std::cout<<"  and  "<<fJunctions.size()<<" junctions"<<std::endl;
-  for(int i=0;i<fPaths.size();++i){
-    std::vector<trex::TTRExHVCluster*> clusters = fPaths[i].GetClusters();
+  std::cout<<"  "<<paths.size()<<" paths"<<std::endl;
+  std::cout<<"  and  "<<juncts.size()<<" junctions"<<std::endl;
+  for(int i=0;i<paths.size();++i){
+    std::vector<trex::TTRExHVCluster*> clusters = paths[i].GetClusters();
     std::cout<<"   Path "<<i<<" has "<<clusters.size()<<" clusters"<<std::endl;
     std::cout<<"  **********"<<std::endl;
   }
-  for(int i=0;i<fJunctions.size();++i){
-    std::cout<<"   Junction "<<i<<" has "<<fJunctions[i].GetHits().size()<<" hits"<<std::endl;
+  for(int i=0;i<juncts.size();++i){
+    std::cout<<"   Junction "<<i<<" has "<<juncts[i].GetHits().size()<<" hits"<<std::endl;
     std::cout<<"   and is linked to paths:";
-    for(int j=0;j<fJunctionsToPathsMap[i].size();++j){
-      std::cout<<(j==0?" ":", ")<<fJunctionsToPathsMap[i][j]<<std::endl;
+    for(int j=0;j<junctionsToPathsMap[i].size();++j){
+      std::cout<<(j==0?" ":", ")<<junctionsToPathsMap[i][j]<<std::endl;
     }
     std::cout<<"  **********"<<std::endl;
   }
@@ -400,4 +409,14 @@ void trex::TTPCTRExPatSubAlgorithm::GetTrackExtendedHits(std::vector<trex::TTPCV
     extHits.push_back(track.GetExtendedHits());
   }
   
+}
+
+
+void trex::TTPCTRExPatSubAlgorithm::ConnectJunctionAndPath(trex::TTRExJunction& junction, trex::TTRExPath& path){
+
+  trex::TTRExPath *pat = &path;
+  trex::TTRExJunction *junct = &junction;
+
+  junction.AddConnectedPath(pat);
+  path.AddConnectedJunction(junct);
 }

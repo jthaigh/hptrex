@@ -144,19 +144,12 @@ void trex::TTPCTRExPatAlgorithm::GetPatterns(trex::TReconObjectContainer *foundP
 
 //Top-level code - reimplement
 
-void trex::TTPCTRExPatAlgorithm::ConnectJunctionAndPath(trex::TTRExJunction& junction, trex::TTRExPath& path){
-
-  trex::TTRExPath *pat = &path;
-  trex::TTRExJunction *junct = &junction;
-
-  junction.AddConnectedPath(pat);
-  path.AddConnectedJunction(junct);
-}
-
 
 void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad> * unused, std::vector<TTrueHit*>& trueHits, trex::TTRExEvent* event){
   
   static unsigned int iEvt=0;
+
+  std::vector<trex::TTRExPattern>& patterns=event->GetPatterns();
 
   std::cout<<"Number of hit pads: "<<hits.size()<<std::endl;
   // master layout for all sub-events
@@ -189,7 +182,8 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
     trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
     alg.ProduceContainers();
-    alg.ProducePattern();
+    patterns.emplace_back();
+    alg.ProducePattern(patterns.back());
   };
 
 
@@ -207,26 +201,13 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   // set up container for hitpad level unused  
   std::vector<trex::TTPCHitPad*> usedTREx;
   
-  //set up container for all the patterns in the event
-  std::vector<trex::TTRExPattern> patternContainer;
-  
-  for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
-    trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
-
-    //
-
-    std::vector<trex::TTRExPath>& subPaths= alg.GetPaths();
-    std::vector<trex::TTRExJunction>& subJuncts=alg.GetJunctions();
-    std::vector< std::vector<unsigned int> >& subJPMap=alg.GetJunctionsToPathsMap();
+  for(auto patIt = patterns.begin(); patIt != patterns.end(); ++patIt){
+    trex::TTRExPattern& pat = *patIt;
+    std::vector<trex::TTRExPath>& subPaths= pat.GetPaths();
+    std::vector<trex::TTRExJunction>& subJuncts=pat.GetJunctions();
 
     std::cout << "MARKER 1 SubPaths Size: " << subPaths.size() << std::endl;
     std::cout << "MARKER 1 SubJuncts Size: " << subJuncts.size() << std::endl;
-
-
-    // containers for paths and junctions to create a pattern from 
-    std::vector<trex::TTRExPath> pathsContainer;
-    std::vector<trex::TTRExJunction > junctsContainer;
-
 
     //PD NEED TO PUT BETTER FILLING METHOD HERE
     //extract the path hits from the sub algorithm and build HVCluster objects to fill the paths with
@@ -248,9 +229,6 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 	  }	  
 	}	
       }
-
-      //trex::TTREXPath path(std::move(clusters))
-      pathsContainer.push_back(*iPath);                                            
     }
 
     //PD NEED TO PUT BETTER FILLING METHOD HERE
@@ -277,37 +255,11 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 	}
       }
       std::cout << "Exited the junction loop" << std::endl;
-      junctsContainer.push_back(*iJunct);
-      hits.clear();
     }
     
-    // Connect Paths and Junctions together according to the Map
-    for(int i=0; i<junctsContainer.size(); ++i){
-      for(int j=0; j<subJPMap[i].size(); ++j){
-	int pathIndex = subJPMap[i][j];
-	ConnectJunctionAndPath(junctsContainer[i], pathsContainer[pathIndex]);
-      }
-    }
-
-    std::cout << "Exited the junction list loop" << std::endl;
-
-    //MDH TODO: Have to build proper junction objects before instantiating a pattern
-    patternContainer.push_back(trex::TTRExPattern(pathsContainer,junctsContainer, subJPMap));
-    std::cout << "Have created pattern" << std::endl;
-    pathsContainer.clear();
-    junctsContainer.clear();
-		    
-  }
-
   std::cout << "Exited pattern loop" << std::endl; 
   
-  if(patternContainer.size()){
-  event->SetPatterns(patternContainer);
-  std::cout << "Have created Event" << std::endl;
-  patternContainer.clear();
   }
-
-
 
   if(hits.size()){ 
     
