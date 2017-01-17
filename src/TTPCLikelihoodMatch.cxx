@@ -27,10 +27,6 @@ void trex::TTPCLikelihoodMatch::Process( std::vector<trex::TTRExPattern>& allPat
     trex::TTRExPattern& Pattern=*patit;
     if ( Pattern.GetPaths().size() != 1)
       MatchAcrossJunctions(Pattern);
-
-    for (auto constit = Pattern.GetPaths().begin(); constit != Pattern.GetPaths().end(); constit++) {
-      constit->SetEndClustersToNodes();
-    }
   }
 
   MatchBrokenPaths(allPatterns);

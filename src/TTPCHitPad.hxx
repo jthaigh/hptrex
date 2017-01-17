@@ -20,6 +20,8 @@ public:
 
   TTPCHitPad() :fChargeFit(0),fTimeFit(0),fPosition(0,0,0) {};
 
+  ~TTPCHitPad(){}
+
   TTPCHitPad(double eDep, TLorentzVector pos4);
 
   double GetCharge(){return fChargeFit;}

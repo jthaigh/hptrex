@@ -162,7 +162,7 @@ namespace trex{
       void GetNearHits(trex::TTPCVolGroup& in, trex::TTPCVolGroup& cellsOut, trex::TTPCUnitVolume* vol, trex::TTPCConnection::Type type=trex::TTPCConnection::path, bool inclusive=false, bool singular=false, float distFilter=-1., trex::TTPCHitGroupings::Type typeFilter = trex::TTPCHitGroupings::all, bool square=false);
 
       /// Get list of tagged vertices from a list of paths
-    std::vector< trex::TTPCVolGroup > GetJunctionsFromPaths(std::vector< trex::TTPCOrderedVolGroup >& paths);
+    std::vector< trex::TTPCVolGroup* > GetJunctionsFromPaths(std::vector< trex::TTPCOrderedVolGroup >& paths);
       /// Get unused hits given an input of paths and junctions
     void GetUnusedHits(std::vector< trex::TTPCOrderedVolGroup >& paths, TTPCVolGroup& unusedHits);
 

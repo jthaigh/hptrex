@@ -7,19 +7,20 @@ trex::TTPCTRExPatSubAlgorithm::TTPCTRExPatSubAlgorithm(trex::TTPCLayout* layout)
   fHasValidPaths = false;
   fPrimary = false;
   fTPC = 0;
-
+  std::cout<<"1"<<std::endl;
   // set up objects for layout, hit group manager, feature finder and path finder
   fLayout = layout;
-
+  std::cout<<"2"<<std::endl;
   fVolGroupMan = new trex::TTPCVolGroupMan(fLayout);
+  std::cout<<"2a"<<std::endl;
   fAStar = new trex::TTPCAStar(fLayout);  
+  std::cout<<"3"<<std::endl;
   //  fPattern = new trex::TTPCPattern;
 }
 trex::TTPCTRExPatSubAlgorithm::~TTPCTRExPatSubAlgorithm(){
   // delete groups of hits and path finders
   if(fVolGroupMan) delete fVolGroupMan;
   if(fAStar) delete fAStar;
-
   //MDH
   //Nobody had better use the pattern after we destroy the subalgorithm...
   //This is an output object that needs to be thoroughly re-engineered anyway
@@ -53,6 +54,8 @@ void trex::TTPCTRExPatSubAlgorithm::SetUpHits(std::map<long, trex::TTPCUnitVolum
 }
 
 void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
+
+  std::cout<<"1"<<std::endl;
   // ignore if hits don't already exist
   if(!fHasHits) return;
 
@@ -125,9 +128,6 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   // define container for true paths before corner detection
   std::vector< trex::TTPCOrderedVolGroup > truePaths;
 
-  // define vertices for later use
-  std::vector< trex::TTPCVolGroup > vertices;
-
   // if there are at least three edge groups, look for vertices to connect to them
   if(edgeGroups.size() > 2){
 
@@ -136,18 +136,18 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
     // connect pairs of edge groups
     fAStar->ConnectGroupsOrdered(fVolGroupMan, edgeGroups, edgePaths, false, true);
     // look for vertices from edge group pairs
-    fVolGroupMan->GetFoci(edgePaths, vertices ,.1);
+    fVolGroupMan->GetFoci(edgePaths, fVertices ,.1);
     // make sure number of vertices is two less than number of track ends
-    fVolGroupMan->CleanUpVertices(edgeGroups, vertices);
+    fVolGroupMan->CleanUpVertices(edgeGroups, fVertices);
     // make sure vertices contain all the right hits
 
-    fVolGroupMan->BulkGroups(vertices);
+    fVolGroupMan->BulkGroups(fVertices);
 
-    if(vertices.size() > 0){
+    if(fVertices.size() > 0){
       // connect vertices to path ends to get paths
-      fAStar->ConnectVertexGroupsOrdered(fVolGroupMan, vertices, edgeGroups,truePaths);
+      fAStar->ConnectVertexGroupsOrdered(fVolGroupMan, fVertices, edgeGroups,truePaths);
       // clear redundant paths
-      fAStar->ClearVertexConnectionRedundancies(fVolGroupMan, truePaths, vertices);
+      fAStar->ClearVertexConnectionRedundancies(fVolGroupMan, truePaths, fVertices);
     }
     // otherwise, return empty handed
     else{
@@ -156,7 +156,8 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   }
   // if there are two, connect the two edge groups
   else if (edgeGroups.size() > 1){
-    fAStar->ConnectGroupsOrdered(fVolGroupMan, edgeGroups, truePaths);
+    //fAStar->ConnectGroupsOrdered(fVolGroupMan, edgeGroups, truePaths);
+    truePaths=std::move(edgePaths);
   }
   // otherwise, return empty handed
   else{
@@ -164,7 +165,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   };
 
   std::cout<<"After joining to vertices have "<<truePaths.size()<<" groups"<<std::endl;
-
+  
   // ensure that paths don't share hits with each other
   fVolGroupMan->BuildAllFriends(truePaths);
 
@@ -173,7 +174,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
     fVolGroupMan->ClusterGroupFriends(*truePathIt, false, true);
   };
   // clear empties
-
+  
   std::vector<trex::TTPCOrderedVolGroup> nonEmptyPaths;
   for(std::vector< trex::TTPCOrderedVolGroup >::iterator pathKeep = truePaths.begin();pathKeep != truePaths.end();++pathKeep){
   if(pathKeep->size()) nonEmptyPaths.emplace_back(std::move(*pathKeep));
@@ -258,7 +259,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
       trex::TTPCVolGroup* junctionGroup = *junctionGroupIt;
       bool found = false;
 
-      int iMax = juncts.size();
+      int iMax = junctionGroups.size();
       for(int i=0; i<iMax; i++){
 
         // if the junction has the same id as the temporary, add this path to it
@@ -293,7 +294,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
 	*/
 
 
-	juncts.emplace_back(junctionGroup->GetHits());
+	//	juncts.emplace_back(junctionGroup->GetHits());
         junctionsToPathsMap.emplace_back();
 	junctionsToPathsMap.back().push_back(paths.size()-1);
 	junctionGroups.push_back(junctionGroup);
@@ -304,6 +305,8 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
 
   // Connect Paths and Junctions together according to the Map
   for(int i=0; i<juncts.size(); ++i){
+    if(junctionsToPathsMap[i].size()<2) continue;
+       juncts.emplace_back(junctionGroups[i]->GetHits());
     for(int j=0; j<junctionsToPathsMap[i].size(); ++j){
       int pathIndex = junctionsToPathsMap[i][j];
       ConnectJunctionAndPath(juncts[i], paths[pathIndex]);
@@ -317,7 +320,12 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
   std::cout<<"  and  "<<juncts.size()<<" junctions"<<std::endl;
   for(int i=0;i<paths.size();++i){
     std::vector<trex::TTRExHVCluster*> clusters = paths[i].GetClusters();
+
+    int nHits=0;
+    for(auto iCl=clusters.begin();iCl!=clusters.end();++iCl){nHits+=(*iCl)->GetClusterHits().size();}
+
     std::cout<<"   Path "<<i<<" has "<<clusters.size()<<" clusters"<<std::endl;
+    std::cout<<"   and "<<nHits<<" hits"<<std::endl;
     std::cout<<"  **********"<<std::endl;
   }
   for(int i=0;i<juncts.size();++i){

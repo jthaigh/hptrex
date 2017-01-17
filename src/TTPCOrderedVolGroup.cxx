@@ -969,6 +969,7 @@ std::vector<trex::TTRExHVCluster*> trex::TTPCOrderedVolGroup::GetClusters(){
       HVcluster.SetIsVertical(IsVertical);
       HVcluster.SetPosition(pos);
       HVcluster.SetCharge(charge);
+
     }
   }
 
@@ -980,10 +981,6 @@ std::vector<trex::TTRExHVCluster*> trex::TTPCOrderedVolGroup::GetClusters(){
 
   return std::move(retClusters);
 }
-
-
-
-
 
 std::string trex::TTPCOrderedVolGroup::GetOrientations(){
   std::string orientationsList = "";

@@ -11,6 +11,7 @@ void trex::TTRExHVCluster::CloseHits(){
   for (auto h = fcHitPtrs.begin();
       h != fcHitPtrs.end();
       ++h) {
+
     trex::TTPCHitPad& hitPad = **h;
 
     double hitCharge = hitPad.GetCharge();

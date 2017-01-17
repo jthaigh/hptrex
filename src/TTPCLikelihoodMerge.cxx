@@ -362,7 +362,6 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
       // First use both paths in the fMTracker entry
       if (!NewPath){
 
-	//MDH TODO: Implement this
         NewPath = TTPCUtils::MergePaths(fMTracker[submt].GetRawPath(0), fMTracker[submt].GetRawPath(1));
 
         for ( unsigned int i = 0; i < 2; i++){
@@ -380,7 +379,6 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
         int tmpId = NewPath->GetId();
         trex::TTRExPath* prevPath = NewPath;
 
-	//MDH TODO: As above
         NewPath = TTPCUtils::MergePaths(NewPath, PathB);
 
         // Now this new path is at one end of NewPath

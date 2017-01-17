@@ -17,7 +17,7 @@ namespace trex{
 
   public:
 
-    TTRExHVCluster() : fcHitPtrs(0), fIsVertical(0), fPosition(), fCharge(0), fOkForSeed(1), fOkForFit(1), fIsUsable(1){};
+    TTRExHVCluster() : fIsVertical(0), fPosition(), fCharge(0), fOkForSeed(1), fOkForFit(1), fIsUsable(1){};
     
     TTRExHVCluster(bool HV, std::vector<trex::TTPCHitPad*> cHits){
       
@@ -78,7 +78,7 @@ namespace trex{
     }
 
     std::vector<trex::TTPCHitPad*> GetClusterHits(){
-      
+
       return fcHitPtrs;
     }
 
@@ -97,13 +97,10 @@ namespace trex{
     
     double GetDeltaDrift(){return fDeltaDrift;}
 
-    //MDH TODO: Implement these
-
-    double GetDeltaY(){return 0.;}
-
-    double GetDeltaZ(){return 0.;}
-
-    double GetDriftDistance(){return 0.;}
+    //MDH TODO: Need to know position of readout plance to do this properly
+    //If transverse diffusion is not in simulation, need to remove code which
+    //uses this.
+    double GetDriftDistance(){return fPosition.X();}
 
     //GetOutputCluster() {
       

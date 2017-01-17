@@ -719,13 +719,9 @@ double trex::TTPCLikFitPath::log_likelihoodHV(){
     zDirPred = helixState[5];
 
     double cluResidual;
-    // Apply the field correction like in tpcRecon on the predicted position
-    // out of consistency and such that we do it once per cluster.
     if (Cluster.IsVertical()){
-      yPred    += Cluster.GetDeltaY();
       cluResidual = fabs(Cluster.Y() - yPred);
     } else {
-      zPred    += Cluster.GetDeltaZ();
       cluResidual = fabs(Cluster.Z() - zPred);
     }
 

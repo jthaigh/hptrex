@@ -44,14 +44,12 @@ namespace trex{
     
   public:
     
-    TTRExPath() : fClusters(0), fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false){};
+    TTRExPath() : fClusters(0), fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false),fHasFitState(false){};
     
-    TTRExPath(std::vector<trex::TTRExHVCluster*> clusters) : fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false){
+    TTRExPath(std::vector<trex::TTRExHVCluster*> clusters) : fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false),fHasFitState(false){
       fClusters = clusters;
     }    
     
-    //MDH TODO: Do we want the path to own these clusters? I think they should somehow be owned by an event...
-    //Need to think about this.
     void SetClusters(std::vector<trex::TTRExHVCluster*> clusters){
       fClusters = clusters;
     }
@@ -76,12 +74,9 @@ namespace trex{
       }
     }
     
-    //MDH TODO: Implement these
-    void SetEndClustersToNodes(){}
+    void SaveFitState(TTPCPathFitResults& results){fHasFitState=true;fFitState=results;}
     
-    void SaveFitState(TTPCPathFitResults& results){fFitState=results;}
-    
-    bool HasFitState(){return false;}
+    bool HasFitState(){return fHasFitState;}
     
     int GetConnectedEnd(unsigned int junctionId){return 0;}
     
@@ -150,6 +145,8 @@ namespace trex{
     bool fHasRunFit;
     
     bool fHasLikelihoodFit;
+
+    bool fHasFitState;
     
     std::vector<double> fFrontSeedState;
     

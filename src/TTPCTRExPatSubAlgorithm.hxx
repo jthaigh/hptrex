@@ -127,6 +127,10 @@ namespace trex{
 
       /// Vector of all paths
       std::vector< trex::TTPCOrderedVolGroup > fTracks;
+
+    //Vector of vertices (never actually read from, just used for persistency
+    std::vector< trex::TTPCVolGroup > fVertices;
+
       /// Set maximum, minimum and range of cells in x, y and z
       void SetRanges(int rangeX,int minX,int maxX, int rangeY,int minY,int maxY, int rangeZ,int minZ,int maxZ);
 

@@ -30,7 +30,7 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
   
   std::cout << "LOADING EVENT # " << i << std::endl;
   
-  //Delete hits from last event
+  //Delete hits from last even
   for(std::vector<trex::TTPCHitPad*>::iterator hitPadIter=fHits.begin();hitPadIter!=fHits.end();++hitPadIter){
     delete *hitPadIter;
   }

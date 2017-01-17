@@ -537,6 +537,7 @@ trex::TTPCUnitVolume* trex::TTPCVolGroupMan::GetClosestPoint(trex::TTPCPathVolum
   return fPrimaryHits.GetHit(id);
 }
 void trex::TTPCVolGroupMan::CleanUpVertices(std::vector< trex::TTPCVolGroup >& edgeGroups, std::vector< trex::TTPCVolGroup >& vertices){
+  std::cout<<"Cleaning vertices!"<<std::endl;
   while(vertices.size() > edgeGroups.size()-2){
     // get rid of spurious vertices, one at a time
     std::vector< trex::TTPCVolGroup >::iterator markedIt;
@@ -557,7 +558,7 @@ void trex::TTPCVolGroupMan::CleanUpVertices(std::vector< trex::TTPCVolGroup >& e
         };
       };
     };
-
+    std::cout<<"Removing vertex!"<<std::endl;
     vertices.erase(markedIt);
   };
 }
@@ -797,7 +798,7 @@ void trex::TTPCVolGroupMan::GetFarHitsGroup(trex::TTPCOrderedVolGroup& path, tre
 }
 
 void trex::TTPCVolGroupMan::BreakPathsAboutKinks(std::vector< trex::TTPCOrderedVolGroup >& paths){
-  std::vector< trex::TTPCVolGroup > inVertices = GetJunctionsFromPaths(paths);
+
   std::vector< trex::TTPCOrderedVolGroup > outPaths;
   // loop over all input paths
   for(std::vector< trex::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
@@ -1300,7 +1301,7 @@ void trex::TTPCVolGroupMan::SeparateClusterHits(std::vector< trex::TTPCOrderedVo
 
 void trex::TTPCVolGroupMan::SeparateAnomHits(std::vector< trex::TTPCOrderedVolGroup >& paths){
   // ready to add hits to junctions
-  std::vector< trex::TTPCVolGroup > vertices = GetJunctionsFromPaths(paths);
+  std::vector< trex::TTPCVolGroup* > vertices = GetJunctionsFromPaths(paths);
 
   for(std::vector< trex::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
     trex::TTPCOrderedVolGroup& path = *pathIt;
@@ -1311,8 +1312,8 @@ void trex::TTPCVolGroupMan::SeparateAnomHits(std::vector< trex::TTPCOrderedVolGr
         std::vector<trex::TTPCUnitVolume*> hitsToAdd = SeparateAnomHitsPath(path, -1);
 
         // now add discarded hits to junction
-        for(std::vector< trex::TTPCVolGroup >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
-          trex::TTPCVolGroup& vertex = *vertexIt;
+        for(std::vector< trex::TTPCVolGroup* >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
+          trex::TTPCVolGroup& vertex = **vertexIt;
           if(junctionID == vertex.GetID()){
             vertex.AddHits(hitsToAdd);
           };
@@ -1323,8 +1324,8 @@ void trex::TTPCVolGroupMan::SeparateAnomHits(std::vector< trex::TTPCOrderedVolGr
         std::vector<trex::TTPCUnitVolume*> hitsToAdd = SeparateAnomHitsPath(path, 1);
 
         // now add discarded hits to junction
-        for(std::vector< trex::TTPCVolGroup >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
-          trex::TTPCVolGroup& vertex = *vertexIt;
+        for(std::vector< trex::TTPCVolGroup* >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
+          trex::TTPCVolGroup& vertex = **vertexIt;
           if(junctionID == vertex.GetID()){
             vertex.AddHits(hitsToAdd);
           };
@@ -1443,17 +1444,17 @@ void trex::TTPCVolGroupMan::SeparateJunctionHits(std::vector< trex::TTPCOrderedV
   fLayout->GetTypeDistances(mergeX, mergeY, mergeZ, trex::TTPCConnection::clusterMerge);
 
   // first build list of potential vertices (path groups tagged as vertices)
-  std::vector< trex::TTPCVolGroup > tempVertices = GetJunctionsFromPaths(paths);
+  std::vector< trex::TTPCVolGroup* > tempVertices = GetJunctionsFromPaths(paths);
 
   // select un-duplicated vertices and merge together any that overlap
-  std::vector< trex::TTPCVolGroup > vertices;
-  for(std::vector< trex::TTPCVolGroup >::iterator tempVertexIt = tempVertices.begin(); tempVertexIt != tempVertices.end(); tempVertexIt++){
-    trex::TTPCVolGroup& tempVertex = *tempVertexIt;
+  std::vector< trex::TTPCVolGroup* > vertices;
+  for(std::vector< trex::TTPCVolGroup* >::iterator tempVertexIt = tempVertices.begin(); tempVertexIt != tempVertices.end(); tempVertexIt++){
+    trex::TTPCVolGroup& tempVertex = **tempVertexIt;
 
     // check if each vertex overlaps with a current one and merge them if it does
     bool vertexFound = false;
-    for(std::vector< trex::TTPCVolGroup >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
-      trex::TTPCVolGroup& vertex = *vertexIt;
+    for(std::vector< trex::TTPCVolGroup* >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
+      trex::TTPCVolGroup& vertex = **vertexIt;
 
       // as a timesaver, ensure vertices might overlap before doing more intensive checks
       bool potentialOverlap = true;
@@ -1478,7 +1479,7 @@ void trex::TTPCVolGroupMan::SeparateJunctionHits(std::vector< trex::TTPCOrderedV
     };
     if(!vertexFound){
       // add vertex if it doesn't already exist
-      vertices.push_back(tempVertex);
+      vertices.push_back(&tempVertex);
     };
   };
 
@@ -1527,8 +1528,8 @@ void trex::TTPCVolGroupMan::SeparateJunctionHits(std::vector< trex::TTPCOrderedV
 
         bool verticalMerge = pathVol->GetIsVertical();
 
-        for(std::vector< trex::TTPCVolGroup >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
-          trex::TTPCVolGroup& vertex = *vertexIt;
+        for(std::vector< trex::TTPCVolGroup* >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
+          trex::TTPCVolGroup& vertex = **vertexIt;
 
           int xMin = vertex.GetXMin();
           int xMax = vertex.GetXMax();
@@ -1591,12 +1592,14 @@ void trex::TTPCVolGroupMan::SeparateJunctionHits(std::vector< trex::TTPCOrderedV
               if(verticalMerge){
                 if(!clusteredH.count(vol)){
                   vertex.AddHit(vol);
+		  std::cout<<"Vertical merge!"<<std::endl;
                 };
                 clusteredV.erase(vol);
               }
               else{
                 if(!clusteredV.count(vol)){
                   vertex.AddHit(vol);
+		  std::cout<<"Horizontal merge!"<<std::endl;
                 };
                 clusteredH.erase(vol);
               };
@@ -1612,7 +1615,9 @@ void trex::TTPCVolGroupMan::SeparateJunctionHits(std::vector< trex::TTPCOrderedV
           // if an overlap was found, clean up tagged entries in path volume and continue merge at next iteration
           if(clusterOverlaps){
             mightMerge = true;
+	    std::cout<<"Cluster goes from "<<pathVol->GetClusterSize();
             pathVol->ClearMarked();
+	    std::cout<<" to "<<pathVol->GetClusterSize()<<" hits"<<std::endl;
 
             if(!pathVol->GetHasCluster()){
               *pathVolIt = 0;
@@ -1747,8 +1752,8 @@ void trex::TTPCVolGroupMan::SeparateJunctionHits(std::vector< trex::TTPCOrderedV
   };
 
   // copy expanded vertices to their initial positions
-  for(std::vector< trex::TTPCVolGroup >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
-    trex::TTPCVolGroup& vertex = *vertexIt;
+  for(std::vector< trex::TTPCVolGroup* >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
+    trex::TTPCVolGroup& vertex = **vertexIt;
 
     // replace any overlapping path beginning or end with this
     for(std::vector< trex::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
@@ -1817,10 +1822,10 @@ bool trex::TTPCVolGroupMan::GetOverlaps(trex::TTPCVolGroup& group1, trex::TTPCVo
 
 void trex::TTPCVolGroupMan::ResetVertexStatuses(std::vector< trex::TTPCOrderedVolGroup >& paths, bool partial){
   // first build list of potential vertices (path groups tagged as vertices)
-  std::vector< trex::TTPCVolGroup > vertices = GetJunctionsFromPaths(paths);
+  std::vector< trex::TTPCVolGroup* > vertices = GetJunctionsFromPaths(paths);
 
-  for(std::vector< trex::TTPCVolGroup >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
-    trex::TTPCVolGroup& vertex = *vertexIt;
+  for(std::vector< trex::TTPCVolGroup* >::iterator vertexIt = vertices.begin(); vertexIt != vertices.end(); ++vertexIt){
+    trex::TTPCVolGroup& vertex = **vertexIt;
     int connectedPaths = 0;
 
     // count connected paths
@@ -2004,26 +2009,27 @@ void trex::TTPCVolGroupMan::GetNearHits(trex::TTPCVolGroup& in, trex::TTPCVolGro
   return;
 }
 
-std::vector< trex::TTPCVolGroup > trex::TTPCVolGroupMan::GetJunctionsFromPaths(std::vector< trex::TTPCOrderedVolGroup >& paths){
+std::vector< trex::TTPCVolGroup* > trex::TTPCVolGroupMan::GetJunctionsFromPaths(std::vector< trex::TTPCOrderedVolGroup >& paths){
   // count vertices in input
-  std::vector< trex::TTPCVolGroup > tempVertices;
+
+  std::vector< trex::TTPCVolGroup* > tempVertices;
   for(std::vector< trex::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){
     trex::TTPCOrderedVolGroup& path = *pathIt;
     // find front junction
-    if(path.GetFrontIsVertex()) tempVertices.push_back(path.GetFrontHits());
+    if(path.GetFrontIsVertex()) tempVertices.push_back(&(path.GetFrontHits()));
     // find back junction
-    if(path.GetBackIsVertex()) tempVertices.push_back(path.GetBackHits());
+    if(path.GetBackIsVertex()) tempVertices.push_back(&(path.GetBackHits()));
   };
 
   // add unique vertices to output
-  std::vector< trex::TTPCVolGroup > vertices;
-  for(std::vector< trex::TTPCVolGroup >::iterator vertex1It = tempVertices.begin(); vertex1It != tempVertices.end(); ++vertex1It){
-    trex::TTPCVolGroup& vertex1 = *vertex1It;
+  std::vector< trex::TTPCVolGroup* > vertices;
+  for(std::vector< trex::TTPCVolGroup* >::iterator vertex1It = tempVertices.begin(); vertex1It != tempVertices.end(); ++vertex1It){
+    trex::TTPCVolGroup* vertex1 = *vertex1It;
     bool found = false;
 
-    for(std::vector< trex::TTPCVolGroup >::iterator vertex2It = vertices.begin(); vertex2It != vertices.end(); ++vertex2It){
-      trex::TTPCVolGroup& vertex2 = *vertex2It;
-      if(vertex1.GetID() == vertex2.GetID()){
+    for(std::vector< trex::TTPCVolGroup* >::iterator vertex2It = vertices.begin(); vertex2It != vertices.end(); ++vertex2It){
+      trex::TTPCVolGroup* vertex2 = *vertex2It;
+      if(vertex1->GetID() == vertex2->GetID()){
         found = true;
         break;
       };
@@ -2037,7 +2043,7 @@ std::vector< trex::TTPCVolGroup > trex::TTPCVolGroupMan::GetJunctionsFromPaths(s
 
 void trex::TTPCVolGroupMan::GetUnusedHits(std::vector< trex::TTPCOrderedVolGroup >& paths, TTPCVolGroup& unusedHits){
   
-  std::vector< trex::TTPCVolGroup > junctions = GetJunctionsFromPaths(paths);
+  std::vector< trex::TTPCVolGroup* > junctions = GetJunctionsFromPaths(paths);
 
   // start full
 
@@ -2056,21 +2062,24 @@ void trex::TTPCVolGroupMan::GetUnusedHits(std::vector< trex::TTPCOrderedVolGroup
     }
   }
   // remove junction hits
-  for(std::vector< trex::TTPCVolGroup >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
-    trex::TTPCVolGroup& junction = *junctionIt;
+  for(std::vector< trex::TTPCVolGroup* >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
+    trex::TTPCVolGroup& junction = **junctionIt;
     for(std::map<long, trex::TTPCUnitVolume*>::iterator volEl = junction.begin(); volEl != junction.end(); ++volEl){
       unusedHits.RemoveHit(volEl->first);
     }
   }
 }
 
+
+//MDH TODO: This is building new junctions in a stack container then passing out their pointers!!! :-S
 void trex::TTPCVolGroupMan::AssociateUnusedWithJunctions(trex::TTPCVolGroup& unused, std::vector< trex::TTPCOrderedVolGroup >& paths){
-  std::vector< trex::TTPCVolGroup > junctions = GetJunctionsFromPaths(paths);
+
+  std::vector< trex::TTPCVolGroup* > junctions = GetJunctionsFromPaths(paths);
   if(!junctions.size()) return;
 
   // add all junction hits to unused
-  for(std::vector< trex::TTPCVolGroup >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
-    trex::TTPCVolGroup& junction = *junctionIt;
+  for(std::vector< trex::TTPCVolGroup* >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
+    trex::TTPCVolGroup& junction = **junctionIt;
     if(!junction.size()) continue;
 
     unused.AddHits(junction);
@@ -2080,8 +2089,8 @@ void trex::TTPCVolGroupMan::AssociateUnusedWithJunctions(trex::TTPCVolGroup& unu
   std::vector< trex::TTPCVolGroup > newJunctions;
 
   // try and associate each junction with new hits
-  for(std::vector< trex::TTPCVolGroup >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
-    trex::TTPCVolGroup& junction = *junctionIt;
+  for(std::vector< trex::TTPCVolGroup* >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
+    trex::TTPCVolGroup& junction = **junctionIt;
 
     // break out of loop if unused becomes empty, otherwise try to add hits starting from anywhere in junction
     if(unused.size() < 1) break;
