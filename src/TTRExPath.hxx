@@ -39,6 +39,21 @@ namespace trex{
     unsigned int fitSteps;
   };
   
+  /// Structure to store the likelihood when matching paths.                                                                                  
+  struct PathMatchInfo {
+  public:
+    int PathId;
+    TTPCLogLikelihood MatchLikelihood;
+  };
+
+  /// Structure to store the likelihood when matching patterns.                                                                               
+  struct PatternMatchInfo {
+  public:
+    int PatternId;
+    int PathId;
+    TTPCLogLikelihood MatchLikelihood;
+  };
+  
   
   class TTRExPath {
     
@@ -49,6 +64,9 @@ namespace trex{
     TTRExPath(std::vector<trex::TTRExHVCluster> clusters) : fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false){
       fClusters = clusters;
     }
+
+    
+    
     
     
     //MDH TODO: Do we want the path to own these clusters? I think they should somehow be owned by an event...
@@ -56,21 +74,29 @@ namespace trex{
     void SetClusters(std::vector<trex::TTRExHVCluster> clusters){
       fClusters = clusters;
     }
-        
+ 
+    //Stores a pointer to the connected Junctions
     void SetConnectedJunctions(std::vector<trex::TTRExJunction*> &juncts);
     
+    //Adds an individual connected junction
     void AddConnectedJunction(trex::TTRExJunction* junct);
-    
+   
     unsigned int GetId(){return fId;}
     
     void SetId(unsigned int id){fId=id;}
     
-    
+    //Return the clustered Hits of this path 
     std::vector<trex::TTRExHVCluster>&  GetClusters(){
       return fClusters;
     }
     
+    //
+    std::vector<trex::TTRExHVCluster>& GetHits(){
+      return GetClusters();
+    }
     
+    
+    //print method for debugging
     void Print() {
       for(unsigned int i=0; i<fClusters.size(); ++i){
 	fClusters[i].Print();
@@ -78,53 +104,74 @@ namespace trex{
     }
     
     //MDH TODO: Implement these
-    void SetEndClustersToNodes(){}
     
+    //Convert the end of the path into end nodes
+    void SetEndClustersToNodes();
+    
+
+    void SaveFitState(std::vector<double> inState);
+
+
+    //Store the fit result. This method should probably doing a lot more! 
     void SaveFitState(TTPCPathFitResults& results){fFitState=results;}
+       
+    bool HasFitState();
     
-    bool HasFitState(){return false;}
+    bool HasReliableFitState();
+
+    //P.D.: Need to check this works with how ids get assigned
+    int GetConnectedEnd(unsigned int junctionId);
     
-    int GetConnectedEnd(unsigned int junctionId){return 0;}
+    std::vector<double> GetFitState();
     
-    std::vector<double> GetFrontFitState(){return std::vector<double>(0);}
-    std::vector<double> GetBackFitState(){return std::vector<double>(0);}
-    
-    std::vector<double> GetFrontSeedState(){return std::vector<double>(0);}
-    std::vector<double> GetBackSeedState(){return std::vector<double>(0);}
-    
-    bool HasSeedState(){return false;}
-    
-    void SaveSeedStates(std::vector<double>& frontSeedState, std::vector<double>& backSeedState){
-      fFrontSeedState=frontSeedState;
-      fBackSeedState=backSeedState;
+    TTPCPathFitResults GetFitResults(){
+      return fFitState;
     }
+
+    std::vector<double> GetFrontFitState();
+    std::vector<double> GetBackFitState();
     
-    void SaveMatchedPath(unsigned int id,trex::TTPCLogLikelihood likelihood){}
-    void SaveMatchedPattern(unsigned int patternId, unsigned int pathId, trex::TTPCLogLikelihood likelihood){}
+    std::vector<double> GetFrontSeedState();
+    std::vector<double> GetBackSeedState();
     
-    bool IsFrontConnected(){return false;}
-    bool IsBackConnected(){return false;}
+    //originally a call to the ReconBase
+    bool HasSeedState(){return fHasChi2Fit;}
+
+    //save the front and back seed states
+    void SaveSeedStates(std::vector<double>& frontSeedState, std::vector<double>& backSeedState);
+
+   
+    void SaveMatchedPath(unsigned int mPatternId,trex::TTPCLogLikelihood matchLklhd);
+    void SaveMatchedPattern(unsigned int mPatternId, unsigned int mPathId, trex::TTPCLogLikelihood matchLklhd);
     
-    unsigned int GetNMatchedPattern(){return 0;}
+    bool IsFrontConnected(){return fFrontIsConnected;}
+    bool IsBackConnected(){return fBackIsConnected;}
     
-    unsigned int GetMatchPatternId(unsigned int n){return 0;}
+
+    unsigned int GetNMatchedPattern();
     
-    unsigned int GetPatternMatchPathId(unsigned int n){return 0;}
+    unsigned int GetMatchPatternId(unsigned int n);
     
-    unsigned int NbEndsFreeToMatch(){return 0;}
+    unsigned int GetPatternMatchPathId(unsigned int i);
+
+    unsigned int NbEndsFreeToMatch();
     
-    unsigned int GetMatchPathIdIndex(unsigned int n){return 0;}
+    unsigned int GetNMatchedPath();
+
+    unsigned int GetMatchPathIdIndex(unsigned int pathId);
     
-    double GetPathMatchLikelihood(unsigned int n){return 0.;}
+    double GetPathMatchLikelihood(unsigned int n);
+
+    bool IsEndFreeToMatch(unsigned int end);
+   
+    double GetPatternMatchLikelihood(unsigned int n);
     
-    bool IsEndFreeToMatch(int end){return false;}
+    double GetLogLikelihood();
+
+
+    void SetEndNotFreeToMatch(int end);
     
-    double GetPatternMatchLikelihood(unsigned int n){return 0.;}
-    
-    double GetLogLikelihood(){return 0.;}
-    
-    void SetEndNotFreeToMatch(int end){}
-    
+
     bool HasChi2Fit(){return fHasChi2Fit;}
     
     bool HasRunFit(){return fHasRunFit;}
@@ -142,9 +189,13 @@ namespace trex{
     unsigned int fId;
     
     std::vector<trex::TTRExHVCluster>  fClusters;
+    
     //INCLUDE MORE TRACKING AND FIT VARIABLES HERE
     
     trex::TTPCPathFitResults fFitState;
+
+    std::vector<double> fFrontFitState;
+    std::vector<double> fBackFitState;
     
     bool fHasChi2Fit;
     
@@ -153,14 +204,41 @@ namespace trex{
     bool fHasLikelihoodFit;
     
     std::vector<double> fFrontSeedState;
-    
     std::vector<double> fBackSeedState;
     
+    bool fFrontIsConnected;
+    bool fBackIsConnected;
+
+    bool fEndFreeToMatch[2] {0};
+
     std::vector<trex::TTRExJunction*> fConnectedJunctions;
     std::vector<unsigned int> fConnectedJunctionsId;
   
+    /// List of connected paths and their matching chi2.                 
+    std::vector<PathMatchInfo> fPathsMatched;
+
+    /// List of connected paths and their matching chi2.                  
+    std::vector<PatternMatchInfo> fPatternsMatched;
+
+
+
   };
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

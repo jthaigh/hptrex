@@ -42,6 +42,10 @@ namespace trex{
 	fHits[i]->Print();
       }   
     }
+
+    std::vector< trex::TTRExPath* > GetConnectedPaths(){
+      return fConnectedPaths;
+    }
     
     /// Check if a path with this Id is connected to this junction
     bool IsPathConnected(unsigned int WantedPathId);

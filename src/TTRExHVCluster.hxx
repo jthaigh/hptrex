@@ -17,7 +17,7 @@ namespace trex{
 
   public:
 
-    TTRExHVCluster() : fcHitPtrs(0), fIsVertical(0), fPosition(), fCharge(0), fOkForSeed(1), fOkForFit(1), fIsUsable(1){};
+    TTRExHVCluster() : fcHitPtrs(0), fIsVertical(0), fPosition(), fCharge(0), fOkForSeed(1), fOkForFit(1), fIsUsable(1), fEndNode(0){};
     
     TTRExHVCluster(bool HV, std::vector<trex::TTPCHitPad*> cHits){
       
@@ -88,7 +88,19 @@ namespace trex{
       return fcHitPtrs.size();
       
     }
+    
+    void SetEndNode(void){
+      fEndNode = true;
+    }
 
+    void ClearEndNode(void){
+      fEndNode = false;
+    }
+
+    bool IsEndNode(void){
+      return fEndNode;
+    }
+    
     void SetUsable(bool isUsable){fIsUsable=isUsable;}
 
     bool isUsable(){return fIsUsable;}
@@ -143,6 +155,7 @@ namespace trex{
     bool fOkForSeed;
     bool fOkForFit;
     bool fIsUsable;
+    bool fEndNode;
     double fDeltaDrift;
 
   };
