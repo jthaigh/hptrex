@@ -149,7 +149,7 @@ unsigned int trex::TTRExPath::GetPatternMatchPathId(unsigned int i){
 }
 
 
-unsigned int NbEndsFreeToMatch(){
+unsigned int trex::TTRExPath::NbEndsFreeToMatch(){
   unsigned int count = 0;
   for ( int i = 0; i < 2; i++)
     if (fEndFreeToMatch[i])
@@ -174,7 +174,7 @@ double trex::TTRExPath::GetPathMatchLikelihood(unsigned int n){
 
 
 
-bool IsEndFreeToMatch(unsigned int end){
+bool trex::TTRExPath::IsEndFreeToMatch(unsigned int end){
   // TODO: Proper exception needed                           
   if (end > 1)
     throw;

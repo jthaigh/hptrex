@@ -40,4 +40,4 @@ TTRExPathDict.cxx:
 	rootcint TTRExPathDict.cxx TTRExPath.hxx OutLink.hh
 
 clean:
-	rm *.o *.so *.exe
+	rm *.o *.so *.exe GasTPCDataLibDict.* TTRExPatternDict.* GasTPCDataLibDict_rdict.pcm TTRExPatternDict_rdict.pcm
