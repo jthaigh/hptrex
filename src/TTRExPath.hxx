@@ -59,19 +59,15 @@ namespace trex{
     
   public:
     
-    TTRExPath() : fClusters(0), fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false){};
+    TTRExPath() : fClusters(0), fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false),fHasFitState(false){};
     
-    TTRExPath(std::vector<trex::TTRExHVCluster> clusters) : fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false){
+    TTRExPath(std::vector<trex::TTRExHVCluster*> clusters) : fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false),fHasFitState(false){
       fClusters = clusters;
     }
 
+   
     
-    
-    
-    
-    //MDH TODO: Do we want the path to own these clusters? I think they should somehow be owned by an event...
-    //Need to think about this.
-    void SetClusters(std::vector<trex::TTRExHVCluster> clusters){
+    void SetClusters(std::vector<trex::TTRExHVCluster*> clusters){
       fClusters = clusters;
     }
  
@@ -85,13 +81,14 @@ namespace trex{
     
     void SetId(unsigned int id){fId=id;}
     
-    //Return the clustered Hits of this path 
-    std::vector<trex::TTRExHVCluster>&  GetClusters(){
+    
+    std::vector<trex::TTRExHVCluster*>&  GetClusters(){
+
       return fClusters;
     }
     
     //
-    std::vector<trex::TTRExHVCluster>& GetHits(){
+    std::vector<trex::TTRExHVCluster*>& GetHits(){
       return GetClusters();
     }
     
@@ -99,23 +96,27 @@ namespace trex{
     //print method for debugging
     void Print() {
       for(unsigned int i=0; i<fClusters.size(); ++i){
-	fClusters[i].Print();
+	fClusters[i]->Print();
       }
     }
     
+
     //MDH TODO: Implement these
     
     //Convert the end of the path into end nodes
     void SetEndClustersToNodes();
+
+
+    //Store the fit result. This method should probably doing a lot more!
+    void SaveFitState(TTPCPathFitResults& results){fHasFitState=true;fFitState=results;}
+    
+    bool HasFitState(){return fHasFitState;}
     
 
-    void SaveFitState(std::vector<double> inState);
-
-
-    //Store the fit result. This method should probably doing a lot more! 
-    void SaveFitState(TTPCPathFitResults& results){fFitState=results;}
+    void SaveFitState(std::vector<double> inState); 
+    
        
-    bool HasFitState();
+    //bool HasFitState();
     
     bool HasReliableFitState();
 
@@ -188,8 +189,9 @@ namespace trex{
     
     unsigned int fId;
     
-    std::vector<trex::TTRExHVCluster>  fClusters;
-    
+
+    std::vector<trex::TTRExHVCluster*>  fClusters;
+
     //INCLUDE MORE TRACKING AND FIT VARIABLES HERE
     
     trex::TTPCPathFitResults fFitState;
@@ -202,6 +204,8 @@ namespace trex{
     bool fHasRunFit;
     
     bool fHasLikelihoodFit;
+
+    bool fHasFitState;
     
     std::vector<double> fFrontSeedState;
     std::vector<double> fBackSeedState;
@@ -209,7 +213,7 @@ namespace trex{
     bool fFrontIsConnected;
     bool fBackIsConnected;
 
-    bool fEndFreeToMatch[2] {0};
+    bool fEndFreeToMatch[2];
 
     std::vector<trex::TTRExJunction*> fConnectedJunctions;
     std::vector<unsigned int> fConnectedJunctionsId;

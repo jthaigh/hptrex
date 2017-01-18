@@ -27,6 +27,7 @@
 #include "TTRExHVCluster.hxx"
 #include "TTRExPath.hxx"
 #include "TTRExJunction.hxx"
+#include "TTRExPattern.hxx"
 
 namespace trex{
   /// Main algorithm for pattern recognition for path finding.  Processes a sub-event of connected hits and returns a set of paths.
@@ -61,30 +62,20 @@ namespace trex{
       void CleanContainers();
       
     /// Produce pattern so it can be returned
-    void ProducePattern();//std::vector<trex::TTPCHitPad*>& used);
+    void ProducePattern(trex::TTRExPattern& output);//std::vector<trex::TTPCHitPad*>& used);
 
 
 
 
     //NEED TO CHANGE RETURN TYPE HERE
 
-    std::vector<trex::TTRExPath>& GetPaths(){return fPaths;}
-    std::vector<trex::TTRExJunction>& GetJunctions(){return fJunctions;}
-
-
-
-
-
-    std::vector< std::vector<unsigned int> >& GetJunctionsToPathsMap(){return fJunctionsToPathsMap;}
-
-      /// Return and this object's pattern
-      //trex::TTPCPattern* GetPattern();
+    void ConnectJunctionAndPath(trex::TTRExJunction& junction, trex::TTRExPath& path);
 
       /// Get hits from internal group
     std::vector<trex::TTPCHitPad*> GetHits();
 
       /// Get hits from algorithm's hit map corresponding to provided path
-    std::vector<trex::TTRExHVCluster> GetHits(trex::TTPCOrderedVolGroup& path);
+    std::vector<trex::TTRExHVCluster*> GetHits(trex::TTPCOrderedVolGroup& path);
 
       /// Get groups of connected cells for defining sub-events
     void GetRegions(std::vector< trex::TTPCVolGroup >& regions);
@@ -136,6 +127,10 @@ namespace trex{
 
       /// Vector of all paths
       std::vector< trex::TTPCOrderedVolGroup > fTracks;
+
+    //Vector of vertices (never actually read from, just used for persistency
+    std::vector< trex::TTPCVolGroup > fVertices;
+
       /// Set maximum, minimum and range of cells in x, y and z
       void SetRanges(int rangeX,int minX,int maxX, int rangeY,int minY,int maxY, int rangeZ,int minZ,int maxZ);
 
@@ -150,14 +145,6 @@ namespace trex{
 
       /// Whether this is the primary sub group
       bool fPrimary;
-
-
-    
-    //NEED TO CHANGE DEFINITIONS HERE
-
-    std::vector<trex::TTRExPath> fPaths;
-    std::vector<trex::TTRExJunction> fJunctions;						       
-    std::vector< std::vector<unsigned int> > fJunctionsToPathsMap;
 
   };
 }

@@ -7,10 +7,9 @@
 
 #include<map>
 
-trex::TTPCTRExPatAlgorithm::TTPCTRExPatAlgorithm(TFile* plotFile) {
+trex::TTPCTRExPatAlgorithm::TTPCTRExPatAlgorithm() {
   // has no hits by default
   fHasHits = false;
-  fPlotFile=plotFile;
 
   // initial values
   fMasterLayout = 0;
@@ -33,12 +32,6 @@ void trex::TTPCTRExPatAlgorithm::CleanUp(){
   }
   fMasterHitMap.clear();
 
-  // delete stuff for whole event
-  if(fMasterLayout) 
-  {
-    delete fMasterLayout;
-    fMasterLayout = 0;
-  }
   if(fMasterVolGroupMan)
   {
     delete fMasterVolGroupMan;
@@ -144,23 +137,16 @@ void trex::TTPCTRExPatAlgorithm::GetPatterns(trex::TReconObjectContainer *foundP
 
 //Top-level code - reimplement
 
-void trex::TTPCTRExPatAlgorithm::ConnectJunctionAndPath(trex::TTRExJunction& junction, trex::TTRExPath& path){
 
-  trex::TTRExPath *pat = &path;
-  trex::TTRExJunction *junct = &junction;
-
-  junction.AddConnectedPath(pat);
-  path.AddConnectedJunction(junct);
-}
-
-
-void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad> * unused, std::vector<TTrueHit*>& trueHits, trex::TTRExEvent* event){
+void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused, std::vector<TTrueHit*>& trueHits, trex::TTRExEvent* event,trex::TTPCLayout& layout){
   
   static unsigned int iEvt=0;
 
+  std::vector<trex::TTRExPattern>& patterns=event->GetPatterns();
+
   std::cout<<"Number of hit pads: "<<hits.size()<<std::endl;
   // master layout for all sub-events
-  fMasterLayout = new trex::TTPCLayout();
+  fMasterLayout = &layout;
   // reset group IDs
   trex::TTPCVolGroup::ResetFreeID();
   // prepare hits
@@ -169,7 +155,6 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   fMasterVolGroupMan = new trex::TTPCVolGroupMan(fMasterLayout);
   std::cout<<"Number of hits: "<<fMasterHitMap.size()<<std::endl;
   fMasterVolGroupMan->AddPrimaryHits(fMasterHitMap);
-
   // split all hits up into lists of sub events, with separate group for high charge ones if needed
   std::vector< trex::TTPCVolGroup > subEvents;
   fMasterVolGroupMan->GetConnectedHits(subEvents, trex::TTPCConnection::path);
@@ -184,14 +169,13 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
       fSubAlgorithms.back().SetUpHits(subEvent.GetHitMap());
     };
   };
-
   // first pass of processing
   for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
     trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
     alg.ProduceContainers();
-    alg.ProducePattern();
+    patterns.emplace_back();
+    alg.ProducePattern(patterns.back());
   };
-
 
   //std::vector<TGraph> xyGraphs;
   //std::vector<TGraph> xzGraphs;
@@ -207,51 +191,30 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   // set up container for hitpad level unused  
   std::vector<trex::TTPCHitPad*> usedTREx;
   
-  //set up container for all the patterns in the event
-  std::vector<trex::TTRExPattern> patternContainer;
-  
-  for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
-    trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
-
-    //
-
-    std::vector<trex::TTRExPath>& subPaths= alg.GetPaths();
-    std::vector<trex::TTRExJunction>& subJuncts=alg.GetJunctions();
-    std::vector< std::vector<unsigned int> >& subJPMap=alg.GetJunctionsToPathsMap();
-
-    std::cout << "MARKER 1 SubPaths Size: " << subPaths.size() << std::endl;
-    std::cout << "MARKER 1 SubJuncts Size: " << subJuncts.size() << std::endl;
-
-
-    // containers for paths and junctions to create a pattern from 
-    std::vector<trex::TTRExPath> pathsContainer;
-    std::vector<trex::TTRExJunction > junctsContainer;
-
+  for(auto patIt = patterns.begin(); patIt != patterns.end(); ++patIt){
+    trex::TTRExPattern& pat = *patIt;
+    std::vector<trex::TTRExPath>& subPaths= pat.GetPaths();
+    std::vector<trex::TTRExJunction>& subJuncts=pat.GetJunctions();
 
     //PD NEED TO PUT BETTER FILLING METHOD HERE
     //extract the path hits from the sub algorithm and build HVCluster objects to fill the paths with
 
     for(auto iPath=subPaths.begin(); iPath!=subPaths.end(); ++iPath) {
       
-      vector<trex::TTRExHVCluster> clusters = iPath->GetClusters();
+      std::vector<trex::TTRExHVCluster*> clusters = iPath->GetClusters();
       for(auto iCluster=clusters.begin(); iCluster!=clusters.end(); ++iCluster){
 	
-	vector<trex::TTPCHitPad*> cHits = (*iCluster).GetClusterHits();
+	vector<trex::TTPCHitPad*> cHits = (*iCluster)->GetClusterHits();
 
 	for(auto iHit=cHits.begin(); iHit!=cHits.end(); ++iHit){
-	  
 	  if(std::find(usedTREx.begin(), usedTREx.end(), *iHit)==usedTREx.end()){
 	    usedTREx.push_back(*iHit);
 	  }
 	  else{
-	    std::cout<<"Hit shared between objects!"<<std::endl; 
+	    std::cout<<"Hit shared between objects (cluster)!"<<std::endl; 
 	  }	  
 	}	
       }
-
-      //trex::TTREXPath path(std::move(clusters))
-      pathsContainer.push_back(*iPath);                                            
-      clusters.clear();     
     }
 
     //PD NEED TO PUT BETTER FILLING METHOD HERE
@@ -259,15 +222,9 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     
     for(auto iJunct=subJuncts.begin(); iJunct!=subJuncts.end(); ++iJunct) {      
             
-      std::cout << "Managed to get into outer loop" << std::endl;
-      
       std::vector<trex::TTPCHitPad*> hits = iJunct->GetHits();
 
       for(auto iHit=hits.begin(); iHit!=hits.end(); ++iHit) {
-	
-	std::cout << "Managed to get into inner loop" << std::endl;
-	std::cout << "Junction Hit Pad is accessible " << (*iHit)->Print() << std::endl;
-	
 	//fill usedTREx
 	if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
 	  usedTREx.push_back(*iHit);
@@ -277,59 +234,24 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 	  //exit(1);                                                 
 	}
       }
-      std::cout << "Exited the junction loop" << std::endl;
-      junctsContainer.push_back(*iJunct);
-      hits.clear();
     }
     
-    // Connect Paths and Junctions together according to the Map
-    for(int i=0; i<junctsContainer.size(); ++i){
-      for(int j=0; j<subJPMap[i].size(); ++j){
-	int pathIndex = subJPMap[i][j];
-	ConnectJunctionAndPath(junctsContainer[i], pathsContainer[pathIndex]);
-      }
-    }
-
-    std::cout << "Exited the junction list loop" << std::endl;
-
-    //MDH TODO: Have to build proper junction objects before instantiating a pattern
-    patternContainer.push_back(trex::TTRExPattern(pathsContainer,junctsContainer, subJPMap));
-    std::cout << "Have created pattern" << std::endl;
-    pathsContainer.clear();
-    junctsContainer.clear();
-		    
   }
-
-  std::cout << "Exited pattern loop" << std::endl; 
-  
-  if(patternContainer.size()){
-  event->SetPatterns(patternContainer);
-  std::cout << "Have created Event" << std::endl;
-  patternContainer.clear();
-  }
-
-
 
   if(hits.size()){ 
     
-    std::vector<trex::TTPCHitPad*> unusedHits;                                                                                        
     for(auto iHit=hits.begin();iHit!=hits.end();++iHit){              
       if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){  
 	TLorentzVector pos((*iHit)->GetPosition(), 0);
-	trex::TTPCHitPad pad((*iHit)->GetCharge(), pos);
-	unused->push_back(pad);                                    
-	unusedHits.push_back(*iHit);                                       }
-    }
-    
-    std::cout << "Vector of unused Hits contains something: " << unused->size() << std::endl;
+	unused.push_back(*iHit);                                    
+      }
     
     }
 
-  std::cout << "Vector of unused Hits contains something: " << unused->size() << std::endl;        
-  
   ++iEvt;
-} 
-                                              
+
+  }
+}                                         
 
 
 /*for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
@@ -580,8 +502,6 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   
   
    if(trueTrackCount!=0){std::cout << "WE HAVE TRUE TRACKS!" << std::endl;}
-  
-  //MDH TODO - This is where the output needs to be generated...
   
   std::vector<trex::TTRExPattern*> patternContainer; 
   

@@ -27,10 +27,6 @@ void trex::TTPCLikelihoodMatch::Process( std::vector<trex::TTRExPattern>& allPat
     trex::TTRExPattern& Pattern=*patit;
     if ( Pattern.GetPaths().size() != 1)
       MatchAcrossJunctions(Pattern);
-
-    for (auto constit = Pattern.GetPaths().begin(); constit != Pattern.GetPaths().end(); constit++) {
-      constit->SetEndClustersToNodes();
-    }
   }
 
   MatchBrokenPaths(allPatterns);
@@ -109,9 +105,9 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
 
   trex::TTRExHVCluster* targetCluPtr;
   if ( Path2.GetConnectedEnd(JunctionId) == -1) {
-    targetCluPtr = &*(Path2.GetClusters().begin());
+    targetCluPtr = *(Path2.GetClusters().begin());
   } else if ( Path2.GetConnectedEnd(JunctionId) == 1) {
-    targetCluPtr = &*(Path2.GetClusters().rbegin());
+    targetCluPtr = *(Path2.GetClusters().rbegin());
   } else {
     // PROBLEM. Don't do anything.
     return;
@@ -124,12 +120,12 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
     std::vector<trex::TTRExHVCluster*> orderedClusters;
     if ( Path2.GetConnectedEnd(JunctionId) == 1) {
       for (auto Clu = Path2.GetClusters().rbegin(); Clu != Path2.GetClusters().rend(); Clu++) {
-        orderedClusters.push_back(&*Clu);
+        orderedClusters.push_back(*Clu);
       }
     } 
     else {
       for(auto iHit=Path2.GetClusters().begin();iHit!=Path2.GetClusters().end();++iHit){
-	orderedClusters.push_back(&*iHit);
+	orderedClusters.push_back(*iHit);
       }
     }
     Likelihood = GetMatchLikelihood(propagState, orderedClusters, false);
@@ -205,13 +201,13 @@ void trex::TTPCLikelihoodMatch::MatchBrokenPaths(std::vector< trex::TTRExPattern
             continue;
           } else if ( (!PathB.IsFrontConnected()) && (!PathB.IsBackConnected()) ){
             // 1) Try matching to the first B cluster
-            trex::TTRExHVCluster& firstClu = *(PathB.GetClusters().begin());
+            trex::TTRExHVCluster& firstClu = **(PathB.GetClusters().begin());
             double firstMatchDist = 999999.;
 
 	    int targetSense = TTPCUtils::SenseFromTwoClusters(PathB, firstClu);
             bool firstOk = CheckClusterMatch(firstState, firstClu, targetSense, ForceSense, firstMatchDist);
             // 2) Try matching to the last B cluster
-            trex::TTRExHVCluster& lastClu = *(PathB.GetClusters().rbegin());
+            trex::TTRExHVCluster& lastClu = **(PathB.GetClusters().rbegin());
             double lastMatchDist = 999999.;
             targetSense = TTPCUtils::SenseFromTwoClusters(PathB, lastClu);
             bool lastOk = CheckClusterMatch(lastState, lastClu, targetSense, ForceSense, lastMatchDist);
@@ -231,14 +227,14 @@ void trex::TTPCLikelihoodMatch::MatchBrokenPaths(std::vector< trex::TTRExPattern
             ForceSense = true;
             if ( (!PathB.IsFrontConnected()) && PathB.IsBackConnected() ){
               // Try matching to the first B cluster
-              trex::TTRExHVCluster& firstClu = *(PathB.GetClusters().begin());
+              trex::TTRExHVCluster& firstClu = **(PathB.GetClusters().begin());
               int targetSense = TTPCUtils::SenseFromTwoClusters(PathB, firstClu);
               if( !CheckClusterMatch(firstState, firstClu, targetSense, ForceSense)){
                 continue;
               }
             } else {
               // Try matching to the last B cluster
-              trex::TTRExHVCluster& lastClu = *(PathB.GetClusters().rbegin());
+              trex::TTRExHVCluster& lastClu = **(PathB.GetClusters().rbegin());
 	      int targetSense = TTPCUtils::SenseFromTwoClusters(PathB, lastClu);
               if( !CheckClusterMatch(lastState, lastClu, targetSense, ForceSense)){
                 continue;
@@ -251,12 +247,12 @@ void trex::TTPCLikelihoodMatch::MatchBrokenPaths(std::vector< trex::TTRExPattern
 	  std::vector<double> propagState;
           if ( matchedLastClu) {
             for (auto Clu = PathB.GetClusters().rbegin(); Clu != PathB.GetClusters().rend(); Clu++) {
-              orderedClusters.push_back(&*Clu);
+              orderedClusters.push_back(*Clu);
             }
             propagState = lastState;
           } else {
 	    for (auto Clu = PathB.GetClusters().begin(); Clu != PathB.GetClusters().end(); Clu++) {
-              orderedClusters.push_back(&*Clu);
+              orderedClusters.push_back(*Clu);
 	    }            
 	      propagState = firstState;
 	    }

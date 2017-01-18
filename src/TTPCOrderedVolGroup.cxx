@@ -948,37 +948,39 @@ std::vector<trex::TTPCHitPad*> trex::TTPCOrderedVolGroup::GetClusters(){
 //PD
 // THE GETCLUSTERS() METHOD ABOVE NEEDS TO BE REWRITTEN TO GIVE A VECTOR OF CLUSTERS RATHER THAN HITPADS
 
-std::vector<trex::TTRExHVCluster> trex::TTPCOrderedVolGroup::GetClusters(){
+std::vector<trex::TTRExHVCluster*> trex::TTPCOrderedVolGroup::GetClusters(){
 
-  std::vector<trex::TTRExHVCluster> clusters;
+  if(!fClusters.size()){
 
-  for(std::vector<trex::TTPCPathVolume*>::iterator id = fHits.begin(); id != fHits.end(); ++id){
-    
-    std::vector<trex::TTPCHitPad*> hits = (*id)->GetHits();
+    for(std::vector<trex::TTPCPathVolume*>::iterator id = fHits.begin(); id != fHits.end(); ++id){
+      
+      std::vector<trex::TTPCHitPad*> hits = (*id)->GetHits();
+      
+      bool hasCluster = (*id)->GetHasCluster();
+      //std::cout << "This hit has clustered friends" << std::endl;
+      bool IsVertical = (*id)->GetIsVertical();
+      TVector3 pos = (*id)->GetPos();
+      double charge = (*id)->GetQ();
+      
+      fClusters.emplace_back();
+      
+      trex::TTRExHVCluster& HVcluster=fClusters.back();
+      HVcluster.SetHits(hits);
+      HVcluster.SetIsVertical(IsVertical);
+      HVcluster.SetPosition(pos);
+      HVcluster.SetCharge(charge);
 
-    bool hasCluster = (*id)->GetHasCluster();
-    //std::cout << "This hit has clustered friends" << std::endl;
-    bool IsVertical = (*id)->GetIsVertical();
-    TVector3 pos = (*id)->GetPos();
-    double charge = (*id)->GetQ();
-
-
-    trex::TTRExHVCluster HVcluster;
-    HVcluster.SetHits(hits);
-    HVcluster.SetIsVertical(IsVertical);
-    HVcluster.SetPosition(pos);
-    HVcluster.SetCharge(charge);
-
-
-    clusters.push_back(HVcluster);
+    }
   }
 
-  return std::move(clusters);
+  std::vector<trex::TTRExHVCluster*> retClusters;
+
+  for(auto iter=fClusters.begin();iter!=fClusters.end();++iter){
+    retClusters.push_back(&*iter);
+  }
+
+  return std::move(retClusters);
 }
-
-
-
-
 
 std::string trex::TTPCOrderedVolGroup::GetOrientations(){
   std::string orientationsList = "";

@@ -31,7 +31,6 @@ namespace trex{
       return fHits;
     }
     
-    //MDH TODO: Implement these methods properly
     /// Get number of paths associated with this junction
     unsigned int GetNPaths(){
       return fConnectedPaths.size();

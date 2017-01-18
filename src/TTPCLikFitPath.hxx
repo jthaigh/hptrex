@@ -40,7 +40,7 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
       at a time to do the Space Point Resolution study.
       Also store in the cluster using isOkForFit if we used it for fitting or not.
     */
-  void PrepareClustersForFitting(std::vector<trex::TTRExHVCluster>& inputClu, std::vector<trex::TTRExHVCluster*>& outputClu, double XDirection);
+  void PrepareClustersForFitting(std::vector<trex::TTRExHVCluster*>& inputClu, std::vector<trex::TTRExHVCluster*>& outputClu, double XDirection);
 
     /// Setup various parameters of the log likelihood minimization
     /// Use this to setup the minimization parameters, there initial values, the step sizes, etc...
@@ -50,9 +50,8 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
     /// Minimize the log likelihood for the given hits.
     /// This is the place where parameters will be fixed or released but nothing else.
     /// Use SetupLogLklhdMinimizer to setup the parameters, there initial values, the step sizes, etc...
-  int LogLklhdMinimizer(std::vector<trex::TTRExHVCluster*>& inputClusters);
 
-  int LogLklhdMinimizer(std::vector<trex::TTRExHVCluster>& inputClusters);
+  int LogLklhdMinimizer(std::vector<trex::TTRExHVCluster*>& inputClusters);
 
     /// A few little calls to prepare for a minimization.
     /// Must be called explicitely before calling SimpleLogLklhdMinimizer
@@ -126,7 +125,7 @@ class trex::TTPCLikFitPath: public trex::TTPCQLikelihood{
     };
 
     /// Performs the selection of the clusters suitable for the fit
-  void SelectClusters(std::vector<trex::TTRExHVCluster>& inputClu, double XDirection, ClusterSelection &CluSel);
+  void SelectClusters(std::vector<trex::TTRExHVCluster*>& inputClu, double XDirection, ClusterSelection &CluSel);
 
     /// Retrieves the value of the likelihood in Y along the vertical direction.
     double log_likelihoodHV();

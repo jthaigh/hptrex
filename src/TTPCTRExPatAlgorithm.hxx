@@ -4,20 +4,14 @@
 // c++
 #include <iostream>
 #include <sstream>
-#include <map>
-#include <set>
 #include <vector>
 #include <algorithm>
 
 // ROOT
-#include <TVector3.h>
 #include <TFile.h>
 #include <TStyle.h>
 
 // TREx
-//#include <TTPCPattern.hxx>
-//#include <TTPCPath.hxx>
-//#include <TTPCJunction.hxx>
 #include "TTrueHit.hxx"
 #include "TTRExPattern.hxx"
 
@@ -37,23 +31,19 @@ namespace trex{
   class TTPCTRExPatAlgorithm {
     public:
       /// Default constructor
-    TTPCTRExPatAlgorithm(TFile* plotFile);
+    TTPCTRExPatAlgorithm();
       /// Default destructor
       ~TTPCTRExPatAlgorithm();
 
       /// Clean up values from previous processing
       void CleanUp();
 
-
-
-    void ConnectJunctionAndPath(trex::TTRExJunction& junction, trex::TTRExPath& path);
-
     //Output - reimplement
       /// Run the pattern recognition and return TTPCPattern containing result
       //void GetPatterns(TReconObjectContainer *foundPatterns);
 
       /// Current processing pattern recognition
-    void Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad> * unused, std::vector<TTrueHit*>& trueHits, trex::TTRExEvent* event);
+    void Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<trex::TTPCHitPad*>& used, std::vector<trex::TTPCHitPad*>& unused, std::vector<TTrueHit*>& trueHits, trex::TTRExEvent* event, trex::TTPCLayout& layout);
 
       /// Getters
       /// Get iterator to start of set of sub-algorithms for sub-events in event

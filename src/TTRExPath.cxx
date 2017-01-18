@@ -25,12 +25,12 @@ void trex::TTRExPath::AddConnectedJunction(trex::TTRExJunction* junct){
 
 
 void trex::TTRExPath::SetEndClustersToNodes(){  
-  std::vector<trex::TTRExHVCluster>::iterator tmpClu = GetClusters().begin();
-  trex::TTRExHVCluster& Clu = *tmpClu;
-  Clu.SetEndNode();
-  std::vector<trex::TTRExHVCluster>::reverse_iterator tmpClu2 = GetClusters().rbegin();
+  std::vector<trex::TTRExHVCluster*>::iterator tmpClu = GetClusters().begin();
+  trex::TTRExHVCluster* Clu = *tmpClu;
+  Clu->SetEndNode();
+  std::vector<trex::TTRExHVCluster*>::reverse_iterator tmpClu2 = GetClusters().rbegin();
   Clu = *tmpClu2;
-  Clu.SetEndNode();
+  Clu->SetEndNode();
 }
 
 //This method is overloaded  
@@ -42,10 +42,12 @@ void trex::TTRExPath::SaveFitState(std::vector<double> inState){
 }
 
 
-bool trex::TTRExPath::HasFitState(){
+//Alternative way of testing for fit state...might not need this
+/*bool trex::TTRExPath::HasFitState(){
   return (this->HasRunFit() && this->HasLikelihoodFit());
 
 }
+*/
 
 bool trex::TTRExPath::HasReliableFitState(){
   return (this->HasFitState() && fFitState.IsFitReliable);
