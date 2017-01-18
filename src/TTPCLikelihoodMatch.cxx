@@ -48,12 +48,19 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
     trex::TTRExJunction& junction = *jct;
     
     // Extract the connected paths
+
+
+    //PD: COULD SIMPLIFY THIS
     std::vector< trex::TTRExPath* > ConnectedPaths;
     for (auto pth = Paths.begin(); pth != Paths.end(); pth++) {
       trex::TTRExPath& path = *pth;
       if(junction.IsPathConnected(path.GetId()))
 	ConnectedPaths.push_back(&path);
     }
+
+    //
+
+    
     std::vector< trex::TTRExPath* >::iterator coPthA;
     std::vector< trex::TTRExPath* >::iterator coPthB;
     for (coPthA = ConnectedPaths.begin(); coPthA != ConnectedPaths.end(); coPthA++) {
