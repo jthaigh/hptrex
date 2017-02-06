@@ -42,7 +42,7 @@ namespace trex{
       }   
     }
 
-    std::vector< trex::TTRExPath* > GetConnectedPaths(){
+    std::vector< trex::TTRExPath* >& GetConnectedPaths(){
       return fConnectedPaths;
     }
     

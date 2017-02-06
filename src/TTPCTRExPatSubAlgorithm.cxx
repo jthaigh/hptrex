@@ -7,14 +7,10 @@ trex::TTPCTRExPatSubAlgorithm::TTPCTRExPatSubAlgorithm(trex::TTPCLayout* layout)
   fHasValidPaths = false;
   fPrimary = false;
   fTPC = 0;
-  std::cout<<"1"<<std::endl;
   // set up objects for layout, hit group manager, feature finder and path finder
   fLayout = layout;
-  std::cout<<"2"<<std::endl;
   fVolGroupMan = new trex::TTPCVolGroupMan(fLayout);
-  std::cout<<"2a"<<std::endl;
   fAStar = new trex::TTPCAStar(fLayout);  
-  std::cout<<"3"<<std::endl;
   //  fPattern = new trex::TTPCPattern;
 }
 trex::TTPCTRExPatSubAlgorithm::~TTPCTRExPatSubAlgorithm(){
@@ -55,7 +51,6 @@ void trex::TTPCTRExPatSubAlgorithm::SetUpHits(std::map<long, trex::TTPCUnitVolum
 
 void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
 
-  std::cout<<"1"<<std::endl;
   // ignore if hits don't already exist
   if(!fHasHits) return;
 
@@ -65,12 +60,8 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   // find list of hit groups on edge of paths
   std::vector< trex::TTPCVolGroup > edgeGroups=fVolGroupMan->GetEdgeGroups();
 
-  std::cout<<"Subalg finds "<<edgeGroups.size()<<" initial edge groups"<<std::endl;
-
   // clear redundant edge groups (i.e. ones which are actually just half way points along existing paths)
   fAStar->ClearRedundancies(fVolGroupMan, edgeGroups);
-
-  std::cout<<"Subalg finds "<<edgeGroups.size()<<" non-redundant edge groups"<<std::endl;
 
   // connect pairs of edge groups to find missing hits
   std::vector< trex::TTPCOrderedVolGroup > edgePaths;
@@ -117,12 +108,9 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
       edgeGroups.emplace_back(std::move(*extraEdgeGroupIt));
     }
   }
-  std::cout<<"Subalg finds "<<edgeGroups.size()<<" edge groups (2nd pass)"<<std::endl;
   // clear redundant edge groups (i.e. ones which are actually just half way points along existing paths)
   fAStar->ClearRedundancies(fVolGroupMan, edgeGroups);
 
-  std::cout<<"Subalg finds "<<edgeGroups.size()<<" non-redundant edge groups (2nd pass)"<<std::endl;
-  
   // connect pairs of edge groups
 
   // define container for true paths before corner detection
@@ -164,8 +152,6 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
     return;
   };
 
-  std::cout<<"After joining to vertices have "<<truePaths.size()<<" groups"<<std::endl;
-  
   // ensure that paths don't share hits with each other
   fVolGroupMan->BuildAllFriends(truePaths);
 
@@ -182,16 +168,12 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
 
   truePaths=std::move(nonEmptyPaths);
 
-  std::cout<<"After clearing empties have "<<truePaths.size()<<" groups"<<std::endl;
-
   // look for kinks in paths
   fVolGroupMan->BreakPathsAboutKinks(truePaths);
 
   for(std::vector< trex::TTPCOrderedVolGroup >::iterator brokenPathIt = truePaths.begin(); brokenPathIt != truePaths.end(); ++brokenPathIt){
     fVolGroupMan->ClusterGroupFriends(*brokenPathIt, true, true);
   };
-
-  std::cout<<"After splitting kinks have "<<truePaths.size()<<" groups"<<std::endl;
 
   // temporarily merge x-paths into junctions to make the next two steps easier
   fVolGroupMan->SeparateXPathHits(truePaths);
@@ -204,10 +186,8 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
 
   // enforce path ordering
   fVolGroupMan->EnforceOrdering(truePaths);
-  std::cout<<"After splitting off hits have "<<truePaths.size()<<" groups"<<std::endl;
   // add all paths that make sense and store if none are found
   fVolGroupMan->SanityFilter(truePaths);
-  std::cout<<"After sanity filter have "<<truePaths.size()<<" groups"<<std::endl;
   // associate any remaining unused hits to junctions where possible
   trex::TTPCVolGroup unusedHits(fLayout);
   fVolGroupMan->GetUnusedHits(truePaths,unusedHits);
@@ -306,10 +286,10 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
   // Connect Paths and Junctions together according to the Map
   for(int i=0; i<junctionsToPathsMap.size(); ++i){
     if(junctionsToPathsMap[i].size()<2) continue;
-       juncts.emplace_back(junctionGroups[i]->GetHits());
+    juncts.emplace_back(junctionGroups[i]->GetHits());
     for(int j=0; j<junctionsToPathsMap[i].size(); ++j){
       int pathIndex = junctionsToPathsMap[i][j];
-      ConnectJunctionAndPath(juncts[i], paths[pathIndex]);
+      ConnectJunctionAndPath(juncts.back(), paths[pathIndex]);
     }
   }
 
