@@ -190,6 +190,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   fVolGroupMan->SanityFilter(truePaths);
   // associate any remaining unused hits to junctions where possible
   trex::TTPCVolGroup unusedHits(fLayout);
+  
   fVolGroupMan->GetUnusedHits(truePaths,unusedHits);
   fVolGroupMan->AssociateUnusedWithJunctions(unusedHits, truePaths);
 
@@ -197,7 +198,10 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   fVolGroupMan->ResetVertexStatuses(truePaths);
 
   fTracks=std::move(truePaths);
+
   fHasValidPaths = fTracks.size() > 0;
+
+
 }
 
 //trex::TTPCPattern* trex::TTPCTRExPatSubAlgorithm::GetPattern(){
@@ -233,7 +237,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
     std::vector< trex::TTPCVolGroup* > pathJunctionGroups;
     if(track.HasBackHits()) pathJunctionGroups.push_back(&(track.GetBackHits()));
     if(track.HasFrontHits()) pathJunctionGroups.push_back(&(track.GetFrontHits()));
-
+    
     // determine if junction candidate has already been found and create a group for it if it hasn't
     for(std::vector< trex::TTPCVolGroup* >::iterator junctionGroupIt = pathJunctionGroups.begin(); junctionGroupIt != pathJunctionGroups.end(); ++junctionGroupIt){
       trex::TTPCVolGroup* junctionGroup = *junctionGroupIt;
@@ -287,12 +291,10 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
   for(int i=0; i<junctionsToPathsMap.size(); ++i){
     if(junctionsToPathsMap[i].size()<2) continue;
     juncts.emplace_back(junctionGroups[i]->GetHits());
-    for(int j=0; j<junctionsToPathsMap[i].size(); ++j){
-      int pathIndex = junctionsToPathsMap[i][j];
+    for(int pathIndex=0;pathIndex<junctionsToPathsMap[i].size();++pathIndex){
       ConnectJunctionAndPath(juncts.back(), paths[pathIndex]);
     }
   }
-
 
   std::cout<<"Built a pattern..."<<std::endl;
   std::cout<<"  from "<<fHitMap.size()<<" available hits"<<std::endl;

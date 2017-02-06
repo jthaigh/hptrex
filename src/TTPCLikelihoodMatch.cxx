@@ -23,6 +23,8 @@ trex::TTPCLikelihoodMatch::~TTPCLikelihoodMatch( ){
 void trex::TTPCLikelihoodMatch::Process( std::vector<trex::TTRExPattern>& allPatterns){
 //*****************************************************************************
 
+  std::cout << "NOW ATTEMPTING TO MATCH ACROSS JUNCTIONS" << std::endl;
+
   for (auto patit=allPatterns.begin(); patit != allPatterns.end(); patit++) {
     trex::TTRExPattern& Pattern=*patit;
     if ( Pattern.GetPaths().size() != 1)
@@ -54,6 +56,9 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
 	ConnectedPaths.push_back(&path);
     }
 
+
+    std::cout << "Have found " << ConnectedPaths.size() << " connected Paths" << std::endl;
+
     //
 
     
@@ -75,6 +80,9 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
       } 
     }
   } 
+  
+  std::cout << "Matching across Junction ran successfully" << std::endl;
+
 }
 
 
