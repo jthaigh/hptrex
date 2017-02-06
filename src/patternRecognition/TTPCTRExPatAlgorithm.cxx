@@ -183,14 +183,14 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   };
 
 
-  //std::vector<TGraph> xyGraphs;
-  //std::vector<TGraph> xzGraphs;
+  std::vector<TGraph> xyGraphs;
+  std::vector<TGraph> xzGraphs;
 
   // get patterns
 
-  //gStyle->SetOptStat(0);
-  //int iColor=0;
-  //int colors[11]={kBlue, kRed, kYellow, kGreen, kMagenta, kCyan, kOrange, kPink, kAzure, kSpring, kViolet};
+  gStyle->SetOptStat(0);
+  int iColor=0;
+  int colors[11]={kBlue, kRed, kYellow, kGreen, kMagenta, kCyan, kOrange, kPink, kAzure, kSpring, kViolet};
   
 
   
@@ -209,11 +209,82 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     std::cout << "MARKER 1 SubPaths Size: " << subPaths.size() << std::endl;
     std::cout << "MARKER 1 SubJuncts Size: " << subJuncts.size() << std::endl;
 
-    std::vector<std::vector<trex::TTPCHitPad> > pathsContainer;
-    std::vector<std::vector<trex::TTPCHitPad> > junctsContainer;
+    std::vector<std::vector<trex::TTPCHitPad*> > pathsContainer;
+    std::vector<std::vector<trex::TTPCHitPad*> > junctsContainer;
+
+for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
+
+    std::vector<trex::TTPCHitPad*> usedThisObject;
+    int color_index = iColor%11;
+    int color_increment = iColor%4;
+    xyGraphs.emplace_back(1);
+    xzGraphs.emplace_back(1);
+    xyGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
+    xyGraphs.back().SetMarkerStyle(20);
+    xyGraphs.back().SetMarkerSize(0.5);
+    xzGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
+    xzGraphs.back().SetMarkerStyle(20);
+    xzGraphs.back().SetMarkerSize(0.5);
+    iColor++;
+    unsigned int iPt=0;
+    for(auto iHit=iPath->begin();iHit!=iPath->end();++iHit){
+    TVector3 pos=(*iHit)->GetPosition();
+    xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
+    xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());
+	
+    if(std::find(usedThisObject.begin(),usedThisObject.end(),*iHit)==usedThisObject.end()){
+    usedThisObject.push_back(*iHit);
+    if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
+    usedTREx.push_back(*iHit);
+    }
+    else{
+    std::cout<<"Hit shared between objects!"<<std::endl;
+        //exit(1);
+      }
+    }
+    }
+ }
+
+    unsigned int junctCount=0;
+    for(auto iJunct=subJuncts.begin();iJunct!=subJuncts.end();++iJunct){
+    if(subJPMap[junctCount++].size()<2){
+      continue;
+    }
+
+    std::vector<trex::TTPCHitPad*> usedThisObject;
+
+    int color_index = iColor%11;
+    int color_increment = iColor%4;
+    xyGraphs.emplace_back(1);
+    xzGraphs.emplace_back(1);
+    xyGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
+    xyGraphs.back().SetMarkerStyle(21);
+    xyGraphs.back().SetMarkerSize(0.5);
+    xzGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
+    xzGraphs.back().SetMarkerStyle(21);
+    xzGraphs.back().SetMarkerSize(0.5);
+    iColor++;
+    unsigned int iPt=0;
+    for(auto iHit=iJunct->begin();iHit!=iJunct->end();++iHit){
+    TVector3 pos=(*iHit)->GetPosition();
+    xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
+    xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());
+    if(std::find(usedThisObject.begin(),usedThisObject.end(),*iHit)==usedThisObject.end()){
+        usedThisObject.push_back(*iHit);
+        if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
+          usedTREx.push_back(*iHit);
+        }
+        else{
+        std::cout<<"Hit shared between objects!"<<std::endl;
+          //exit(1);
+          }
+    }
+    }
+    }
+
 
     for(auto iPath=subPaths.begin(); iPath!=subPaths.end(); ++iPath) {
-      std::vector<trex::TTPCHitPad> path;
+      std::vector<trex::TTPCHitPad*> path;
  
       //std::cout << "Managed to get into outer loop" << std::endl;
 
@@ -222,9 +293,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 	//std::cout << "Managed to get into inner loop" << std::endl;
 
 	//std::cout << "Path Hit Pad is accessible " << (*iHit)->Y() << std::endl;
-	TLorentzVector pos((*iHit)->GetPosition(), (*iHit)->GetTime());
-	trex::TTPCHitPad pad((*iHit)->GetCharge(), pos);
-	path.push_back(pad);
+	path.push_back(*iHit);
 	
 
 	//fill usedTREx
@@ -244,7 +313,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     
     for(auto iJunct=subJuncts.begin(); iJunct!=subJuncts.end(); ++iJunct) {      
       
-      std::vector<trex::TTPCHitPad> junction;
+      std::vector<trex::TTPCHitPad*> junction;
             
       //std::cout << "Managed to get into outer loop" << std::endl;
       
@@ -252,9 +321,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 	
 	std::cout << "Managed to get into inner loop" << std::endl;
 	std::cout << "Junction Hit Pad is accessible " << (*iHit)->Print() << std::endl;
-	TLorentzVector pos((*iHit)->GetPosition(), 0);
-	trex::TTPCHitPad pad((*iHit)->GetCharge(), pos);
-	junction.push_back(pad);
+	junction.push_back(*iHit);
 	
 	//fill usedTREx
 	if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
@@ -303,84 +370,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
   std::cout << "Vector of unused Hits contains something: " << unused->size() << std::endl;        
   
-  ++iEvt;
-} 
-                                              
-
-
-/*for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
-
-    std::vector<trex::TTPCHitPad*> usedThisObject;
-    int color_index = iColor%11;
-    int color_increment = iColor%4;
-    xyGraphs.emplace_back(1);
-    xzGraphs.emplace_back(1);
-    xyGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
-    xyGraphs.back().SetMarkerStyle(20);
-    xyGraphs.back().SetMarkerSize(0.5);
-    xzGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
-    xzGraphs.back().SetMarkerStyle(20);
-    xzGraphs.back().SetMarkerSize(0.5);
-    iColor++;
-    unsigned int iPt=0;
-    for(auto iHit=iPath->begin();iHit!=iPath->end();++iHit){
-    TVector3 pos=(*iHit)->GetPosition();
-    xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
-    xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());
-	
-    if(std::find(usedThisObject.begin(),usedThisObject.end(),*iHit)==usedThisObject.end()){
-    usedThisObject.push_back(*iHit);
-    if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
-    usedTREx.push_back(*iHit);
-    }
-    else{
-    std::cout<<"Hit shared between objects!"<<std::endl;
-        //exit(1);
-      }
-    }
-    }
-    }
-
-    unsigned int junctCount=0;
-    for(auto iJunct=subJuncts.begin();iJunct!=subJuncts.end();++iJunct){
-    if(subJPMap[junctCount++].size()<2){
-      continue;
-    }
-
-    std::vector<trex::TTPCHitPad*> usedThisObject;
-
-    int color_index = iColor%11;
-    int color_increment = iColor%4;
-    xyGraphs.emplace_back(1);
-    xzGraphs.emplace_back(1);
-    xyGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
-    xyGraphs.back().SetMarkerStyle(21);
-    xyGraphs.back().SetMarkerSize(0.5);
-    xzGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
-    xzGraphs.back().SetMarkerStyle(21);
-    xzGraphs.back().SetMarkerSize(0.5);
-    iColor++;
-    unsigned int iPt=0;
-    for(auto iHit=iJunct->begin();iHit!=iJunct->end();++iHit){
-    TVector3 pos=(*iHit)->GetPosition();
-    xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
-    xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());
-    if(std::find(usedThisObject.begin(),usedThisObject.end(),*iHit)==usedThisObject.end()){
-        usedThisObject.push_back(*iHit);
-        if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
-          usedTREx.push_back(*iHit);
-        }
-        else{
-        std::cout<<"Hit shared between objects!"<<std::endl;
-          //exit(1);
-          }
-      }
-    }
-    }
-    }
-
   event->SetPatterns(patternContainer);
-
 
   std::vector<int> strangePDG;
 
@@ -490,7 +480,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   std::vector<trex::TTPCHitPad*> unusedHits;  
   for(auto iHit=hits.begin();iHit!=hits.end();++iHit){
     if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
-  unused.push_back(*iHit);
+  unused->push_back(**iHit);
   unusedHits.push_back(*iHit);
     }
   }
@@ -552,7 +542,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     cxz.SaveAs(buf);
     
     cxz.Write();
-   }
+   
   
   
    if(trueTrackCount!=0){std::cout << "WE HAVE TRUE TRACKS!" << std::endl;}
@@ -582,15 +572,15 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   }
     
     
-  event->SetPatterns(patternContainer);
+  //  event->SetPatterns(patternContainer);
     
     
-  fill unused hits
-  FillUsedUnusedHits(usedTREx, used, unused);
+  //  fill unused hits
+  //  FillUsedUnusedHits(usedTREx, used, unused);
   
-   clean up
-  delete usedTREx;
+  // clean up
+  usedTREx.clear();
   
   ++iEvt;
-  }*/
-
+  }
+}
