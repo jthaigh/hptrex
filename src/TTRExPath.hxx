@@ -88,9 +88,9 @@ namespace trex{
     }
     
     //
-    std::vector<trex::TTRExHVCluster*>& GetHits(){
-      return GetClusters();
-    }
+    //    std::vector<trex::TTRExHVCluster*>& GetHits(){
+    //  return GetClusters();
+    //}
     
     
     //print method for debugging

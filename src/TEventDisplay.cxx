@@ -4,7 +4,7 @@
 #include "TCanvas.h"
 #include "TGraph.h"
 #include "TH2F.h"
-
+#include "TDirectory.h"
 #include<map>
 
 trex::TEventDisplay::TEventDisplay(TFile* plotFile) {
@@ -215,7 +215,7 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
       xyGraphs.back()->SetPoint(iPt,pos.X(),pos.Y());
       xzGraphs.back()->SetPoint(iPt++,pos.X(),pos.Z());
     }
-    
+
     char buf[20];
     sprintf(buf,"evt_%d_xy",iEvt);
     TCanvas cxy(buf,buf);
@@ -225,14 +225,21 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
 		 1000,layout.GetMinPos().Y()-10.,layout.GetMaxPos().Y()+10.);
     
     dummyxy.Draw();
+
+    std::cout<<"Dummy XY has coordinates "<<layout.GetMinPos().X()-10.<<", "<<layout.GetMaxPos().X()+10.<<", "<<
+      layout.GetMinPos().Y()-10.<<", "<<layout.GetMaxPos().Y()+10.<<std::endl;
     
     for(auto iGr=xyGraphs.begin();iGr!=xyGraphs.end();++iGr){
+      cxy.cd();
       (*iGr)->Draw("Psame");
-      delete *iGr;
+      std::cout<<"Drawing a graph with "<<(*iGr)->GetN()<<" points"<<std::endl;
+      double x,y;
+      (*iGr)->GetPoint(0,x,y);
+      std::cout<<"1st point at "<<x<<", "<<y<<std::endl;
     }
     
     cxy.Write();
-    
+
     sprintf(buf,"evt_%d_xz",iEvt);
     TCanvas cxz(buf,buf);
     
@@ -242,13 +249,23 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
     
     
     dummyxz.Draw();
-    
+
+    std::cout<<"Dummy XZ has coordinates "<<layout.GetMinPos().X()-10.<<", "<<layout.GetMaxPos().X()+10.<<", "<<
+      layout.GetMinPos().Z()-10.<<", "<<layout.GetMaxPos().Z()+10.<<std::endl;
+
     for(auto iGr=xzGraphs.begin();iGr!=xzGraphs.end();++iGr){
+      cxz.cd();
       (*iGr)->Draw("Psame");
-      delete *iGr;
+      std::cout<<"Drawing a graph with "<<(*iGr)->GetN()<<" points"<<std::endl;
+      double x,y;
+      (*iGr)->GetPoint(0,x,y);
+      std::cout<<"1st point at "<<x<<", "<<y<<std::endl;
     }
-    
+
     cxz.Write();
+
+    for(auto iGr =xyGraphs.begin();iGr!=xyGraphs.end();++iGr) delete *iGr;
+    for(auto iGr=xzGraphs.begin();iGr!=xzGraphs.end();++iGr) delete *iGr;
   }
   
   ++iEvt;

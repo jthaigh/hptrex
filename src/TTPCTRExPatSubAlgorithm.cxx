@@ -304,7 +304,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
   };
 
   // Connect Paths and Junctions together according to the Map
-  for(int i=0; i<juncts.size(); ++i){
+  for(int i=0; i<junctionsToPathsMap.size(); ++i){
     if(junctionsToPathsMap[i].size()<2) continue;
        juncts.emplace_back(junctionGroups[i]->GetHits());
     for(int j=0; j<junctionsToPathsMap[i].size(); ++j){

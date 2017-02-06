@@ -92,10 +92,10 @@ int main(int argc, char** argv){
     //    std::cout<<"EVERYTHING LOADED! - NOW ATTEMPTING TO PROCESS"<<std::endl;
     trexAlg.Process(hitPads,usedHits,unused,trueHits,event,layout); 
 
-    //    if ( !event->GetPatterns().size())
-    //  {
+    //if ( !event->GetPatterns().size())
+    //{
     //	continue;
-    //  }
+    //}
 
     for (auto pattern = event->GetPatterns().begin(); pattern != event->GetPatterns().end(); pattern++) {
       seedingAlgo.Process(*pattern);
@@ -107,7 +107,7 @@ int main(int argc, char** argv){
     matchAlgo.Process(event->GetPatterns());
     mergeAlgo.Process(event->GetPatterns(),mergedEvt->GetPatterns());
 
-    evDisp.Process(hitPads,trueHits,event,layout);    
+    evDisp.Process(hitPads,trueHits,mergedEvt,layout);    
 
     //for(auto i=event->GetPatterns().begin();i!=event->GetPatterns().end();++i){
     //  i->Print();

@@ -1,5 +1,6 @@
 #include "TTPCLikelihoodMerge.hxx"
 #include "TTPCUtils.hxx"
+#include <map>
 
 //*****************************************************************************
 trex::TTPCLikelihoodMerge::TTPCLikelihoodMerge(){
@@ -83,7 +84,7 @@ double trex::TTPCLikelihoodMerge::PathToPatternMatch( trex::TTRExPath& PathA, tr
   for ( int m = 0; m < PathA.GetNMatchedPattern(); m++){
     if (int(PatternB.GetId()) == PathA.GetMatchPatternId(m)){
       // Get the corresponding matched PathB likelihood fit
-      trex::TTRExPath* PathB;
+      trex::TTRExPath* PathB=0;
       for (auto mconst = PatternB.GetPaths().begin(); mconst != PatternB.GetPaths().end(); mconst++) {
         trex::TTRExPath& tmpPath = *mconst;
         if ( int(tmpPath.GetId()) == PathA.GetPatternMatchPathId(m)){
@@ -150,13 +151,13 @@ void trex::TTPCLikelihoodMerge::MatchBrokenPaths(std::vector< trex::TTRExPattern
         continue;
 
       double BestMatchDLL = 1.e13;
-      trex::TTRExPath* BestMatchPaths[2];
+      trex::TTRExPath* BestMatchPaths[2]={0,0};
 
       // 1.a) Try to match A->B
       for (auto constit = PatternA->GetPaths().begin(); constit != PatternA->GetPaths().end(); constit++) {
         trex::TTRExPath& PathA = *constit;
 
-	trex::TTRExPath* tmpPath;
+	trex::TTRExPath* tmpPath=0;
         double tmpDLL = PathToPatternMatch(PathA, *PatternB, tmpPath);
         if (tmpPath && tmpDLL < BestMatchDLL){
           BestMatchDLL = tmpDLL;
@@ -170,7 +171,7 @@ void trex::TTPCLikelihoodMerge::MatchBrokenPaths(std::vector< trex::TTRExPattern
       for (auto constit = PatternB->GetPaths().begin(); constit != PatternB->GetPaths().end(); constit++) {
         trex::TTRExPath& PathB = *constit;
 
-        trex::TTRExPath* tmpPath;
+        trex::TTRExPath* tmpPath=0;
         double tmpDLL = PathToPatternMatch(PathB, *PatternA, tmpPath);
         if (tmpPath && tmpDLL < BestMatchDLL){
           BestMatchDLL = tmpDLL;
@@ -200,18 +201,16 @@ void trex::TTPCLikelihoodMerge::MatchThroughJunctions(trex::TTRExPattern& patter
   if (pattern.GetPaths().size() == 1)
     return;
 
-
-  //MDH TODO: Implement this properly using path-to-junction map in pattern
-  bool atLeastOneMatch = false;
+  //bool atLeastOneMatch = false;
   ////// Look for a match across each junction
   for (auto constit = pattern.GetJunctions().begin(); constit != pattern.GetJunctions().end(); constit++) {
     trex::TTRExJunction& junction = (*constit);
     std::vector< trex::TTRExPath* > Paths;
-    int NbPath = 0;//junction.GetConstituents()->size();
-    /*for (ND::TReconObjectContainer::iterator pathit = junction->GetConstituents()->begin(); pathit != junction->GetConstituents()->end(); pathit++) {
-      ND::THandle<ND::TTPCPath> Path = *pathit;
+    int NbPath = junction.GetConnectedPaths().size();
+    for (auto pathit = junction.GetConnectedPaths().begin(); pathit != junction.GetConnectedPaths().end(); pathit++) {
+      trex::TTRExPath* Path = *pathit;
       Paths.push_back(Path);
-      }*/
+      }
     // 1) Create dynamic size LogLikelihood matrix NxN with N = number of paths connected to junction
     double** LklhdMatrix = new double*[NbPath];
     for ( int i = 0;  i < NbPath; ++i){
@@ -291,7 +290,7 @@ void trex::TTPCLikelihoodMerge::MatchThroughJunctions(trex::TTRExPattern& patter
     // we can keep track of all the junctions.
     if (MatchFound){
       fMTracker.push_back( MatchingTracker(*(Paths[bestRow]), *(Paths[bestCol]), junction) );
-      atLeastOneMatch = true;
+      //atLeastOneMatch = true;
     } else {
       fMTracker.push_back( MatchingTracker(junction) );
     }
@@ -310,11 +309,13 @@ void trex::TTPCLikelihoodMerge::MatchThroughJunctions(trex::TTRExPattern& patter
 void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& outputVector){
 //*****************************************************************************
 
-//MDH TODO: Fixing this to make sure we get the right objects out and keep the old ones
-//that are needed is a big job. Need to make sure our new objects have all the necessary
-//bells and whistles...
-/*
-  std::vector< ND::TTPCPath* > MergedPaths;
+  /////// New pattern !!!!!!
+  outputVector.emplace_back();
+  trex::TTRExPattern* NewPattern = &(outputVector.back());
+  //TTPCT0 T0(ND::tpcCalibration().GetDefaultT0());
+
+
+  std::vector< trex::TTRExPath* > MergedPaths;
 
 
   // 1) Create the new merged paths by creating a chain of paths that need to be merged.
@@ -337,7 +338,7 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
       if( ! fMTracker[submt].NeedsMerging() )
         continue;
       for ( unsigned int i = 0; i < 2; i++){
-        if (fMTracker[submt].HasThisPath(NewPathEnds[i])){
+        if (fMTracker[submt].HasThisPath(*(NewPathEnds[i]))){
           // Find which of the two paths must be added to find the new end of the chain.
           for (unsigned int j = 0; j < 2; j++){
             trex::TTRExPath* PathB = fMTracker[submt].GetRawPath(j);
@@ -362,7 +363,9 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
       // First use both paths in the fMTracker entry
       if (!NewPath){
 
-        NewPath = TTPCUtils::MergePaths(fMTracker[submt].GetRawPath(0), fMTracker[submt].GetRawPath(1));
+	//MDH TODO: This call creates a new path! Need to manage persistence...
+	std::cout<<fMTracker[submt].GetRawPath(0)<<" "<<fMTracker[submt].GetRawPath(1)<<std::endl;
+        NewPath = TTPCUtils::MergePaths(*(fMTracker[submt].GetRawPath(0)), *(fMTracker[submt].GetRawPath(1)));
 
         for ( unsigned int i = 0; i < 2; i++){
           MergedPaths.push_back(fMTracker[submt].GetRawPath(i));
@@ -379,7 +382,8 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
         int tmpId = NewPath->GetId();
         trex::TTRExPath* prevPath = NewPath;
 
-        NewPath = TTPCUtils::MergePaths(NewPath, PathB);
+	//MDH TODO: See above
+        NewPath = TTPCUtils::MergePaths(*NewPath, *PathB);
 
         // Now this new path is at one end of NewPath
         MergedPaths.push_back(PathB);
@@ -389,7 +393,7 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
     for ( unsigned int submt = 0; submt < fMTracker.size(); submt++){
       if ( ! fMTracker[submt].IsMergingChainOk(Chain))
         continue;
-      fMTracker[submt].SetMergedPath(NewPath);
+      fMTracker[submt].SetMergedPath(*NewPath);
     }
 
     Chain++;
@@ -397,24 +401,22 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
 
   // 2) Recreate/copy the unmerged paths
   // Use map to keep match between old and new paths
-  std::map< ND::THandle<ND::TTPCPath>,ND::THandle<ND::TTPCPath> > PathCopy;
+  std::map< trex::TTRExPath*,trex::TTRExPath* > PathCopy;
   for (int pidx = 0; pidx < fNbPatternChained; pidx++){
-    for (ND::TReconObjectContainer::iterator constit = fPatternChain[pidx]->GetConstituents()->begin(); constit != fPatternChain[pidx]->GetConstituents()->end(); constit++) {
-      ND::THandle<ND::TTPCPath> tmpPath = (*constit);
-      if (!tmpPath)
-        continue;
+    for (auto constit = fPatternChain[pidx]->GetPaths().begin(); constit != fPatternChain[pidx]->GetPaths().end(); constit++) {
+      trex::TTRExPath* tmpPath = &*constit;
 
       // Only copy the unmerged ones
-      std::vector< ND::THandle<ND::TTPCPath> >::iterator it = find (MergedPaths.begin(), MergedPaths.end(), tmpPath);
+      auto it = find (MergedPaths.begin(), MergedPaths.end(), tmpPath);
       if (it == MergedPaths.end()){
-        ND::THandle<ND::TTPCPath> newPath( new TTPCPath(*tmpPath));
-        newPath->AddConstituent(tmpPath);
-        newPath->SetId(ND::tpcCalibration().GetPathId());
-        newPath->ClearJunctionIds();
+	NewPattern->GetPaths().emplace_back();
+	trex::TTRExPath* newPath=&(NewPattern->GetPaths().back());
+        //newPath->AddConstituent(tmpPath);
+	//MDH TODO: Do we need to set ID properly?
+	newPath->SetId(0);
+	//        newPath->SetId(ND::tpcCalibration().GetPathId());
+        //newPath->ClearJunctionIds();
         PathCopy[tmpPath] = newPath;
-        if ( ND::tpcDebug().LikelihoodMerge(DB_VVERBOSE))
-          std::cout<<"   + Old path Id "<<tmpPath->GetId()<<" copied into path Id "<<newPath->GetId()<<std::endl;
-
       }
     }
   }
@@ -423,67 +425,62 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
   int NbNewJunctions = 0;
   for ( unsigned int mt = 0; mt < fMTracker.size(); mt++){
     // Skip matching between two segments of a broken which doesn't have a junction.
-    ND::THandle<ND::TTPCJunction> tmpJunc= fMTracker[mt].GetJunction();
+    trex::TTRExJunction* tmpJunc= fMTracker[mt].GetJunction();
     if( !tmpJunc){
       continue;
     }
-    ND::THandle<ND::TTPCJunction> OldJunction = fMTracker[mt].GetJunction();
-    ND::THandle<ND::TTPCJunction> NewJunction( new ND::TTPCJunction(OldJunction->GetPosition()));
-    NewJunction->SetId(ND::tpcCalibration().GetJunctionId());
-    if ( ND::tpcDebug().LikelihoodMerge(DB_VVERBOSE))
-      std::cout<<"   + NewJunction Id "<<NewJunction->GetId()<<" replacing junction Id "<<OldJunction->GetId()<<std::endl;
+
+    NbNewJunctions++;
+    NewPattern->GetJunctions().emplace_back();
+    trex::TTRExJunction* NewJunction=&(NewPattern->GetJunctions().back());
+    trex::TTRExJunction* OldJunction = fMTracker[mt].GetJunction();
+
+    NewJunction->SetId(0);
+    //MDH TODO: See above
+    //    NewJunction->SetId(ND::tpcCalibration().GetJunctionId());
     // 3.a) Pass the hits
-    ND::THandle<ND::THitSelection> oldHits = OldJunction->GetHits();
-    ND::THitSelection *newHits = new ND::THitSelection();
-    for (ND::THitSelection::const_iterator tmpHit = oldHits->begin(); tmpHit != oldHits->end(); tmpHit++)
-      newHits->push_back(*tmpHit);
-    NewJunction->AddHits(newHits);
+    NewJunction->SetHits(OldJunction->GetHits());
     // 3.b) Copy the paths not merged so that we don't modify the version saved in the GasInteractionOutput
-    for (ND::TReconObjectContainer::iterator pathtit = OldJunction->GetConstituents()->begin(); pathtit != OldJunction->GetConstituents()->end(); pathtit++) {
-      ND::THandle<ND::TTPCPath> tmpPath = (*pathtit);
+    for (auto pathtit = OldJunction->GetConnectedPaths().begin(); pathtit != OldJunction->GetConnectedPaths().end(); pathtit++) {
+      trex::TTRExPath* tmpPath = (*pathtit);
         
-      std::vector< ND::THandle<ND::TTPCPath> >::iterator it = find (MergedPaths.begin(), MergedPaths.end(), tmpPath);
+      std::vector< trex::TTRExPath* >::iterator it = find (MergedPaths.begin(), MergedPaths.end(), tmpPath);
       if (it == MergedPaths.end()){
-        NewJunction->AddConstituent(PathCopy[tmpPath]);
+        NewJunction->AddConnectedPath(PathCopy[tmpPath]);
       }
     }
 
     // 3.b) Is this junction connected to a new merged path ?
-    std::vector< ND::THandle<ND::TTPCPath> > AlreadyAdded;
+    std::vector< trex::TTRExPath*> AlreadyAdded;
     for ( unsigned int submt = 0; submt < fMTracker.size(); submt++){
-      for (ND::TReconObjectContainer::iterator constit = OldJunction->GetConstituents()->begin(); constit != OldJunction->GetConstituents()->end(); constit++) {
-        ND::THandle<ND::TTPCPath> tmpPath = *constit;
-        if (fMTracker[submt].HasThisPath(*constit)){
-          std::vector< ND::THandle<ND::TTPCPath> >::iterator it = find (AlreadyAdded.begin(), AlreadyAdded.end(), fMTracker[submt].GetMergedPath());
+      for (auto constit = OldJunction->GetConnectedPaths().begin(); constit != OldJunction->GetConnectedPaths().end(); constit++) {
+	trex::TTRExPath* tmpPath = *constit;
+        if (fMTracker[submt].HasThisPath(**constit)){
+          auto it = find (AlreadyAdded.begin(), AlreadyAdded.end(), fMTracker[submt].GetMergedPath());
           if (it == AlreadyAdded.end()){
-            NewJunction->AddConstituent(fMTracker[submt].GetMergedPath());
+            NewJunction->AddConnectedPath(fMTracker[submt].GetMergedPath());
             AlreadyAdded.push_back(fMTracker[submt].GetMergedPath());
-            if ( ND::tpcDebug().LikelihoodMerge(DB_VVERBOSE))
-              std::cout<<"    + Add merged path Id "<<fMTracker[submt].GetMergedPath()->GetId()<<std::endl;
           }
         }
       }
     }
-
-    NbNewJunctions++;
-    NewPattern->AddJunction(NewJunction);
   }
 
-  /////// New pattern !!!!!!
-  outputVector.emplace_back();
-  ND::THandle<ND::TTPCPattern> NewPattern = ND::THandle<ND::TTPCPattern>( new ND::TTPCPattern() );
-  TTPCT0 T0(ND::tpcCalibration().GetDefaultT0());
-
-  // If there are new junctions, we need to create another pattern for a clean track
+  // If there are no new junctions, we need to create another pattern for a clean track
   if (!NbNewJunctions) {
-    NewPattern = ND::THandle<ND::TTPCPattern>( new ND::TTPCPattern(fMTracker[0].GetMergedPath()) );
+    TTRExPath pathCopy=*(fMTracker[0].GetMergedPath());
+    outputVector.pop_back();
+    outputVector.emplace_back();
+    NewPattern = &(outputVector.back());
+    NewPattern->GetPaths().push_back(pathCopy);
   }
   
-  NewPattern->SetId(ND::tpcCalibration().GetPatternId());
-  NewPattern->InitialSetup();
-  NewPattern->SetT0(T0);
+  //MDH TODO: Do we need to set the pattern ID to something nontrivial?
+  //  NewPattern->SetId(ND::tpcCalibration().GetPatternId());
+  NewPattern->SetId(0);
+  //  NewPattern->InitialSetup();
+  //NewPattern->SetT0(0);
 
-*/
 }
 
 

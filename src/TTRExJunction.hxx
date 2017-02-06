@@ -27,7 +27,7 @@ namespace trex{
     void SetId(unsigned int theId){fId=theId;}
     unsigned int GetId(){return fId;}
         
-    std::vector<trex::TTPCHitPad*> GetHits(){
+    std::vector<trex::TTPCHitPad*>& GetHits(){
       return fHits;
     }
     
