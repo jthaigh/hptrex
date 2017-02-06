@@ -210,14 +210,28 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   std::cout<<"After sanity filter have "<<truePaths.size()<<" groups"<<std::endl;
   // associate any remaining unused hits to junctions where possible
   trex::TTPCVolGroup unusedHits(fLayout);
+  
+  std::cout << "DEBUGGING: Accessing unused Hits" << std::endl;
+
   fVolGroupMan->GetUnusedHits(truePaths,unusedHits);
   fVolGroupMan->AssociateUnusedWithJunctions(unusedHits, truePaths);
+
+  std::cout << "DEBUGGING: Resetting vertex status" << std::endl;
 
   // reset vertex status based on how many paths a junction is connected to
   fVolGroupMan->ResetVertexStatuses(truePaths);
 
+  std::cout << "DEBUGGING: moving truePaths to fTracks" << std::endl;
+  
+
   fTracks=std::move(truePaths);
+
+  std::cout << "DEBUGGING: checking has valid paths" << std::endl;
+
   fHasValidPaths = fTracks.size() > 0;
+
+
+  std::cout << "DEBUGGING: Produce Containers has run!" << std::endl;
 }
 
 //trex::TTPCPattern* trex::TTPCTRExPatSubAlgorithm::GetPattern(){
@@ -229,11 +243,18 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
 
 void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex::THitSelection* used){
 
+  std::cout << "DEBUGGING: 1" << std::endl;
+
   std::vector< std::vector<unsigned int> > junctionsToPathsMap;
   std::vector<trex::TTRExPath>& paths=output.GetPaths();
   std::vector<trex::TTRExJunction>& juncts=output.GetJunctions();
 
+
+  std::cout << "DEBUGGING: 2" << std::endl;
+
   std::vector< trex::TTPCVolGroup* > junctionGroups;
+
+  std::cout << "DEBUGGING: 3" << std::endl;
 
   for(std::vector< trex::TTPCOrderedVolGroup >::iterator trackIt = fTracks.begin(); trackIt != fTracks.end(); ++trackIt){
     trex::TTPCOrderedVolGroup& track = *trackIt;
@@ -253,6 +274,8 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
     std::vector< trex::TTPCVolGroup* > pathJunctionGroups;
     if(track.HasBackHits()) pathJunctionGroups.push_back(&(track.GetBackHits()));
     if(track.HasFrontHits()) pathJunctionGroups.push_back(&(track.GetFrontHits()));
+    
+    std::cout << "DEBUGGING: 4" << std::endl;
 
     // determine if junction candidate has already been found and create a group for it if it hasn't
     for(std::vector< trex::TTPCVolGroup* >::iterator junctionGroupIt = pathJunctionGroups.begin(); junctionGroupIt != pathJunctionGroups.end(); ++junctionGroupIt){
@@ -261,6 +284,8 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
 
       int iMax = junctionGroups.size();
       for(int i=0; i<iMax; i++){
+
+	std::cout << "DEBUGGING: 5" << std::endl;
 
         // if the junction has the same id as the temporary, add this path to it
         if(junctionGroup->GetID() == junctionGroups[i]->GetID()){
@@ -275,6 +300,8 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
             };
           };
           if(!pathInJunction) junctionsToPathsMap[i].push_back(paths.size()-1);
+
+	  std::cout << "DEBUGGING: 5" << std::endl;
 
           found = true;
         };
@@ -303,16 +330,42 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
     };
   };
 
+  std::cout << "DEBUGGING: 6" << std::endl;
+
   // Connect Paths and Junctions together according to the Map
   for(int i=0; i<junctionsToPathsMap.size(); ++i){
-    if(junctionsToPathsMap[i].size()<2) continue;
-       juncts.emplace_back(junctionGroups[i]->GetHits());
+    std::cout << "bug 1" << std::endl;
+    
+
+    std::cout << "Size of Map " << junctionsToPathsMap.size() << " Compared to Size of JunctionGoups " << junctionGroups.size() << std::endl;
+
+
+    //WHY?
+    //if(junctionsToPathsMap[i].size()<2) continue;
+    
+    std::cout << "bug 2" << std::endl;
+    
+    juncts.emplace_back(junctionGroups[i]->GetHits());
+
+    std::cout << "bug 3" << std::endl;
+
     for(int j=0; j<junctionsToPathsMap[i].size(); ++j){
+
+      std::cout << "bug 4" << std::endl;
       int pathIndex = junctionsToPathsMap[i][j];
+      std::cout << "bug 5" << std::endl;
+
+      std::cout << "Length of path: " << paths.size() << " Compared to path Index " << pathIndex << std::endl;
+      std::cout << "Length of juncts: " << juncts.size() << " Compared to junct Index " << i << std::endl;
+
       ConnectJunctionAndPath(juncts[i], paths[pathIndex]);
+      std::cout << "bug 6" << std::endl;
+      
     }
+    std::cout << "bug 7" << std::endl;
   }
 
+  std::cout << "DEBUGGING: 7" << std::endl;
 
   std::cout<<"Built a pattern..."<<std::endl;
   std::cout<<"  from "<<fHitMap.size()<<" available hits"<<std::endl;

@@ -173,8 +173,12 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algIt = fSubAlgorithms.begin(); algIt != fSubAlgorithms.end(); ++algIt){
     trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
     alg.ProduceContainers();
+
+    std::cout << "DEBUGGING: THIS IS WHERE STUFF GOES BAD" << std::endl;
     patterns.emplace_back();
+    std::cout << "ARE WE REACHING THIS?" << std::endl;
     alg.ProducePattern(patterns.back());
+    std::cout << "PATTERNS HAVE BEEN PRODUCED" << std::endl;
   };
 
   //std::vector<TGraph> xyGraphs;
