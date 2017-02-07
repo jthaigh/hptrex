@@ -97,8 +97,12 @@ int main(int argc, char** argv){
     //	continue;
     //}
 
+    std::cout<<"Pattern recognition produced "<<event->GetPatterns().size()<<" patterns"<<std::endl;
+
     for (auto pattern = event->GetPatterns().begin(); pattern != event->GetPatterns().end(); pattern++) {
+      std::cout<<"Running seeding on a pattern"<<std::endl;
       seedingAlgo.Process(*pattern);
+      std::cout<<"Running tracking on a pattern"<<std::endl;
       trackingAlgo.Process(*pattern);
     }
 

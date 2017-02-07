@@ -37,8 +37,13 @@ void trex::TTPCSeeding::Process(trex::TTRExPattern& Pattern){
 void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
 //*****************************************************************************
 
+  std::cout<<"Finding seed for a path..."<<std::endl;
+
   std::vector<TTRExHVCluster*>& HVclu = thePath.GetClusters();
-  if( !HVclu.size() ) return;
+  if( !HVclu.size() ) {
+    std::cout<<"  No clusters!"<<std::endl;
+    return;
+  }
 
   PrepareSeeding(HVclu);
   // Do we have enough valid clusters to get a decent seed ?
@@ -50,7 +55,7 @@ void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
 
   if (NbValidPlanes < 4 ){
     // TODO: Somehow save the fact that we tried to make a seed but failed.
-
+  std::cout<<"  Not enough valid planes!"<<std::endl;
     thePath.SetHasRunFit(true);
     return;
   }
@@ -60,7 +65,9 @@ void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
   std::vector<double> R2Helix;
   double R2Error = R2(HVclu, R2Helix);
   bool RiemannIsBad = ( std::isnan(RiemannError) || RiemannError > 1.e6); 
-  bool R2IsBad = ( std::isnan(R2Error) || R2Error > 1.e6); 
+  bool R2IsBad = ( std::isnan(R2Error) || R2Error > 1.e6);
+  std::cout<<"  Riemann is bad="<<RiemannIsBad<<std::endl; 
+  std::cout<<"  R2 is bad="<<R2IsBad<<std::endl; 
   if( RiemannIsBad && R2IsBad ) {
     // TODO: Save "seeding failed" in path ?
     thePath.SetHasRunFit(true);
@@ -78,6 +85,7 @@ void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
 
   if( ! IsResultValid(HVclu, frontSeedState) ) {
     // TODO: Save "seeding failed" in path ?
+    std::cout<<"  Result for front seed state is bad"<<std::endl; 
     thePath.SetHasRunFit(true);
     return;
   }
@@ -112,7 +120,7 @@ void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
   backSeedState = propagState;
   
   thePath.SaveSeedStates(frontSeedState, backSeedState);
-
+  std::cout<<"  Saving seed states!"<<RiemannIsBad<<std::endl; 
 }
 
 
@@ -236,7 +244,8 @@ void trex::TTPCSeeding::PrepareSeeding( std::vector<trex::TTRExHVCluster*>& HVcl
 // R2 (3 point seeding method)
 //*****************************************************************************
 double trex::TTPCSeeding::R2( std::vector<trex::TTRExHVCluster*>& HVclu, std::vector<double>& Helix){
-  
+
+  std::cout<<" R2 method: "<<std::endl;  
   double dy12 = fYfirst-fYmid; 
   double ay12 = fYfirst+fYmid; 
   double dy23 = fYmid-fYlast; 
@@ -279,12 +288,20 @@ double trex::TTPCSeeding::R2( std::vector<trex::TTRExHVCluster*>& HVclu, std::ve
   double R2y = fYfirst;
   double R2z = fZfirst;
 
+  double yzLength=fabs((phiLast-phiFirst)/R2rho);
+  double xLength=fXlast-fXfirst;
+  
+  double renorm=1./TMath::Sqrt(yzLength*yzLength+xLength*xLength);
+
   Helix.push_back(R2x);
   Helix.push_back(R2y);
   Helix.push_back(R2z);
-  Helix.push_back(0.0);
-  Helix.push_back(TMath::Sin(R2theta));
-  Helix.push_back(TMath::Cos(R2theta));
+  Helix.push_back(xLength*renorm);
+  Helix.push_back(TMath::Sin(R2theta)*yzLength*renorm);
+  Helix.push_back(TMath::Cos(R2theta)*yzLength*renorm);
+
+  std::cout<<"  (x,y,z)=("<<R2x<<","<<R2y<<","<<R2z<<")"<<std::endl;
+  std::cout<<"  theta="<<R2theta<<", rho="<<R2rho<<std::endl;
 
   TVector3 Pos(Helix[0], Helix[1], Helix[2]);
   TVector3 Dir(Helix[3], Helix[4], Helix[5]);
@@ -411,12 +428,17 @@ double trex::TTPCSeeding::Riemann( std::vector<TTRExHVCluster*>& HVclu, std::vec
   double Riey = fYfirst;
   double Riez = fZfirst;
 
+  double yzLength=fabs((phiLast-phiFirst)/Rierho);
+  double xLength=fXlast-fXfirst;
+  
+  double renorm=1./TMath::Sqrt(yzLength*yzLength+xLength*xLength);
+
   Helix.push_back(Riex);
   Helix.push_back(Riey);
   Helix.push_back(Riez);
-  Helix.push_back(0.0);
-  Helix.push_back(TMath::Sin(Rietheta));
-  Helix.push_back(TMath::Cos(Rietheta));
+  Helix.push_back(xLength*renorm);
+  Helix.push_back(TMath::Sin(Rietheta)*yzLength*renorm);
+  Helix.push_back(TMath::Cos(Rietheta)*yzLength*renorm);
 
   TVector3 Pos(Helix[0], Helix[1], Helix[2]);
   TVector3 Dir(Helix[3], Helix[4], Helix[5]);
@@ -495,7 +517,7 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster*>& HVcl
     if( !Cluster.isOkForSeed() ) continue;
     prevState = propagState;
     double length = 0.0;
-    if (!hp.FullPropagateToHVCluster(Cluster,&length)){
+    if (!hp.PropagateToHVCluster(Cluster,&length)){
       continue;
     }
     hp.GetHelixPosDirQoP(propagState);

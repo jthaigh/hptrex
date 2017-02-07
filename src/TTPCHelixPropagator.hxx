@@ -41,7 +41,7 @@ public:
     depending on the topology of the track, you may get the wrong position
     on the helix.
   */
-  bool PropagateToHVCluster(trex::TTRExHVCluster& Cluster);
+  bool PropagateToHVCluster(trex::TTRExHVCluster& Cluster,double* length=0);
 
   bool FullPropagateToHVCluster(trex::TTRExHVCluster& Cluster,double* length=0);
 
