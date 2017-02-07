@@ -26,6 +26,8 @@ void trex::TTPCLikelihoodMatch::Process( std::vector<trex::TTRExPattern>& allPat
   std::cout << "NOW ATTEMPTING TO MATCH ACROSS JUNCTIONS" << std::endl;
 
   for (auto patit=allPatterns.begin(); patit != allPatterns.end(); patit++) {
+    
+    std::cout << "We're in the matching Loop" << std::endl;
     trex::TTRExPattern& Pattern=*patit;
     if ( Pattern.GetPaths().size() != 1)
       MatchAcrossJunctions(Pattern);
@@ -49,15 +51,26 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
 
 
     //PD: COULD SIMPLIFY THIS
+    /*
     std::vector< trex::TTRExPath* > ConnectedPaths;
     for (auto pth = Paths.begin(); pth != Paths.end(); pth++) {
       trex::TTRExPath& path = *pth;
       if(junction.IsPathConnected(path.GetId()))
 	ConnectedPaths.push_back(&path);
     }
+    */
+
+
+    std::vector< trex::TTRExPath* > ConnectedPaths = junction.GetConnectedPaths();
 
 
     std::cout << "Have found " << ConnectedPaths.size() << " connected Paths" << std::endl;
+
+    for(int p=0; p<ConnectedPaths.size(); ++p){
+
+      std::cout << "Path has ID: " << ConnectedPaths[p]->GetId() << std::endl;
+
+    }
 
     //
 
@@ -69,14 +82,18 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
       coPthB = coPthA + 1;
       for (; coPthB != ConnectedPaths.end(); coPthB++) {
 	trex::TTRExPath& pathB = **coPthB;
+	
+	std::cout << "PROPAGATING PATHS" << std::endl;
+
+
 	// Propagate A to B
 	if (pathA.HasFitState()){
 	  MatchPathsAtJunction(pathA, pathB, junction.GetId());
-	}
+	}else{std::cout << "Path A does not have Fit State" << std::endl;}
 	// Propagate B to A
 	if (pathB.HasFitState()){
 	  MatchPathsAtJunction(pathB, pathA, junction.GetId());
-	}
+	}else{std::cout << "Path B does not have Fit State" << std::endl;}
       } 
     }
   } 
@@ -107,6 +124,7 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
   } else if ( Path1.GetConnectedEnd(JunctionId) == 1){
     propagState = Path1.GetBackFitState();
   } else {
+    std::cout << "THERE WAS A PROBLEM" << std::endl;
     // PROBLEM. Don't do anything.
     return;
     }
@@ -117,6 +135,7 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
   } else if ( Path2.GetConnectedEnd(JunctionId) == 1) {
     targetCluPtr = *(Path2.GetClusters().rbegin());
   } else {
+    std::cout << "THERE WAS ANOTHER PROBLEM" << std::endl;
     // PROBLEM. Don't do anything.
     return;
     }
@@ -149,6 +168,8 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
     }
   }
   Path1.SaveMatchedPath(Path2.GetId(), Likelihood);
+
+  std::cout << "MATCH PATHS AT JUNCTION RAN SUCCESSFULLY" << std::endl;
 
 }
 

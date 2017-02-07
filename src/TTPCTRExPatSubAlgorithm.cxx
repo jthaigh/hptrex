@@ -288,11 +288,20 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
   };
 
   // Connect Paths and Junctions together according to the Map
+  int junctIndex = 0;
   for(int i=0; i<junctionsToPathsMap.size(); ++i){
     if(junctionsToPathsMap[i].size()<2) continue;
+    junctIndex += 1;
     juncts.emplace_back(junctionGroups[i]->GetHits());
     for(int pathIndex=0;pathIndex<junctionsToPathsMap[i].size();++pathIndex){
       ConnectJunctionAndPath(juncts.back(), paths[pathIndex]);
+      //Cantor's formula for unique IDs
+      int uniqueIdPath = 0.5*(junctIndex+1+pathIndex+1)*(junctIndex+1+pathIndex+1+1)+(pathIndex+1); 
+      double uniqueIdJunct = 0.5*(junctIndex+1+pathIndex+1)*(junctIndex+1+pathIndex+1+1)+(junctIndex+1);
+      if(paths[pathIndex].GetId()==0){
+      paths[pathIndex].SetId((int)uniqueIdPath);
+      }
+      juncts.back().SetId((int)uniqueIdJunct);
     }
   }
 
