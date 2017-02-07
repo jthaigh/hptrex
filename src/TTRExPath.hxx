@@ -59,9 +59,9 @@ namespace trex{
     
   public:
     
-    TTRExPath() : fClusters(0), fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false),fHasFitState(false){};
+    TTRExPath() : fClusters(0), fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false),fHasFitState(false), fId(0){};
     
-    TTRExPath(std::vector<trex::TTRExHVCluster*> clusters) : fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false),fHasFitState(false){
+    TTRExPath(std::vector<trex::TTRExHVCluster*> clusters) : fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false),fHasFitState(false), fId(0){
       fClusters = clusters;
     }
 
@@ -187,7 +187,7 @@ namespace trex{
     
   private:
     
-    unsigned int fId;
+    unsigned int fId = 0;
     
 
     std::vector<trex::TTRExHVCluster*>  fClusters;
