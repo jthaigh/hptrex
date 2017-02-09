@@ -94,6 +94,8 @@ int main(int argc, char** argv){
     }
     
     std::cout << "Event " << i << " actually contains something: " << event->GetPatterns().size() << std::endl;
+
+    if(event->GetPatterns().size()!=0){std::cout << "EVENT DOES CONTAIN SOMETHING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl << std::endl;}
     
    
     for(int k=0; k<event->GetPatterns().size(); ++k){
@@ -104,7 +106,7 @@ int main(int argc, char** argv){
 	  
 	  std::cout << "PATH hits have content: " << std::endl;
 	  std::cout << "____________________________" << std::endl;
-	  event->GetPatterns().at(k).GetPaths().at(l).at(m).Print();
+	  event->GetPatterns().at(k).GetPaths().at(l).at(m)->Print();
 	  std::cout << "____________________________" << std::endl;
 	  
 	}
@@ -120,7 +122,7 @@ int main(int argc, char** argv){
 	  
 	  std::cout << "JUNCTION hits have content: " << std::endl;
 	  std::cout << "____________________________" << std::endl;
-	  event->GetPatterns().at(k).GetJunctions().at(l).at(m).Print();
+	  event->GetPatterns().at(k).GetJunctions().at(l).at(m)->Print();
 	  std::cout << "____________________________" << std::endl;
 	}
       }

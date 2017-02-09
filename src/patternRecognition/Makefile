@@ -15,7 +15,8 @@ ROOT_CFLAGS = $(shell root-config --cflags)
 #=========================================================
 # Compile
 #=========================================================
-
+all: RunTRExRecon_CCD.exe RunTRExRecon.exe
+ 
 RunTRExRecon_CCD.exe: libpatrec.so RunTRExRecon_CCD.cxx
 	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -lpatrec -o RunTRExRecon_CCD.exe RunTRExRecon_CCD.cxx
 

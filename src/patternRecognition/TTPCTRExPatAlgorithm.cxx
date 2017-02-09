@@ -292,7 +292,7 @@ for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
 
 	//std::cout << "Managed to get into inner loop" << std::endl;
 
-	//std::cout << "Path Hit Pad is accessible " << (*iHit)->Y() << std::endl;
+	std::cout << "Path Hit Pad is accessible " << (*iHit)->Y() << std::endl;
 	path.push_back(*iHit);
 	
 
@@ -320,7 +320,7 @@ for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
       for(auto iHit=iJunct->begin(); iHit!=iJunct->end(); ++iHit) {
 	
 	std::cout << "Managed to get into inner loop" << std::endl;
-	std::cout << "Junction Hit Pad is accessible " << (*iHit)->Print() << std::endl;
+	std::cout << "Junction Hit Pad is accessible " << (*iHit)->Y() << std::endl;
 	junction.push_back(*iHit);
 	
 	//fill usedTREx
@@ -349,6 +349,13 @@ for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
   
   if(patternContainer.size()){
   event->SetPatterns(patternContainer);
+  
+  /*
+  if(event->GetPatterns().size()!=0){
+    std::cout << "SETTING PATTERNS WORKS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+    }*/
+
+  
   std::cout << "Have created Event" << std::endl;
   patternContainer.clear();
   }
@@ -366,12 +373,12 @@ for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
     
     std::cout << "Vector of unused Hits contains something: " << unused->size() << std::endl;
     
-    }
-
+  }
+  
   std::cout << "Vector of unused Hits contains something: " << unused->size() << std::endl;        
   
-  event->SetPatterns(patternContainer);
-
+  //event->SetPatterns(patternContainer);
+  
   std::vector<int> strangePDG;
 
   std::map<int,int> truthColors;
@@ -521,8 +528,8 @@ for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
 
     sprintf(buf,"evt_%d_xy.pdf",iEvt);
     
-    cxy.SaveAs(buf);
-    cxy.Write();
+    //cxy.SaveAs(buf);
+    //cxy.Write();
     
     sprintf(buf,"evt_%d_xz",iEvt);
     TCanvas cxz(buf,buf);
@@ -539,9 +546,9 @@ for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
     }
 
     sprintf(buf,"evt_%d_xz.pdf",iEvt);    
-    cxz.SaveAs(buf);
+    //cxz.SaveAs(buf);
     
-    cxz.Write();
+    //cxz.Write();
    
   
   

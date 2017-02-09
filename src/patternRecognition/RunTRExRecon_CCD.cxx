@@ -152,7 +152,7 @@ int main(int argc, char** argv){
   fOut.Write();
   fOut.Close();
   
-  //fFile->cd();
+  fFile->cd();
   
   std::cout << "Writing Tree to File" << std::endl;
   fReconTree->Write();
