@@ -54,10 +54,10 @@ int main(int argc, char** argv){
   //TTree * fReconTree=(TTree*)loader.GetReconTree();
   
   std::vector<trex::TTPCHitPad> * unused;
-  trex::TTRExEvent * event;
+  trex::WritableEvent * outEvent=0;
 
-  fReconTree->Branch("unusedHits", &unused, 64000, 1);
-  fReconTree->Branch("event", &event, 64000, 1);
+  fReconTree->Branch("unusedHits", &unused);//, 64000, 1);
+  fReconTree->Branch("event", &outEvent);//, 64000, 1);
 
   for(int i=0;i<2000;++i){//loader.GetNEvents();++i){
     
@@ -68,7 +68,7 @@ int main(int argc, char** argv){
     std::vector<trex::TTPCHitPad*> unusedHits;
     std::vector<TTrueHit*>& trueHits = loader.GetTrueHits();
 
-    event = new trex::TTRExEvent();
+    trex::TTRExEvent event;
     unused = new std::vector<trex::TTPCHitPad>();
     
     std::cout << "True hits contains: " << trueHits.size() << " entries. "<< std::endl;
@@ -77,7 +77,7 @@ int main(int argc, char** argv){
     
     trex::TTPCTRExPatAlgorithm trexAlg(&fOut);
     std::cout<<"EVERYTHING LOADED! - NOW ATTEMPTING TO PROCESS"<<std::endl;
-    trexAlg.Process(hitPads,usedHits,unused,trueHits,event); 
+    trexAlg.Process(hitPads,usedHits,unused,trueHits,&event); 
           
     //}
     
@@ -93,20 +93,20 @@ int main(int argc, char** argv){
 
     }
     
-    std::cout << "Event " << i << " actually contains something: " << event->GetPatterns().size() << std::endl;
+    std::cout << "Event " << i << " actually contains something: " << event.GetPatterns().size() << std::endl;
 
-    if(event->GetPatterns().size()!=0){std::cout << "EVENT DOES CONTAIN SOMETHING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl << std::endl;}
+    if(event.GetPatterns().size()!=0){std::cout << "EVENT DOES CONTAIN SOMETHING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl << std::endl;}
     
    
-    for(int k=0; k<event->GetPatterns().size(); ++k){
+    for(int k=0; k<event.GetPatterns().size(); ++k){
       
-      for(int l=0; l<event->GetPatterns().at(k).GetPaths().size(); ++l){
+      for(int l=0; l<event.GetPatterns().at(k).GetPaths().size(); ++l){
 	
-	for (int m=0; m<event->GetPatterns().at(k).GetPaths().at(l).size(); ++m){
+	for (int m=0; m<event.GetPatterns().at(k).GetPaths().at(l).size(); ++m){
 	  
 	  std::cout << "PATH hits have content: " << std::endl;
 	  std::cout << "____________________________" << std::endl;
-	  event->GetPatterns().at(k).GetPaths().at(l).at(m)->Print();
+	  event.GetPatterns().at(k).GetPaths().at(l).at(m)->Print();
 	  std::cout << "____________________________" << std::endl;
 	  
 	}
@@ -114,15 +114,15 @@ int main(int argc, char** argv){
     }
     
     
-    for(int k=0; k<event->GetPatterns().size(); ++k){
+    for(int k=0; k<event.GetPatterns().size(); ++k){
       
-      for(int l=0; l<event->GetPatterns().at(k).GetJunctions().size(); ++l){
+      for(int l=0; l<event.GetPatterns().at(k).GetJunctions().size(); ++l){
 	
-	for (int m=0; m<event->GetPatterns().at(k).GetJunctions().at(l).size(); ++m){
+	for (int m=0; m<event.GetPatterns().at(k).GetJunctions().at(l).size(); ++m){
 	  
 	  std::cout << "JUNCTION hits have content: " << std::endl;
 	  std::cout << "____________________________" << std::endl;
-	  event->GetPatterns().at(k).GetJunctions().at(l).at(m)->Print();
+	  event.GetPatterns().at(k).GetJunctions().at(l).at(m)->Print();
 	  std::cout << "____________________________" << std::endl;
 	}
       }
@@ -143,10 +143,9 @@ int main(int argc, char** argv){
     std::cout << "unused Hits got deleted" << std::endl;
     }*/
     
-
+    outEvent->FillFromEvent(event);
     fReconTree->Fill();
     
-    delete event;
     delete unused;        
     
   }

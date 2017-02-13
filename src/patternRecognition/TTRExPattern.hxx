@@ -18,7 +18,7 @@ namespace trex{
       fPatterns=patterns;
     };
 
-    std::vector<trex::TTRExPattern> GetPatterns(){
+    std::vector<trex::TTRExPattern>& GetPatterns(){
       return fPatterns;
     }
 
@@ -32,7 +32,6 @@ namespace trex{
       fPatterns.clear();
 
     }
-
     
   private:
     
@@ -55,11 +54,11 @@ namespace trex{
 	};
 
 
-      std::vector<std::vector<trex::TTPCHitPad*> > GetPaths(){
+      std::vector<std::vector<trex::TTPCHitPad*> >& GetPaths(){
 	return fPaths;
       }
 
-      std::vector<std::vector<trex::TTPCHitPad*> > GetJunctions(){
+      std::vector<std::vector<trex::TTPCHitPad*> >& GetJunctions(){
 	return fJunctions;
       }
 
@@ -117,10 +116,35 @@ namespace trex{
 	std::vector<std::vector<trex::TTPCHitPad*> > fPaths;
 	std::vector<std::vector<trex::TTPCHitPad*> > fJunctions;
 	
-	
     };
-	
-	
+
+  struct WritablePattern{
+    std::vector<std::vector<trex::TTPCHitPad> > Paths;
+    std::vector<std::vector<trex::TTPCHitPad> > Junctions;
+  };
+
+  struct WritableEvent{
+    std::vector<WritablePattern> patterns;
+
+    void FillFromEvent(trex::TTRExEvent& evt){
+      patterns.clear();
+      for(auto iPat=evt.GetPatterns().begin();iPat!=evt.GetPatterns().end();++iPat){
+	patterns.emplace_back();
+	for(auto iPath=iPat->GetPaths().begin();iPath!=iPat->GetPaths().end();++iPath){
+	  patterns.back().Paths.emplace_back();
+	  for(auto iHit=iPath->begin();iHit!=iPath->end();++iHit)
+	    patterns.back().Paths.back().emplace_back(**iHit);
+	}
+	for(auto iJunct=iPat->GetJunctions().begin();iJunct!=iPat->GetJunctions().end();++iJunct){
+	  patterns.back().Junctions.emplace_back();
+	  for(auto iHit=iJunct->begin();iHit!=iJunct->end();++iHit)
+	    patterns.back().Junctions.back().emplace_back(**iHit);
+	}
+      }
+    }
+  };
+
+
 }
 
       
