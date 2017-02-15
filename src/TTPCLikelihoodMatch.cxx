@@ -27,7 +27,7 @@ void trex::TTPCLikelihoodMatch::Process( std::vector<trex::TTRExPattern>& allPat
 
   for (auto patit=allPatterns.begin(); patit != allPatterns.end(); patit++) {
     
-    std::cout << "We're in the matching Loop" << std::endl;
+    std::cout << "NEXT PATTERN: We're in the matching Loop" << std::endl;
     trex::TTRExPattern& Pattern=*patit;
     if ( Pattern.GetPaths().size() != 1)
       MatchAcrossJunctions(Pattern);

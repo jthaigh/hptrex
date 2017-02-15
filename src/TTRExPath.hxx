@@ -5,6 +5,7 @@
 #include "TTRExJunction.hxx"
 #include "TTPCHitPad.hxx"
 #include "TTRExHVCluster.hxx"
+#include "TTPCHelixPropagator.hxx"
 
 namespace trex{
   
@@ -108,7 +109,7 @@ namespace trex{
 
 
     //Store the fit result. This method should probably doing a lot more!
-    void SaveFitState(TTPCPathFitResults& results){fHasFitState=true;fFitState=results;}
+    void SaveFitState(TTPCPathFitResults& results);
     
     bool HasFitState(){return fHasFitState;}
     

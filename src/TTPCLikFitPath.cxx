@@ -353,6 +353,8 @@ void trex::TTPCLikFitPath::PrepareClustersForFitting(std::vector<trex::TTRExHVCl
     
   }
 
+  std::cout << "Have selected " << outputClu.size() << "Clusters for TRACKING" << std::endl;
+
 }
 
 

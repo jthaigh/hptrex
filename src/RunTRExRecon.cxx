@@ -47,7 +47,8 @@ int main(int argc, char** argv){
   sprintf(name, "TRExRecon_%s", newName);
   std:: cout << "New file will be called: " << name << std::endl;
   
-  TFile * fFile = new TFile(name, "RECREATE"); 
+  //for now:
+  //TFile * fFile = new TFile(name, "RECREATE"); 
 
   //string inputFile = argv[1];
   //TFile * fFile = new TFile(inputFile.c_str(), "UPDATE");
@@ -56,7 +57,7 @@ int main(int argc, char** argv){
 
 
   TTree * fReconTree = new TTree("TPCRecon", "TPCRecon");
-  fReconTree->SetDirectory(fFile);
+  //fReconTree->SetDirectory(fFile);
   //TTree * fReconTree=(TTree*)loader.GetReconTree();
 
 
@@ -67,7 +68,7 @@ int main(int argc, char** argv){
   fReconTree->Branch("unusedHits", &unused, 64000, 1);
   fReconTree->Branch("event", &event, 64000, 1);
 
-  for(int i=0;i<loader.GetNEvents();++i){
+  for(int i=19;i<20;++i){ // loader.GetNEvents();++i){
     
     loader.LoadEvent(i);
     

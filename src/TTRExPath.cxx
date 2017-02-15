@@ -42,6 +42,48 @@ void trex::TTRExPath::SaveFitState(std::vector<double> inState){
 }
 
 
+void trex::TTRExPath::SaveFitState(TTPCPathFitResults &result){
+  
+  std::vector<double> localState = result.FitState;
+  
+  std::vector<trex::TTRExHVCluster*>::iterator tmpTRExClu = this->GetClusters().begin();
+  
+  bool frontStateDone = false;
+  
+  for ( ; tmpTRExClu != this->GetClusters().end(); tmpTRExClu++){
+
+    trex::TTRExHVCluster* Clu = *tmpTRExClu;
+
+    trex::TTPCHelixPropagator& hp=trex::helixPropagator();
+    hp.InitHelixPosDirQoP(localState, Clu->IsVertical());
+    bool ok = hp.PropagateToHVCluster(*Clu);
+    
+    if (!ok){
+      continue;
+    }
+    
+    hp.GetHelixPosDirQoP(localState);
+    
+    if(!frontStateDone){
+      frontStateDone = true;
+      fFrontFitState = localState; 
+    }
+    
+    fBackFitState = localState;
+    
+
+  }
+  
+  if (!frontStateDone){
+    fHasFitState = false;
+    return;
+  }
+  
+  fFitState = result;
+  fHasFitState = true;
+}
+
+
 //Alternative way of testing for fit state...might not need this
 /*bool trex::TTRExPath::HasFitState(){
   return (this->HasRunFit() && this->HasLikelihoodFit());

@@ -294,14 +294,14 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
     junctIndex += 1;
     juncts.emplace_back(junctionGroups[i]->GetHits());
     for(int pathIndex=0;pathIndex<junctionsToPathsMap[i].size();++pathIndex){
-      ConnectJunctionAndPath(juncts.back(), paths[pathIndex]);
       //Cantor's formula for unique IDs
-      int uniqueIdPath = 0.5*(junctIndex+1+pathIndex+1)*(junctIndex+1+pathIndex+1+1)+(pathIndex+1); 
-      double uniqueIdJunct = 0.5*(junctIndex+1+pathIndex+1)*(junctIndex+1+pathIndex+1+1)+(junctIndex+1);
+      int uniqueIdPath = ((junctIndex+1+pathIndex+1)*(junctIndex+1+pathIndex+1+1))/2+(pathIndex+1); 
+      int uniqueIdJunct = ((junctIndex+1+pathIndex+1)*(junctIndex+1+pathIndex+1+1))/2+(junctIndex+1);
       if(paths[pathIndex].GetId()==0){
       paths[pathIndex].SetId((int)uniqueIdPath);
       }
       juncts.back().SetId((int)uniqueIdJunct);
+      ConnectJunctionAndPath(juncts.back(), paths[pathIndex]);
     }
   }
 
