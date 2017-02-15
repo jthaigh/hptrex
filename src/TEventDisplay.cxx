@@ -179,8 +179,6 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
   
   }
   
-  //std::cout << "FOUND " << trueTrackCount << " TRUE TRACKS!" << std::endl;
-  
   if(strangePDG.size()!=0){
     std::cout << "STRANGE PDGS FOUND!!!" << std::endl;
     for(auto istrange=strangePDG.begin(); istrange!=strangePDG.end();++istrange){
@@ -226,16 +224,11 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
     
     dummyxy.Draw();
 
-    std::cout<<"Dummy XY has coordinates "<<layout.GetMinPos().X()-10.<<", "<<layout.GetMaxPos().X()+10.<<", "<<
-      layout.GetMinPos().Y()-10.<<", "<<layout.GetMaxPos().Y()+10.<<std::endl;
-    
     for(auto iGr=xyGraphs.begin();iGr!=xyGraphs.end();++iGr){
       cxy.cd();
       (*iGr)->Draw("Psame");
-      std::cout<<"Drawing a graph with "<<(*iGr)->GetN()<<" points"<<std::endl;
       double x,y;
       (*iGr)->GetPoint(0,x,y);
-      std::cout<<"1st point at "<<x<<", "<<y<<std::endl;
     }
     
     cxy.Write();
@@ -250,16 +243,11 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
     
     dummyxz.Draw();
 
-    std::cout<<"Dummy XZ has coordinates "<<layout.GetMinPos().X()-10.<<", "<<layout.GetMaxPos().X()+10.<<", "<<
-      layout.GetMinPos().Z()-10.<<", "<<layout.GetMaxPos().Z()+10.<<std::endl;
-
     for(auto iGr=xzGraphs.begin();iGr!=xzGraphs.end();++iGr){
       cxz.cd();
       (*iGr)->Draw("Psame");
-      std::cout<<"Drawing a graph with "<<(*iGr)->GetN()<<" points"<<std::endl;
       double x,y;
       (*iGr)->GetPoint(0,x,y);
-      std::cout<<"1st point at "<<x<<", "<<y<<std::endl;
     }
 
     cxz.Write();

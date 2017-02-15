@@ -30,6 +30,7 @@ void trex::TTPCTracking::Process(trex::TTRExPattern& Pattern){
   for (auto pth = Paths.begin(); pth != Paths.end(); pth++) {
     trex::TTRExPath& path = *pth;
     // Having a seed is a requirement to the likelihood fit
+    std::cout<<"Tracking sees a path, HasChi2Fit="<<path.HasChi2Fit()<<", HasRunFit="<<path.HasRunFit()<<std::endl;
     if (fRunLikelihoodFit && path.HasChi2Fit() && !path.HasRunFit()){ 
       LikelihoodFit( path);
     }
@@ -59,7 +60,9 @@ void trex::TTPCTracking::LikelihoodFit(trex::TTRExPath& thePath){
   fLklhdFitPath->SetupLogLklhdMinimizer(thePath);
 
   // Returns 0 when Minuit succeeded
+  std::cout<<"Performing likelihood fit..."<<std::endl;
   if (fLklhdFitPath->LogLklhdMinimizer(selectedClu) == 0){
+    std::cout<<"Succeeded!"<<std::endl;
     fLklhdFitPath->SaveFitResults(thePath);
   }
 
