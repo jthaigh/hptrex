@@ -190,7 +190,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 
   gStyle->SetOptStat(0);
   int iColor=0;
-  int colors[11]={kBlue, kRed, kYellow, kGreen, kMagenta, kCyan, kOrange, kPink, kAzure, kSpring, kViolet};
+  int colors[11]={kBlue, kYellow, kGreen, kMagenta, kCyan, kOrange, kPink, kAzure, kSpring, kViolet}; //, kRed};
   
 
   
@@ -257,10 +257,12 @@ for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
     int color_increment = iColor%4;
     xyGraphs.emplace_back(1);
     xzGraphs.emplace_back(1);
-    xyGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
+    //xyGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
+    xyGraphs.back().SetMarkerColor(kRed);
     xyGraphs.back().SetMarkerStyle(21);
     xyGraphs.back().SetMarkerSize(0.5);
-    xzGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
+    //xzGraphs.back().SetMarkerColor(colors[color_index]+color_increment);
+    xzGraphs.back().SetMarkerColor(kRed);
     xzGraphs.back().SetMarkerStyle(21);
     xzGraphs.back().SetMarkerSize(0.5);
     iColor++;
@@ -405,7 +407,7 @@ for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
 
   std::cout << "NOW ATTEMPTING TO DRAW THE TRUE HITS!!!!!!!!" << std::endl;
   
-  
+  /* 
   for (auto iTrueHits=trueHits.begin(); iTrueHits!=trueHits.end();++iTrueHits){
     
   
@@ -470,124 +472,126 @@ for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
   trueTrackCount++;
   iPt=0;
    }
+
+  
   
   std::cout << "FOUND " << trueTrackCount << " TRUE TRACKS!" << std::endl;
   
   if(strangePDG.size()!=0){
-  std::cout << "STRANGE PDGS FOUND!!!" << std::endl;
-  for(auto istrange=strangePDG.begin(); istrange!=strangePDG.end();++istrange){
-    std::cout << "STRANGE: " << *istrange << std::endl;}
+    std::cout << "STRANGE PDGS FOUND!!!" << std::endl;
+    for(auto istrange=strangePDG.begin(); istrange!=strangePDG.end();++istrange){
+      std::cout << "STRANGE: " << *istrange << std::endl;}
   }
-
- 
-
+  
+  */
+  
   if(hits.size()){
-  fPlotFile->cd();
+    fPlotFile->cd();
     
-  std::vector<trex::TTPCHitPad*> unusedHits;  
-  for(auto iHit=hits.begin();iHit!=hits.end();++iHit){
-    if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
-  unused->push_back(**iHit);
-  unusedHits.push_back(*iHit);
+    std::vector<trex::TTPCHitPad*> unusedHits;  
+    for(auto iHit=hits.begin();iHit!=hits.end();++iHit){
+      if(std::find(usedTREx.begin(),usedTREx.end(),*iHit)==usedTREx.end()){
+	unused->push_back(**iHit);
+	unusedHits.push_back(*iHit);
+      }
     }
-  }
-
     
     
     
-  xyGraphs.emplace_back(1);
-  xzGraphs.emplace_back(1);
-  xyGraphs.back().SetMarkerColor(1);
-  xyGraphs.back().SetMarkerStyle(20);
-  xyGraphs.back().SetMarkerSize(0.2);
-  xzGraphs.back().SetMarkerColor(1);
-  xzGraphs.back().SetMarkerStyle(20);
-  xzGraphs.back().SetMarkerSize(0.2);
-
-  unsigned int iPt=0;
     
-  for(auto iHit=unusedHits.begin();iHit!=unusedHits.end();++iHit){
-    TVector3 pos=(*iHit)->GetPosition();
-    xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
-    xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());
+    xyGraphs.emplace_back(1);
+    xzGraphs.emplace_back(1);
+    xyGraphs.back().SetMarkerColor(1);
+    xyGraphs.back().SetMarkerStyle(20);
+    xyGraphs.back().SetMarkerSize(0.2);
+    xzGraphs.back().SetMarkerColor(1);
+    xzGraphs.back().SetMarkerStyle(20);
+    xzGraphs.back().SetMarkerSize(0.2);
+    
+    unsigned int iPt=0;
+    
+    for(auto iHit=unusedHits.begin();iHit!=unusedHits.end();++iHit){
+      TVector3 pos=(*iHit)->GetPosition();
+      xyGraphs.back().SetPoint(iPt,pos.X(),pos.Y());
+      xzGraphs.back().SetPoint(iPt++,pos.X(),pos.Z());
     }
     
     char buf[20];
-   sprintf(buf,"evt_%d_xy",iEvt);
-   TCanvas cxy(buf,buf);
-        
-    TH2F dummyxy("XY-view","XY-view",
-               1000,fMasterLayout->GetMinPos().X()-10.,fMasterLayout->GetMaxPos().X()+10.,
-               1000,fMasterLayout->GetMinPos().Y()-10.,fMasterLayout->GetMaxPos().Y()+10.);
+    sprintf(buf,"evt_%d_xy",iEvt);
+    TCanvas cxy(buf,buf);
     
-   dummyxy.Draw();
+    TH2F dummyxy("XY-view","XY-view",
+		 1000,fMasterLayout->GetMinPos().X()-10.,fMasterLayout->GetMaxPos().X()+10.,
+		 1000,fMasterLayout->GetMinPos().Y()-10.,fMasterLayout->GetMaxPos().Y()+10.);
+    
+    dummyxy.Draw();
     
     for(auto iGr=xyGraphs.begin();iGr!=xyGraphs.end();++iGr){
-    iGr->Draw("Psame");
-   }
-
+      iGr->Draw("Psame");
+    }
+    
     sprintf(buf,"evt_%d_xy.pdf",iEvt);
     
-    //cxy.SaveAs(buf);
-    //cxy.Write();
+    cxy.SaveAs(buf);
+    cxy.Write();
     
     sprintf(buf,"evt_%d_xz",iEvt);
     TCanvas cxz(buf,buf);
     
     TH2F dummyxz("XZ-view","XZ-view",
-  	 1000,fMasterLayout->GetMinPos().X()-10.,fMasterLayout->GetMaxPos().X()+10.,
-  	 1000,fMasterLayout->GetMinPos().Z()-10.,fMasterLayout->GetMaxPos().Z()+10.);
-  
-
+		 1000,fMasterLayout->GetMinPos().X()-10.,fMasterLayout->GetMaxPos().X()+10.,
+		 1000,fMasterLayout->GetMinPos().Z()-10.,fMasterLayout->GetMaxPos().Z()+10.);
+    
+    
     dummyxz.Draw();
     
     for(auto iGr=xzGraphs.begin();iGr!=xzGraphs.end();++iGr){
-    iGr->Draw("Psame");
+      iGr->Draw("Psame");
     }
-
+    
     sprintf(buf,"evt_%d_xz.pdf",iEvt);    
     //cxz.SaveAs(buf);
     
     //cxz.Write();
-   
-  
-  
-   if(trueTrackCount!=0){std::cout << "WE HAVE TRUE TRACKS!" << std::endl;}
-  
-  //MDH TODO - This is where the output needs to be generated...
-  
-  std::vector<trex::TTRExPattern*> patternContainer; 
-  
-  for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algoIt = fSubAlgorithms.begin(); algoIt != fSubAlgorithms.end(); ++algoIt) {
-    
-  std::cout << "MARKER 0 WE MADE IT INTO THE LOOP!" << std::endl;
-    
-   trex::TTPCTRExPatSubAlgorithm& alg = *algoIt;
-   std::vector<std::vector<trex::TTPCHitPad*> >& subPaths=alg.GetPaths();  
-   std::vector<std::vector<trex::TTPCHitPad*> >& subJuncts=alg.GetJunctions(); 
     
     
-   std::cout << "MARKER 1 SubPaths Size: " << subPaths.size() << std::endl;
-   std::cout << "MARKER 1 SubJuncts Siye: " << subJuncts.size() << std::endl;
     
-    patternContainer.push_back(new trex::TTRExPattern);
-    trex::TTRExPattern * patternPtr = patternContainer.back();
+    if(trueTrackCount!=0){std::cout << "WE HAVE TRUE TRACKS!" << std::endl;}
     
-   patternPtr->SetPaths(subPaths);
-   patternPtr->SetJunctions(subJuncts);
+    //MDH TODO - This is where the output needs to be generated...
     
-  }
+    std::vector<trex::TTRExPattern*> patternContainer; 
+    
+    for(std::vector<trex::TTPCTRExPatSubAlgorithm>::iterator algoIt = fSubAlgorithms.begin(); algoIt != fSubAlgorithms.end(); ++algoIt) {
+      
+      std::cout << "MARKER 0 WE MADE IT INTO THE LOOP!" << std::endl;
+      
+      trex::TTPCTRExPatSubAlgorithm& alg = *algoIt;
+      std::vector<std::vector<trex::TTPCHitPad*> >& subPaths=alg.GetPaths();  
+      std::vector<std::vector<trex::TTPCHitPad*> >& subJuncts=alg.GetJunctions(); 
+      
+      
+      std::cout << "MARKER 1 SubPaths Size: " << subPaths.size() << std::endl;
+      std::cout << "MARKER 1 SubJuncts Siye: " << subJuncts.size() << std::endl;
+      
+      patternContainer.push_back(new trex::TTRExPattern);
+      trex::TTRExPattern * patternPtr = patternContainer.back();
+      
+      patternPtr->SetPaths(subPaths);
+      patternPtr->SetJunctions(subJuncts);
+      
+    }
     
     
-  //  event->SetPatterns(patternContainer);
+    //  event->SetPatterns(patternContainer);
     
     
-  //  fill unused hits
-  //  FillUsedUnusedHits(usedTREx, used, unused);
-  
-  // clean up
-  usedTREx.clear();
-  
-  ++iEvt;
+    //  fill unused hits
+    //  FillUsedUnusedHits(usedTREx, used, unused);
+    
+    // clean up
+    usedTREx.clear();
+    
+    ++iEvt;
   }
 }

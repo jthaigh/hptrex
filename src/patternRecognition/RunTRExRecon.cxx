@@ -59,7 +59,7 @@ int main(int argc, char** argv){
   fReconTree->Branch("unusedHits", &unused);//, 64000, 1);
   fReconTree->Branch("event", &outEvent);//, 64000, 1);
 
-  for(int i=0;i<2000;++i){//loader.GetNEvents();++i){
+  for(int i=0;i<100;++i){//loader.GetNEvents();++i){
     
     loader.LoadEvent(i);
     

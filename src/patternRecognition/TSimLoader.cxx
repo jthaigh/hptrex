@@ -79,22 +79,26 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
    
     Int_t coords[3];
     Double_t position[3];
-    Int_t bins[3] = {700, 700, 700};
-    Double_t maxs[3] = { 3500.,  3500., 3558.2+3500.};
-    Double_t mins[3] = {-3500., -3500., 3558.2-3500.};
+    Int_t bins[3] = {500, 500, 1};
+    Double_t maxs[3] = { 500.,  500., 1};
+    Double_t mins[3] = {-500., -500., 0};
+    int res = 2;
+
         
     (*voxelPtr).Edep = fVoxelBranch->GetBinContent(linInd, coords);
     (*voxelPtr).time = 0; //setting time to 0 for now until we have a T0 from other subdetectors
 
     //Translate coordinates into positions
     for(int dim=0; dim<3; ++dim){
-      position[dim]=(mins[dim]/10) + coords[dim]; //position in cm
+      //position[dim]=(mins[dim]) + res*coords[dim]; //position in mm
+      position[dim] = coords[dim] + mins[dim];
     }
 
     
     (*voxelPtr).x_pos = position[0];
     (*voxelPtr).y_pos = position[1];
-    (*voxelPtr).z_pos = position[2];
+    //(*voxelPtr).z_pos = position[2];
+    (*voxelPtr).z_pos = 1;
 
     //std::cout << "Have found Voxel at position: " << coords[0] << " : " << coords[1] << " : " << coords[2] << std::endl;
     
