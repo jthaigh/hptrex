@@ -46,16 +46,23 @@ void trex::TTRExPath::SaveFitState(TTPCPathFitResults &result){
   
   std::vector<double> localState = result.FitState;
   
+  bool effIsVertical=true;
+
+  if(fabs(localState[4])>fabs(localState[5])){
+    effIsVertical=false;
+  }
+
   std::vector<trex::TTRExHVCluster*>::iterator tmpTRExClu = this->GetClusters().begin();
   
   bool frontStateDone = false;
+
+  trex::TTPCHelixPropagator& hp=trex::helixPropagator();
+  hp.InitHelixPosDirQoP(localState, effIsVertical);
   
   for ( ; tmpTRExClu != this->GetClusters().end(); tmpTRExClu++){
 
     trex::TTRExHVCluster* Clu = *tmpTRExClu;
 
-    trex::TTPCHelixPropagator& hp=trex::helixPropagator();
-    hp.InitHelixPosDirQoP(localState, Clu->IsVertical());
     bool ok = hp.PropagateToHVCluster(*Clu);
     
     if (!ok){

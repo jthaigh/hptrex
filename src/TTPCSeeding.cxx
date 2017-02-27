@@ -44,7 +44,6 @@ void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
     std::cout<<"  No clusters!"<<std::endl;
     return;
   }
-
   PrepareSeeding(HVclu);
   // Do we have enough valid clusters to get a decent seed ?
   int NbValidPlanes = 0;
@@ -52,14 +51,12 @@ void trex::TTPCSeeding::FindSeed(trex::TTRExPath& thePath){
     trex::TTRExHVCluster& HV = (**Hit);
     if( HV.isOkForSeed() ) NbValidPlanes++;
   }
-
   if (NbValidPlanes < 4 ){
     // TODO: Somehow save the fact that we tried to make a seed but failed.
   std::cout<<"  Not enough valid planes!"<<std::endl;
     thePath.SetHasRunFit(true);
     return;
   }
-    
   std::vector<double> RiemannHelix;
   double RiemannError = Riemann(HVclu, RiemannHelix);
   std::vector<double> R2Helix;
@@ -262,6 +259,10 @@ double trex::TTPCSeeding::R2( std::vector<trex::TTRExHVCluster*>& HVclu, std::ve
   double yl0 = (r12*dz23-r23*dz12)/(dy12*dz23-dy23*dz12);
   double zl0 = (r12*dy23-r23*dy12)/(dz12*dy23-dz23*dy12);
 
+  std::cout<<"R2 yPts ("<<fYfirst<<", "<<fYmid<<", "<<fYlast<<")"<<std::endl;
+  std::cout<<"R2 zPts ("<<fZfirst<<", "<<fZmid<<", "<<fZlast<<")"<<std::endl;
+  std::cout<<"R2 (yl0,zl0) ("<<yl0<<", "<<zl0<<")"<<std::endl;
+
   double phiFirst = TMath::ATan2((fYfirst-yl0),(fZfirst-zl0)); 
   // Only for printout 
   double phiLast =  TMath::ATan2((fYlast-yl0),(fZlast-zl0)); 
@@ -288,7 +289,15 @@ double trex::TTPCSeeding::R2( std::vector<trex::TTRExHVCluster*>& HVclu, std::ve
   double R2y = fYfirst;
   double R2z = fZfirst;
 
-  double yzLength=fabs((phiLast-phiFirst)/R2rho);
+  double yzLength;
+
+  if(fabs(phiLast-phiFirst)>1.E-6){
+    yzLength=fabs((phiLast-phiFirst)/R2rho);
+  }
+  else{
+    yzLength=std::max(fabs(fZlast-fZfirst),fabs(fYlast-fYfirst));
+  }
+
   double xLength=fXlast-fXfirst;
   
   double renorm=1./TMath::Sqrt(yzLength*yzLength+xLength*xLength);
@@ -311,6 +320,11 @@ double trex::TTPCSeeding::R2( std::vector<trex::TTRExHVCluster*>& HVclu, std::ve
   TTPCUtils::Curvature_to_MomentumAndCharge(Pos,Dir,R2rho,p,q);
 
   Helix.push_back(q/p);
+
+  std::cout<<"Helix:"<<std::endl;
+  for(int i=0;i<7;++i){
+    std::cout<<"["<<i<<"]:"<<Helix[i]<<std::endl;
+  }
 
   return FinalizeSeed(HVclu, R2rho, Helix);
 }
@@ -340,6 +354,7 @@ double trex::TTPCSeeding::Riemann( std::vector<TTRExHVCluster*>& HVclu, std::vec
     double xi = r/(1.+r*r)*TMath::Cos(phi);
     double yi = r/(1.+r*r)*TMath::Sin(phi);
     double zi = (r*r)/(1.+r*r);
+
     if( r > 0.0 ) {
       x.push_back(xi);
       y.push_back(yi);
@@ -421,6 +436,11 @@ double trex::TTPCSeeding::Riemann( std::vector<TTRExHVCluster*>& HVclu, std::vec
   Rierho = Rierho * Helicity;
   double Rietheta = phiFirst - (Helicity * TMath::PiOver2());
 
+  std::cout << " Riemann:  zc  = " << u0 <<"      yc  = " << v0 << std::endl; 
+  std::cout << " Riemann:  Helicity = "<<Helicity << std::endl; 
+  std::cout << " Riemann:  phiFirst = "<<phiFirst <<"   phiLast = "<<phiLast << std::endl; 
+  std::cout << " Riemann:  theta = "<<Rietheta<<"      rho = " << Rierho << std::endl;
+
   // At this point just use the projection of the clusters
   // onto the center of the cathode to figure out the delta phi angle (less than 1pi ?)
 
@@ -428,7 +448,15 @@ double trex::TTPCSeeding::Riemann( std::vector<TTRExHVCluster*>& HVclu, std::vec
   double Riey = fYfirst;
   double Riez = fZfirst;
 
-  double yzLength=fabs((phiLast-phiFirst)/Rierho);
+  double yzLength;
+
+  if(fabs(phiLast-phiFirst)>1.E-6){
+    yzLength=fabs((phiLast-phiFirst)/Rierho);
+  }
+  else{
+    yzLength=std::max(fabs(fZlast-fZfirst),fabs(fYlast-fYfirst));
+  }
+
   double xLength=fXlast-fXfirst;
   
   double renorm=1./TMath::Sqrt(yzLength*yzLength+xLength*xLength);
@@ -444,10 +472,14 @@ double trex::TTPCSeeding::Riemann( std::vector<TTRExHVCluster*>& HVclu, std::vec
   TVector3 Dir(Helix[3], Helix[4], Helix[5]);
   double p;
   double q;
-  
-  TTPCUtils::Curvature_to_MomentumAndCharge(Pos,Dir,Rierho,p,q);
 
+  TTPCUtils::Curvature_to_MomentumAndCharge(Pos,Dir,Rierho,p,q);
   Helix.push_back(q/p);
+  std::cout<<"Helix:"<<std::endl;
+  for(int i=0;i<7;++i){
+    std::cout<<"["<<i<<"]:"<<Helix[i]<<std::endl;
+  }
+
   return FinalizeSeed(HVclu, Rierho, Helix);
 }
 
@@ -498,9 +530,19 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster*>& HVcl
   int ntot=0;
   double ypred,zpred;
   double yclu,zclu;
+  bool firstcluvertical=(*(HVclu.begin()))->IsVertical();
+
+  if(firstcluvertical){
+    if(fabs(finalState[5])<1.E-3){
+      return 1.E99;
+    }
+  }
+  else if(fabs(finalState[4])<1.E-3){
+    return 1.E99;
+  }
+
   std::vector<trex::TTRExHVCluster*>::iterator Hit = HVclu.begin();
   trex::TTRExHVCluster& Cluster = (**Hit);
-  
   std::vector<double> propagState = finalState;
   double deltaPhi = 0.0;
   std::vector<double> prevState;
@@ -510,7 +552,6 @@ double trex::TTPCSeeding::FinalizeSeed( std::vector<trex::TTRExHVCluster*>& HVcl
   bool doDeltaPhi = true;
   double suspicious =0.0;
   trex::TTPCHelixPropagator& hp=trex::helixPropagator();
-  bool firstcluvertical=(*(HVclu.begin()))->IsVertical();
   hp.InitHelixPosDirQoP(propagState,firstcluvertical);
   for ( ; Hit != HVclu.end(); Hit++) {
     trex::TTRExHVCluster& Cluster = (**Hit);

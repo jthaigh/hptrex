@@ -74,15 +74,22 @@ namespace trex{
  
     //Stores a pointer to the connected Junctions
     void SetConnectedJunctions(std::vector<trex::TTRExJunction*> &juncts);
-    
+
+    std::vector<trex::TTRExJunction*> GetConnectedJunctions(){
+      return fConnectedJunctions;
+    }
+
+    std::vector<unsigned int> GetConnectedJunctionsId(){
+      return fConnectedJunctionsId;
+    }
+
     //Adds an individual connected junction
     void AddConnectedJunction(trex::TTRExJunction* junct);
    
     unsigned int GetId(){return fId;}
     
     void SetId(unsigned int id){fId=id;}
-    
-    
+        
     std::vector<trex::TTRExHVCluster*>&  GetClusters(){
 
       return fClusters;

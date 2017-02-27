@@ -7,16 +7,14 @@
 #include "TDirectory.h"
 #include<map>
 
-trex::TEventDisplay::TEventDisplay(TFile* plotFile) {
+trex::TEventDisplay::TEventDisplay(TFile* plotFile,unsigned int nEvt) {
 
   fPlotFile=plotFile;
-
+  iEvt=nEvt;
 }
 
 void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<TTrueHit*>& trueHits, trex::TTRExEvent* event, trex::TTPCLayout& layout){
   
-  static unsigned int iEvt=0;
-
   std::vector<trex::TTRExPattern>& patterns=event->GetPatterns();
 
   std::vector<TGraph*> xyGraphs;
@@ -101,17 +99,17 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
     
     for(auto iJunct=subJuncts.begin();iJunct!=subJuncts.end();++iJunct){
       
-      int color_index = iColor%11;
-      int color_increment = iColor%4;
+      //int color_index = iColor%11;
+      //int color_increment = iColor%4;
       xyGraphs.push_back(new TGraph(1));
       xzGraphs.push_back(new TGraph(1));
-      xyGraphs.back()->SetMarkerColor(colors[color_index]+color_increment);
+      xyGraphs.back()->SetMarkerColor(kRed);
       xyGraphs.back()->SetMarkerStyle(21);
       xyGraphs.back()->SetMarkerSize(0.5);
-      xzGraphs.back()->SetMarkerColor(colors[color_index]+color_increment);
+      xzGraphs.back()->SetMarkerColor(kRed);
       xzGraphs.back()->SetMarkerStyle(21);
       xzGraphs.back()->SetMarkerSize(0.5);
-      iColor++;
+      //iColor++;
       unsigned int iPt=0;
       std::vector<trex::TTPCHitPad*> hits=iJunct->GetHits();
       for(auto iHit=hits.begin();iHit!=hits.end();++iHit){
@@ -256,5 +254,4 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
     for(auto iGr=xzGraphs.begin();iGr!=xzGraphs.end();++iGr) delete *iGr;
   }
   
-  ++iEvt;
 }

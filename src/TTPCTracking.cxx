@@ -62,10 +62,10 @@ void trex::TTPCTracking::LikelihoodFit(trex::TTRExPath& thePath){
   // Returns 0 when Minuit succeeded
   std::cout<<"Performing likelihood fit..."<<std::endl;
   if (fLklhdFitPath->LogLklhdMinimizer(selectedClu) == 0){
-    std::cout<<"Succeeded!"<<std::endl;
+    std::cout<<"Saving results..."<<std::endl;
     fLklhdFitPath->SaveFitResults(thePath);
   }
-
+    std::cout<<"Succeeded!"<<std::endl;
   fLklhdFitPath->Reset();
 
 }

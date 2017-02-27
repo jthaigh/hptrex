@@ -23,7 +23,7 @@ namespace trex{
   class TEventDisplay {
     public:
       /// Default constructor
-    TEventDisplay(TFile* plotFile);
+    TEventDisplay(TFile* plotFile,unsigned int nEvt);
     /// Clean up values from previous processing
     
     void Process(std::vector<trex::TTPCHitPad*>& hits, std::vector<TTrueHit*>& trueHits, trex::TTRExEvent* event, trex::TTPCLayout& layout);
@@ -31,6 +31,7 @@ namespace trex{
     private:
 
     TFile* fPlotFile;
+    unsigned int iEvt;
     
   };
 }

@@ -28,7 +28,8 @@ int main(int argc, char** argv){
 
   trex::TSimLoader loader(argv[1]);
 
-  TFile fOut("plots.root","RECREATE");
+  TFile fOut("plots_unmerged.root","RECREATE");
+  TFile fOutM("plots_merged.root","RECREATE");
   
   const char * originalName = loader.GetFile()->GetName();
   std::cout << "You are processing File: " << originalName << std::endl; 
@@ -68,7 +69,7 @@ int main(int argc, char** argv){
   fReconTree->Branch("unusedHits", &unused, 64000, 1);
   fReconTree->Branch("event", &event, 64000, 1);
 
-  for(int i=19;i<20;++i){ // loader.GetNEvents();++i){
+  for(int i=0;i!=loader.GetNEvents();++i){
     
     loader.LoadEvent(i);
     
@@ -87,7 +88,8 @@ int main(int argc, char** argv){
     trex::TTPCTracking trackingAlgo;
     trex::TTPCLikelihoodMatch matchAlgo;
     trex::TTPCLikelihoodMerge mergeAlgo;
-    trex::TEventDisplay evDisp(&fOut);
+    trex::TEventDisplay evDisp(&fOut,i);
+    trex::TEventDisplay evDispM(&fOutM,i);
 
     trex::TTPCLayout layout;
     //    std::cout<<"EVERYTHING LOADED! - NOW ATTEMPTING TO PROCESS"<<std::endl;
@@ -108,11 +110,13 @@ int main(int argc, char** argv){
     }
 
     trex::TTRExEvent* mergedEvt=new trex::TTRExEvent;
-    
+    std::cout<<"Running matching..."<<std::endl;
     matchAlgo.Process(event->GetPatterns());
+    std::cout<<"Running merging..."<<std::endl;
     mergeAlgo.Process(event->GetPatterns(),mergedEvt->GetPatterns());
 
-    evDisp.Process(hitPads,trueHits,mergedEvt,layout);    
+    evDisp.Process(hitPads,trueHits,event,layout);    
+    evDispM.Process(hitPads,trueHits,mergedEvt,layout);    
 
     //for(auto i=event->GetPatterns().begin();i!=event->GetPatterns().end();++i){
     //  i->Print();

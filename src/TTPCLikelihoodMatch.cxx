@@ -47,6 +47,8 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
   for (auto jct = Junctions.begin(); jct != Junctions.end(); jct++) {
     trex::TTRExJunction& junction = *jct;
     
+    std::cout<<"Matching for junction id "<<junction.GetId()<<std::endl;
+
     // Extract the connected paths
 
 
@@ -69,7 +71,13 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
     for(int p=0; p<ConnectedPaths.size(); ++p){
 
       std::cout << "Path has ID: " << ConnectedPaths[p]->GetId() << std::endl;
-
+      
+      std::cout << "And thinks it is connected to junctions ";
+      std::vector<unsigned int> ids=ConnectedPaths[p]->GetConnectedJunctionsId();
+      for(auto idIter=ids.begin();idIter!=ids.end();++idIter){
+	std::cout<<*idIter<<" ";
+      }
+      std::cout<<std::endl;
     }
 
     //
@@ -77,6 +85,7 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
     
     std::vector< trex::TTRExPath* >::iterator coPthA;
     std::vector< trex::TTRExPath* >::iterator coPthB;
+
     for (coPthA = ConnectedPaths.begin(); coPthA != ConnectedPaths.end(); coPthA++) {
       trex::TTRExPath& pathA = **coPthA;
       coPthB = coPthA + 1;
@@ -97,7 +106,6 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
       } 
     }
   } 
-  
   std::cout << "Matching across Junction ran successfully" << std::endl;
 
 }
@@ -113,7 +121,7 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
   Likelihood.HV = 0.0;
 
   std::vector<double> propagState;
-
+  std::cout<<"5a"<<std::endl;
   //MDH TODO: Fix this to get junction connections properly
   // Front state is connected to this junction
   if ( Path1.GetConnectedEnd(JunctionId) == -1){
@@ -128,7 +136,8 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
     // PROBLEM. Don't do anything.
     return;
     }
-
+  std::cout<<"5b"<<std::endl;
+    
   trex::TTRExHVCluster* targetCluPtr;
   if ( Path2.GetConnectedEnd(JunctionId) == -1) {
     targetCluPtr = *(Path2.GetClusters().begin());
@@ -142,8 +151,10 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
   trex::TTRExHVCluster& targetClu=*targetCluPtr;
 
   int targetSense = TTPCUtils::SenseFromTwoClusters(Path2, targetClu);
-
+  std::cout<<"5c"<<std::endl;
+    
   if( CheckClusterMatch(propagState, targetClu, targetSense, true)) {
+    std::cout<<"5d"<<std::endl;
     std::vector<trex::TTRExHVCluster*> orderedClusters;
     if ( Path2.GetConnectedEnd(JunctionId) == 1) {
       for (auto Clu = Path2.GetClusters().rbegin(); Clu != Path2.GetClusters().rend(); Clu++) {
@@ -155,6 +166,8 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
 	orderedClusters.push_back(*iHit);
       }
     }
+    std::cout<<"5e"<<std::endl;
+    
     Likelihood = GetMatchLikelihood(propagState, orderedClusters, false);
     if (!Likelihood.Total){
       Likelihood.Total = 2e14;
@@ -168,6 +181,7 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
     }
   }
   Path1.SaveMatchedPath(Path2.GetId(), Likelihood);
+  std::cout<<"5f"<<std::endl;
 
   std::cout << "MATCH PATHS AT JUNCTION RAN SUCCESSFULLY" << std::endl;
 
@@ -315,9 +329,16 @@ bool trex::TTPCLikelihoodMatch::CheckClusterMatch(std::vector<double> propState,
 //*****************************************************************************
 
   trex::TTPCHelixPropagator& hp=trex::helixPropagator();
-  hp.InitHelixPosDirQoP(propState,Target.IsVertical());
 
-  bool ok = hp.PropagateToHVCluster(Target);
+  bool effIsVertical=true;
+
+  if(fabs(propState[4])>fabs(propState[5])){
+    effIsVertical=false;
+  }
+
+  hp.InitHelixPosDirQoP(propState,effIsVertical);
+
+  bool ok = hp.FullPropagateToHVCluster(Target);
 
   // The propagation failed !
   if (!ok){

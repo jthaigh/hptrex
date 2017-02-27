@@ -409,7 +409,7 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
       // Only copy the unmerged ones
       auto it = find (MergedPaths.begin(), MergedPaths.end(), tmpPath);
       if (it == MergedPaths.end()){
-	NewPattern->GetPaths().emplace_back();
+	NewPattern->GetPaths().emplace_back(*tmpPath);
 	trex::TTRExPath* newPath=&(NewPattern->GetPaths().back());
         //newPath->AddConstituent(tmpPath);
 	//MDH TODO: Do we need to set ID properly?
@@ -458,6 +458,7 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
         if (fMTracker[submt].HasThisPath(**constit)){
           auto it = find (AlreadyAdded.begin(), AlreadyAdded.end(), fMTracker[submt].GetMergedPath());
           if (it == AlreadyAdded.end()){
+	    NewPattern->GetPaths().emplace_back(*(fMTracker[submt].GetMergedPath()));
             NewJunction->AddConnectedPath(fMTracker[submt].GetMergedPath());
             AlreadyAdded.push_back(fMTracker[submt].GetMergedPath());
           }

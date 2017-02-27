@@ -287,22 +287,26 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
     };
   };
 
+  //Make sure no reallocation occurs after we start linking paths and junctions
+  //by pointer!!!
+  juncts.reserve(junctionsToPathsMap.size());
+
   // Connect Paths and Junctions together according to the Map
-  int junctIndex = 0;
+  unsigned int junctIndex = 0;
   for(int i=0; i<junctionsToPathsMap.size(); ++i){
     if(junctionsToPathsMap[i].size()<2) continue;
-    junctIndex += 1;
     juncts.emplace_back(junctionGroups[i]->GetHits());
-    for(int pathIndex=0;pathIndex<junctionsToPathsMap[i].size();++pathIndex){
+    juncts.back().SetId(junctIndex);
+    for(int j=0;j<junctionsToPathsMap[i].size();++j){
       //Cantor's formula for unique IDs
-      int uniqueIdPath = ((junctIndex+1+pathIndex+1)*(junctIndex+1+pathIndex+1+1))/2+(pathIndex+1); 
-      int uniqueIdJunct = ((junctIndex+1+pathIndex+1)*(junctIndex+1+pathIndex+1+1))/2+(junctIndex+1);
+      unsigned int pathIndex=junctionsToPathsMap[i][j];
+      int uniqueIdPath = ((junctIndex+1+j+1)*(junctIndex+1+j+1+1))/2+(j+1); 
       if(paths[pathIndex].GetId()==0){
       paths[pathIndex].SetId((int)uniqueIdPath);
       }
-      juncts.back().SetId((int)uniqueIdJunct);
       ConnectJunctionAndPath(juncts.back(), paths[pathIndex]);
     }
+    junctIndex += 1;
   }
 
   std::cout<<"Built a pattern..."<<std::endl;
