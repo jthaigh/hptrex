@@ -134,7 +134,34 @@ namespace trex{
       bool fIsUsable;
 
     };
-	
+
+  struct WritablePattern{
+    std::vector<std::vector<trex::TTPCHitPad> > Paths;
+    std::vector<std::vector<trex::TTPCHitPad> > Junctions;
+  };
+
+  struct WritableEvent{
+    std::vector<WritablePattern> patterns;
+
+    void FillFromEvent(trex::TTRExEvent& evt){
+      patterns.clear();
+      for(auto iPat=evt.GetPatterns().begin();iPat!=evt.GetPatterns().end();++iPat){
+	patterns.emplace_back();
+	for(auto iPath=iPat->GetPaths().begin();iPath!=iPat->GetPaths().end();++iPath){
+	  patterns.back().Paths.emplace_back();
+	  for(auto iCluster=iPath->GetClusters().begin();iCluster!=iPath->GetClusters().end();++iCluster){
+	    for(auto iHit=(*iCluster)->GetClusterHits().begin();iHit!=(*iCluster)->GetClusterHits().end();++iHit)
+	      patterns.back().Paths.back().emplace_back(**iHit);
+	  }
+	}
+	for(auto iJunct=iPat->GetJunctions().begin();iJunct!=iPat->GetJunctions().end();++iJunct){
+	  patterns.back().Junctions.emplace_back();
+	  for(auto iHit=iJunct->GetHits().begin();iHit!=iJunct->GetHits().end();++iHit)
+	    patterns.back().Junctions.back().emplace_back(**iHit);
+	}
+      }
+    }
+  };	
 	
 }
 

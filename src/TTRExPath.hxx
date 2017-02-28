@@ -197,7 +197,6 @@ namespace trex{
     
     unsigned int fId = 0;
     
-
     std::vector<trex::TTRExHVCluster*>  fClusters;
 
     //INCLUDE MORE TRACKING AND FIT VARIABLES HERE
@@ -236,25 +235,5 @@ namespace trex{
 
   };
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif

@@ -79,7 +79,7 @@ namespace trex{
       return fOkForSeed;
     }
 
-    std::vector<trex::TTPCHitPad*> GetClusterHits(){
+    std::vector<trex::TTPCHitPad*>& GetClusterHits(){
 
       return fcHitPtrs;
     }

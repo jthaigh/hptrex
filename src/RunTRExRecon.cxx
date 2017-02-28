@@ -1,4 +1,3 @@
-
 #include "TTPCTRExPatAlgorithm.hxx"
 #include "TTPCSeeding.hxx"
 #include "TTPCTracking.hxx"
@@ -28,77 +27,55 @@ int main(int argc, char** argv){
 
   trex::TSimLoader loader(argv[1]);
 
-  TFile fOut("plots_unmerged.root","RECREATE");
-  TFile fOutM("plots_merged.root","RECREATE");
-  
   const char * originalName = loader.GetFile()->GetName();
   std::cout << "You are processing File: " << originalName << std::endl; 
-  
   string str(originalName);
   std::size_t found = str.rfind("/");
-
-  str.erase(0,found+1);
-  
-  //  std::cout << "This is what found says: " << found << std::endl;
-  //std::cout << "This ist what str says: " << str << std::endl;
-  
+  str.erase(0,found+1);  
   const char * newName = str.c_str();
-  
   char name[100];
-  sprintf(name, "TRExRecon_%s", newName);
-  std:: cout << "New file will be called: " << name << std::endl;
-  
-  //for now:
-  //TFile * fFile = new TFile(name, "RECREATE"); 
+  sprintf(name, "TRExRecon_%s", newName);  
 
-  //string inputFile = argv[1];
-  //TFile * fFile = new TFile(inputFile.c_str(), "UPDATE");
-                                                                                                                        
-  //std::cout << "This File has a Name: " << fFile->GetName() << std::endl;
-
-
+  TFile * fOut = new TFile(name, "RECREATE"); 
   TTree * fReconTree = new TTree("TPCRecon", "TPCRecon");
-  //fReconTree->SetDirectory(fFile);
-  //TTree * fReconTree=(TTree*)loader.GetReconTree();
+  fReconTree->SetDirectory(fOut);
+  
+  std::vector<trex::TTPCHitPad> * unused=0;
+  trex::WritableEvent * outEvent=0;
 
+  fReconTree->Branch("unusedHits", &unused);//, 64000, 1);
+  fReconTree->Branch("event", &outEvent);//, 64000, 1);
 
-  //make pointers for output variables to be filled by Process()
-  std::vector<trex::TTPCHitPad*> unused;
-  trex::TTRExEvent * event;
-
-  fReconTree->Branch("unusedHits", &unused, 64000, 1);
-  fReconTree->Branch("event", &event, 64000, 1);
-
+  TFile fPlot("plots_unmerged.root","RECREATE");
+  TFile fPlotM("plots_merged.root","RECREATE");
+  
   for(int i=0;i!=loader.GetNEvents();++i){
+
+    trex::TTRExEvent * event;
     
     loader.LoadEvent(i);
     
     std::vector<trex::TTPCHitPad*>& hitPads=loader.GetHits();
     std::vector<trex::TTPCHitPad*> usedHits;
     std::vector<TTrueHit*>& trueHits = loader.GetTrueHits();
+    std::vector<trex::TTPCHitPad*> unusedTemp;
 
     event = new trex::TTRExEvent();
-    
-    //std::cout << "True hits contains: " << trueHits.size() << " entries. "<< std::endl;
-
-    //loader.DrawDetector();
-    
+        
     trex::TTPCTRExPatAlgorithm trexAlg;
     trex::TTPCSeeding seedingAlgo;
     trex::TTPCTracking trackingAlgo;
     trex::TTPCLikelihoodMatch matchAlgo;
     trex::TTPCLikelihoodMerge mergeAlgo;
-    trex::TEventDisplay evDisp(&fOut,i);
-    trex::TEventDisplay evDispM(&fOutM,i);
+    trex::TEventDisplay evDisp(&fPlot,i);
+    trex::TEventDisplay evDispM(&fPlotM,i);
 
     trex::TTPCLayout layout;
-    //    std::cout<<"EVERYTHING LOADED! - NOW ATTEMPTING TO PROCESS"<<std::endl;
-    trexAlg.Process(hitPads,usedHits,unused,trueHits,event,layout); 
-
-    //if ( !event->GetPatterns().size())
-    //{
-    //	continue;
-    //}
+    trexAlg.Process(hitPads,usedHits,unusedTemp,trueHits,event,layout); 
+    
+    for(auto iHit=unusedTemp.begin();iHit!=unusedTemp.end();++iHit){
+      unused->emplace_back(**iHit);
+    }
 
     std::cout<<"Pattern recognition produced "<<event->GetPatterns().size()<<" patterns"<<std::endl;
 
@@ -117,34 +94,21 @@ int main(int argc, char** argv){
 
     evDisp.Process(hitPads,trueHits,event,layout);    
     evDispM.Process(hitPads,trueHits,mergedEvt,layout);    
-
-    //for(auto i=event->GetPatterns().begin();i!=event->GetPatterns().end();++i){
-    //  i->Print();
-    //}
-
-
-
-
-
-    //fReconTree->Fill();
     
+    outEvent->FillFromEvent(*mergedEvt);
+    fReconTree->Fill();
+    
+    unused->clear();            
     delete event;
-    //delete unused;        
     delete mergedEvt;
     
   }
-  //fReconTree->Print();
   
-  
-  //fOut.Write();
-  //fOut.Close();
-  
-  //fFile->cd();
-  
-  //std::cout << "Writing Tree to File" << std::endl;
-  //fReconTree->Write();
-  
-  //fFile->Write();
-  //fFile->Close();
+  fOut->Write();
+  fOut->Close();
+  fPlot.Write();
+  fPlot.Close();
+  fPlotM.Write();
+  fPlotM.Close();
 }
 
