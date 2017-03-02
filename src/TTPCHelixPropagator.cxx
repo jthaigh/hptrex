@@ -282,7 +282,7 @@ bool trex::TTPCHelixPropagator::PropagateToHVCluster(trex::TTRExHVCluster& Clust
     return false;
   // Then calculate the coordinate of the new point.
   double DeltaZorY = (TMath::Cos(newPhiQuad)-TMath::Cos(fPhiQuad) ) / fabs(fRho0);
-// std::cout<<" ===> DeltaZorY = "<<DeltaZorY<<std::endl;
+  //  std::cout<<" ===> DeltaZorY = "<<DeltaZorY<<std::endl;
   // Save the new point as the new helix state.
   fPhiZY += deltaPhi;
   if ( fRho0 > 0.0 ){ // Negatively charged track
@@ -304,8 +304,8 @@ bool trex::TTPCHelixPropagator::PropagateToHVCluster(trex::TTRExHVCluster& Clust
     *length=fabs(DeltaX)*TMath::Sqrt(1.+(fDirY0*fDirY0 + fDirZ0*fDirZ0)/fDirX0/fDirX0);
   }
 
-// std::cout<<" ===> fRho0 = "<<fRho0<<std::endl;
-// std::cout<<" ===> DeltaX = "<<DeltaX<<std::endl;
+  //  std::cout<<" ===> fRho0 = "<<fRho0<<std::endl;
+  //std::cout<<" ===> DeltaX = "<<DeltaX<<std::endl;
 
   if ( fQuadrant == 1 ){
     fX0 = fX0 + DeltaX;
@@ -333,15 +333,17 @@ bool trex::TTPCHelixPropagator::PropagateToHVCluster(trex::TTRExHVCluster& Clust
 //*****************************************************************************
 bool trex::TTPCHelixPropagator::FullPropagateToHVCluster(trex::TTRExHVCluster& Cluster,double* length){
 
+  std::cout<<"FULL propagation"<<std::endl;
+
   // Start by checking the orientation of the cluster.
   // If the mode doesn't match the quadrant, change the PhiQuad accordingly.
   // If we are already in the right quadrant, don't do anything.
   unsigned int newQuadrant = fQuadrant;
 
-  /*  std::cout<<"Initial state at "<<fX0<<", "<<fY0<<", "<<fZ0<<std::endl;
+  std::cout<<"Initial state at "<<fX0<<", "<<fY0<<", "<<fZ0<<std::endl;
   std::cout<<"Directions at "<<fDirX0<<", "<<fDirY0<<", "<<fDirZ0<<std::endl;
   std::cout<<"Propagating to cluster at"<<Cluster.X()<<", "<<Cluster.Y()<<", "<<Cluster.Z()<<std::endl;
-  */
+  
   if ( Cluster.IsVertical() && !(fQuadrant == 2 || fQuadrant == 4)){
     // Which quadrant ?
     if (Cluster.Y() > fYc)
@@ -422,7 +424,7 @@ bool trex::TTPCHelixPropagator::FullPropagateToHVCluster(trex::TTRExHVCluster& C
   int nRot=floor( (fX0-Cluster.X())*(TMath::Sqrt(fDirY0*fDirY0 + fDirZ0*fDirZ0)/fDirX0*fRho0/2./TMath::Pi())-deltaPhi/2./TMath::Pi()+0.5);
 
   double deltaX=-fDirX0/TMath::Sqrt(fDirY0*fDirY0 + fDirZ0*fDirZ0)*(deltaPhi+2.*TMath::Pi()*nRot)/fRho0;
-  //  std::cout<<"rho0="<<fRho0<<", nRot="<<nRot<<", deltaPhi="<<deltaPhi<<", deltaX="<<deltaX<<std::endl;
+  std::cout<<"rho0="<<fRho0<<", nRot="<<nRot<<", deltaPhi="<<deltaPhi<<", deltaX="<<deltaX<<std::endl;
 
   fPhiZY = newPhi;
   if ( fRho0 > 0.0 ){ // Negatively charged track
@@ -441,7 +443,7 @@ bool trex::TTPCHelixPropagator::FullPropagateToHVCluster(trex::TTRExHVCluster& C
   fY0=fYc+sin(fPhiZY)/fabs(fRho0);
   fX0=fX0+deltaX;
 
-  //  std::cout<<"Got state at "<<fX0<<", "<<fY0<<", "<<fZ0<<std::endl;
+  std::cout<<"Got state at "<<fX0<<", "<<fY0<<", "<<fZ0<<std::endl;
 
   //MDH TODO: Put some couts here to make sure that the phiZY and centers are not changed
   //on reinitializing, and that the final X,Y,Z are close to the cluster.

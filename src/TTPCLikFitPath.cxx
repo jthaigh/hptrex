@@ -311,17 +311,20 @@ void trex::TTPCLikFitPath::SelectClusters(std::vector<trex::TTRExHVCluster*>& in
 
     Clu.SetOkForFit(true);  // Make sure that we start with fresh sample.
 
-    if( Clu.GetCharge()*fabs(XDirection) < fMinimumCharge ||  Clu.GetCharge()*fabs(XDirection) > fMaximumCharge ) {
+    //MDH why on earth does the charge cut depend on the track direction???
+    //    if( Clu.GetCharge()*fabs(XDirection) < fMinimumCharge ||  Clu.GetCharge()*fabs(XDirection) > fMaximumCharge ) {
+    if( Clu.GetCharge() < fMinimumCharge ||  Clu.GetCharge() > fMaximumCharge ) {
       Clu.SetOkForFit(false);
       CluSel.NOutOfChargeWindow++;
       continue;
     }
   
-    if( Clu.GetDeltaDrift()*XDirection >= fMaxDeltaDrift ) {
+    //MDH Again, why depend on direction???
+    /*    if( Clu.GetDeltaDrift()*XDirection >= fMaxDeltaDrift ) {
       Clu.SetOkForFit(false);
       CluSel.NOutDeltaDrift++;
       continue; 
-    }
+      }*/
 
     if( Clu.GetClusterHits().size() > fMaxPadsPerCluster)  {
       Clu.SetOkForFit(false);

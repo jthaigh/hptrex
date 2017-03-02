@@ -14,22 +14,31 @@ namespace trex{
   public:
     
     
-    TTRExJunction(){};
+    TTRExJunction(){
+      //std::cout<<"Created a junction!"<<std::endl;
+    }
+
     TTRExJunction(const std::vector<trex::TTPCHitPad*> &Hits){
-      fHits = Hits;
+      SetHits(Hits);
+      //std::cout<<"Created a junction!"<<std::endl;
     }
     
-    TTRExJunction(const TVector3 &Position){};
+    TTRExJunction(const TVector3 &Position){
+      fPosition=Position;
+      //std::cout<<"Created a junction!"<<std::endl;
+    }
     
     virtual ~TTRExJunction(){};
     
-    void SetHits(std::vector<TTPCHitPad*>& theHits){fHits=theHits;}
+    void SetHits(const std::vector<TTPCHitPad*>& theHits);
     void SetId(unsigned int theId){fId=theId;}
     unsigned int GetId(){return fId;}
         
     std::vector<trex::TTPCHitPad*>& GetHits(){
       return fHits;
     }
+
+    TVector3 GetPosition(){return fPosition;}
     
     /// Get number of paths associated with this junction
     unsigned int GetNPaths(){
@@ -59,7 +68,7 @@ namespace trex{
     std::vector<trex::TTRExPath*> fConnectedPaths;
     std::vector<unsigned int> fConnectedPathsId;
     std::vector<trex::TTPCHitPad*>  fHits;
-    
+    TVector3 fPosition;
   };
 }
 

@@ -62,11 +62,9 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
     }
     */
 
+    std::cout << "Have found " << junction.GetNPaths() << " connected Paths" << std::endl;
 
     std::vector< trex::TTRExPath* > ConnectedPaths = junction.GetConnectedPaths();
-
-
-    std::cout << "Have found " << ConnectedPaths.size() << " connected Paths" << std::endl;
 
     for(int p=0; p<ConnectedPaths.size(); ++p){
 
@@ -174,12 +172,13 @@ void trex::TTPCLikelihoodMatch::MatchAcrossJunctions(trex::TTRExPattern& Pattern
       Likelihood.X = 1e14;
       Likelihood.HV = 1e14;
     }
-    else {
-      Likelihood.Total = 2e13;
-      Likelihood.X = 1e13;
-      Likelihood.HV = 1e13;
-    }
   }
+  else {
+    Likelihood.Total = 2e13;
+    Likelihood.X = 1e13;
+    Likelihood.HV = 1e13;
+  }
+  
   Path1.SaveMatchedPath(Path2.GetId(), Likelihood);
   std::cout<<"5f"<<std::endl;
 

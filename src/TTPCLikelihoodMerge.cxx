@@ -208,6 +208,7 @@ void trex::TTPCLikelihoodMerge::MatchThroughJunctions(trex::TTRExPattern& patter
     std::vector< trex::TTRExPath* > Paths;
     int NbPath = junction.GetConnectedPaths().size();
     for (auto pathit = junction.GetConnectedPaths().begin(); pathit != junction.GetConnectedPaths().end(); pathit++) {
+      std::cout<<"NConnected="<<junction.GetConnectedPaths().size()<<std::endl;
       trex::TTRExPath* Path = *pathit;
       Paths.push_back(Path);
       }

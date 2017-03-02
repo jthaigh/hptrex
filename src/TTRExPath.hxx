@@ -60,9 +60,11 @@ namespace trex{
     
   public:
     
-    TTRExPath() : fClusters(0), fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false),fHasFitState(false), fId(0){};
+    TTRExPath() : fClusters(0), fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false),fHasFitState(false), fId(0),
+		                                             fFrontIsConnected(false), fBackIsConnected(false){};
     
-    TTRExPath(std::vector<trex::TTRExHVCluster*> clusters) : fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false),fHasFitState(false), fId(0){
+    TTRExPath(std::vector<trex::TTRExHVCluster*> clusters) : fHasChi2Fit(false), fHasRunFit(false), fHasLikelihoodFit(false),fHasFitState(false), fId(0),
+							     fFrontIsConnected(false), fBackIsConnected(false){
       fClusters = clusters;
     }
 
@@ -72,9 +74,6 @@ namespace trex{
       fClusters = clusters;
     }
  
-    //Stores a pointer to the connected Junctions
-    void SetConnectedJunctions(std::vector<trex::TTRExJunction*> &juncts);
-
     std::vector<trex::TTRExJunction*> GetConnectedJunctions(){
       return fConnectedJunctions;
     }
@@ -91,7 +90,6 @@ namespace trex{
     void SetId(unsigned int id){fId=id;}
         
     std::vector<trex::TTRExHVCluster*>&  GetClusters(){
-
       return fClusters;
     }
     

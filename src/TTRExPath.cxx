@@ -1,26 +1,43 @@
 #include "TTRExPath.hxx"
 
-
-
-void trex::TTRExPath::SetConnectedJunctions(std::vector<trex::TTRExJunction*> &juncts){
-  fConnectedJunctions.clear();
-  fConnectedJunctionsId.clear();
-  
-  fConnectedJunctions = juncts;
-  for(int i=0; i<juncts.size(); ++i){
-    fConnectedJunctionsId.push_back(juncts[i]->GetId());
-  }
-}
-
-
 void trex::TTRExPath::AddConnectedJunction(trex::TTRExJunction* junct){
 
   if(find(fConnectedJunctions.begin(),fConnectedJunctions.end(), junct) != fConnectedJunctions.end()){
     std::cout << "This Junction is already connected" << std::endl;
     return;
   }
-  fConnectedJunctions.push_back(junct);
-  fConnectedJunctionsId.push_back(junct->GetId());                                                                                    
+  if(fFrontIsConnected&&fBackIsConnected){
+    std::cout<<"Attempted to add more than two junctions to path!!"<<std::endl;
+    exit(0);
+  }
+  else if(fFrontIsConnected){
+    fConnectedJunctions.push_back(junct);
+    fConnectedJunctionsId.push_back(junct->GetId());
+    fBackIsConnected=true;
+  }
+  else if(fBackIsConnected){
+    trex::TTRExJunction* tmpJunct=fConnectedJunctions.front();
+    fConnectedJunctions.clear();
+    fConnectedJunctionsId.clear();
+    fConnectedJunctions.push_back(junct);
+    fConnectedJunctionsId.push_back(junct->GetId());
+    fConnectedJunctions.push_back(tmpJunct);
+    fConnectedJunctionsId.push_back(tmpJunct->GetId());
+    fFrontIsConnected=true;
+  }
+  else{
+    fConnectedJunctions.push_back(junct);
+    fConnectedJunctionsId.push_back(junct->GetId());
+    TVector3 frontPos=fClusters.front()->GetPosition();
+    TVector3 backPos=fClusters.back()->GetPosition();
+    TVector3 junctPos=junct->GetPosition();
+    if((frontPos-junctPos).Mag()<(backPos-junctPos).Mag()){
+      fFrontIsConnected=true;
+    }
+    else{
+      fBackIsConnected=true;
+    }
+  }
 }
 
 

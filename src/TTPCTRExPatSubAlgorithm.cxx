@@ -296,11 +296,12 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
   for(int i=0; i<junctionsToPathsMap.size(); ++i){
     if(junctionsToPathsMap[i].size()<2) continue;
     juncts.emplace_back(junctionGroups[i]->GetHits());
-    juncts.back().SetId(junctIndex);
+    unsigned int jId=junctionGroups[i]->GetID();
+    juncts.back().SetId(jId);
     for(int j=0;j<junctionsToPathsMap[i].size();++j){
       //Cantor's formula for unique IDs
       unsigned int pathIndex=junctionsToPathsMap[i][j];
-      int uniqueIdPath = ((junctIndex+1+j+1)*(junctIndex+1+j+1+1))/2+(j+1); 
+      int uniqueIdPath = ((jId+1+j+1)*(jId+1+j+1+1))/2+(j+1); 
       if(paths[pathIndex].GetId()==0){
       paths[pathIndex].SetId((int)uniqueIdPath);
       }
@@ -319,22 +320,21 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
     int nHits=0;
     for(auto iCl=clusters.begin();iCl!=clusters.end();++iCl){nHits+=(*iCl)->GetClusterHits().size();}
 
-    std::cout<<"   Path "<<i<<" has "<<clusters.size()<<" clusters"<<std::endl;
+    std::cout<<"   Path "<<paths[i].GetId()<<" has "<<clusters.size()<<" clusters"<<std::endl;
     std::cout<<"   and "<<nHits<<" hits"<<std::endl;
     std::cout<<"  **********"<<std::endl;
   }
   for(int i=0;i<juncts.size();++i){
-    std::cout<<"   Junction "<<i<<" has "<<juncts[i].GetHits().size()<<" hits"<<std::endl;
+    std::cout<<"   Junction "<<juncts[i].GetId()<<" has "<<juncts[i].GetHits().size()<<" hits"<<std::endl;
     std::cout<<"   and is linked to paths:";
-    for(int j=0;j<junctionsToPathsMap[i].size();++j){
-      std::cout<<(j==0?" ":", ")<<junctionsToPathsMap[i][j]<<std::endl;
+    for(auto j=juncts[i].GetConnectedPaths().begin();j<juncts[i].GetConnectedPaths().end();++j){
+      std::cout<<" "<<(*j)->GetId()<<std::endl;
     }
     std::cout<<"  **********"<<std::endl;
   }
   std::cout<<"**************"<<std::endl;
   // fill used and unused hits
-  //  FillUsedHits(used);
-
+  //  FillUsedHits(used);}
 }
 
 std::vector<trex::TTPCHitPad*> trex::TTPCTRExPatSubAlgorithm::GetHits(){

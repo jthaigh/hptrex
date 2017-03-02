@@ -33,3 +33,14 @@ bool trex::TTRExJunction::IsPathConnected(unsigned int WantedPathId){
   }
   return isConnected;
 }
+
+void trex::TTRExJunction::SetHits(const std::vector<TTPCHitPad*>& theHits){
+  fHits=theHits;
+  TVector3 position;
+  double totalCharge=0;
+  for(auto iHit=fHits.begin();iHit!=fHits.end();++iHit){
+    position+=(*iHit)->GetPosition()*(*iHit)->GetCharge();
+    totalCharge+=(*iHit)->GetCharge();
+  }
+  fPosition=(1./totalCharge)*position;
+}
