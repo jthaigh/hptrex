@@ -343,6 +343,7 @@ bool trex::TTPCHelixPropagator::FullPropagateToHVCluster(trex::TTRExHVCluster& C
   std::cout<<"Initial state at "<<fX0<<", "<<fY0<<", "<<fZ0<<std::endl;
   std::cout<<"Directions at "<<fDirX0<<", "<<fDirY0<<", "<<fDirZ0<<std::endl;
   std::cout<<"Propagating to cluster at"<<Cluster.X()<<", "<<Cluster.Y()<<", "<<Cluster.Z()<<std::endl;
+  std::cout<<"This cluster is "<<(Cluster.IsVertical()?"Vertical":"Horizontal")<<std::endl;
   
   if ( Cluster.IsVertical() && !(fQuadrant == 2 || fQuadrant == 4)){
     // Which quadrant ?
@@ -387,28 +388,28 @@ bool trex::TTPCHelixPropagator::FullPropagateToHVCluster(trex::TTRExHVCluster& C
   double newPhi=0.;
 
   if(Cluster.IsVertical()){
-    if(Cluster.Z()>fZc+1./fRho0){
+    if(Cluster.Z()>fZc+fabs(1./fRho0)){
       newPhi=0.;
     }
-    else if(Cluster.Z()<fZc-1./fRho0){
-      newPhi=-TMath::Pi();
+    else if(Cluster.Z()<fZc-fabs(1./fRho0)){
+      newPhi=TMath::Pi();
     }
     else{
-      newPhi=TMath::ACos(fRho0*(Cluster.Z()-fZc));
+      newPhi=TMath::ACos(fabs(fRho0)*(Cluster.Z()-fZc));
       if(Cluster.Y()<fYc){
 	newPhi=2.*TMath::Pi()-newPhi;
       }
     }
   }
   else{    
-    if(Cluster.Y()>fYc+1./fRho0){
+    if(Cluster.Y()>fYc+fabs(1./fRho0)){
       newPhi=0.5*TMath::Pi();
     }
-    else if(Cluster.Y()<fYc-1./fRho0){
+    else if(Cluster.Y()<fYc-fabs(1./fRho0)){
       newPhi=1.5*TMath::Pi();
     }
     else{
-      newPhi=TMath::ASin(fRho0*(Cluster.Y()-fYc));
+      newPhi=TMath::ASin(fabs(fRho0)*(Cluster.Y()-fYc));
       if(Cluster.Z()<fZc){
 	newPhi=TMath::Pi()-newPhi;
       }

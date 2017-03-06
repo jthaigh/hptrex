@@ -167,7 +167,9 @@ namespace trex{
     void GetUnusedHits(std::vector< trex::TTPCOrderedVolGroup >& paths, TTPCVolGroup& unusedHits);
 
       /// Associate unused hits with path junctions
-    void AssociateUnusedWithJunctions(trex::TTPCVolGroup& unused, std::vector< trex::TTPCOrderedVolGroup >& paths);
+    void AssociateUnusedWithJunctions(trex::TTPCVolGroup& unused, 
+				      std::vector< trex::TTPCOrderedVolGroup >& paths,
+				      std::vector< trex::TTPCVolGroup >& junctionsToAddTo);
 
       /// Filter out any remaining tracks and hits that don't make sense
       void SanityFilter(std::vector< trex::TTPCOrderedVolGroup >& input);

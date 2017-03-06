@@ -2072,7 +2072,9 @@ void trex::TTPCVolGroupMan::GetUnusedHits(std::vector< trex::TTPCOrderedVolGroup
 
 
 //MDH TODO: This is building new junctions in a stack container then passing out their pointers!!! :-S
-void trex::TTPCVolGroupMan::AssociateUnusedWithJunctions(trex::TTPCVolGroup& unused, std::vector< trex::TTPCOrderedVolGroup >& paths){
+void trex::TTPCVolGroupMan::AssociateUnusedWithJunctions(trex::TTPCVolGroup& unused, 
+							 std::vector< trex::TTPCOrderedVolGroup >& paths,
+							 std::vector< trex::TTPCVolGroup >& junctionsToAddTo){
 
   std::vector< trex::TTPCVolGroup* > junctions = GetJunctionsFromPaths(paths);
   if(!junctions.size()) return;
@@ -2085,8 +2087,7 @@ void trex::TTPCVolGroupMan::AssociateUnusedWithJunctions(trex::TTPCVolGroup& unu
     unused.AddHits(junction);
   };
 
-  // new junctions to add to paths
-  std::vector< trex::TTPCVolGroup > newJunctions;
+  std::vector<trex::TTPCVolGroup*> newJuncPtrs;
 
   // try and associate each junction with new hits
   for(std::vector< trex::TTPCVolGroup* >::iterator junctionIt = junctions.begin(); junctionIt != junctions.end(); ++junctionIt){
@@ -2096,21 +2097,24 @@ void trex::TTPCVolGroupMan::AssociateUnusedWithJunctions(trex::TTPCVolGroup& unu
     if(unused.size() < 1) break;
 
     // new junction to hold hits
-    newJunctions.emplace_back(fLayout, trex::TTPCVolGroup::GetFreeID());
+    junctionsToAddTo.emplace_back(fLayout, trex::TTPCVolGroup::GetFreeID());
 
     // seed from every element in old junction so nothing is missed
     for(std::map<long, trex::TTPCUnitVolume*>::iterator seedEl = junction.begin(); seedEl != junction.end(); ++seedEl){
-      RecursiveFriendBuild(seedEl->first, newJunctions.back(), unused);
+      RecursiveFriendBuild(seedEl->first, junctionsToAddTo.back(), unused);
     }
 
-    if(!newJunctions.back().size()){
-      newJunctions.pop_back();
+    if(!junctionsToAddTo.back().size()){
+      junctionsToAddTo.pop_back();
+    }
+    else{
+      newJuncPtrs.push_back(&(junctionsToAddTo.back()));
     }
   }
 
   // now add expanded junctions to paths
-  for(std::vector< trex::TTPCVolGroup >::iterator newJunctionIt = newJunctions.begin(); newJunctionIt != newJunctions.end(); ++newJunctionIt){
-    trex::TTPCVolGroup& newJunction = *newJunctionIt;
+  for(auto newJunctionIt = newJuncPtrs.begin(); newJunctionIt != newJuncPtrs.end(); ++newJunctionIt){
+    trex::TTPCVolGroup& newJunction = **newJunctionIt;
     if(!newJunction.size()) continue;
 
     for(std::vector< trex::TTPCOrderedVolGroup >::iterator pathIt = paths.begin(); pathIt != paths.end(); ++pathIt){

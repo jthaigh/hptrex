@@ -12,6 +12,10 @@ trex::TTPCTRExPatSubAlgorithm::TTPCTRExPatSubAlgorithm(trex::TTPCLayout* layout)
   fVolGroupMan = new trex::TTPCVolGroupMan(fLayout);
   fAStar = new trex::TTPCAStar(fLayout);  
   //  fPattern = new trex::TTPCPattern;
+
+  //People are going to take pointers to objects stored in here.
+  //Make sure the vector isn't reallocated.
+  fVertices.reserve(10000);
 }
 trex::TTPCTRExPatSubAlgorithm::~TTPCTRExPatSubAlgorithm(){
   // delete groups of hits and path finders
@@ -36,6 +40,10 @@ trex::TTPCTRExPatSubAlgorithm::TTPCTRExPatSubAlgorithm(trex::TTPCTRExPatSubAlgor
 
   in.fAStar=0;
   in.fVolGroupMan=0;
+
+  //People are going to take pointers to objects stored in here.
+  //Make sure the vector isn't reallocated.
+  fVertices.reserve(10000);
 }
 
 void trex::TTPCTRExPatSubAlgorithm::SetUpHits(std::map<long, trex::TTPCUnitVolume*>& map, trex::TTPCAStar* aStarCopy){
@@ -192,7 +200,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProduceContainers(){
   trex::TTPCVolGroup unusedHits(fLayout);
   
   fVolGroupMan->GetUnusedHits(truePaths,unusedHits);
-  fVolGroupMan->AssociateUnusedWithJunctions(unusedHits, truePaths);
+  fVolGroupMan->AssociateUnusedWithJunctions(unusedHits, truePaths, fVertices);
 
   // reset vertex status based on how many paths a junction is connected to
   fVolGroupMan->ResetVertexStatuses(truePaths);

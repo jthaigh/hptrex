@@ -37,7 +37,8 @@ void MergePlots(){
       sprintf(fileName,"%s.pdf",keyName);
       fOut.cd();
       ca->Write();
-      if(i++>20)break;
+      delete ca;
+      if(i++>40)break;
     }
   }
 }
