@@ -8,7 +8,7 @@
 #include "TSimLoader.hxx"
 #include "TTrueHit.hxx"
 #include "TTRExPattern.hxx"
-
+#include "TTRExPIDAlgorithm.hxx"
 
 #include <iostream>
 #include <vector>
@@ -67,6 +67,8 @@ int main(int argc, char** argv){
     trex::TTPCTracking trackingAlgo;
     trex::TTPCLikelihoodMatch matchAlgo;
     trex::TTPCLikelihoodMerge mergeAlgo;
+    //Initialise PID Algo here
+    trex::TTRExPIDAlgorithm pidAlgo;
     trex::TEventDisplay evDisp(&fPlot,i);
     trex::TEventDisplay evDispM(&fPlotM,i);
 
@@ -91,6 +93,9 @@ int main(int argc, char** argv){
     matchAlgo.Process(event->GetPatterns());
     std::cout<<"Running merging..."<<std::endl;
     mergeAlgo.Process(event->GetPatterns(),mergedEvt->GetPatterns());
+    std::cout <<"Running PID calculator..." <<std::endl;
+    //Run PID Algo here
+    pidAlgo.Process(mergedEvt->GetPatterns());
 
     evDisp.Process(hitPads,trueHits,event,layout);    
     evDispM.Process(hitPads,trueHits,mergedEvt,layout);    

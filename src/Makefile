@@ -7,7 +7,7 @@ COPTS	= -Wall -g -fPIC -DLINUX -O2 -std=c++11 -Wl,-rpath,$(shell brew --prefix)/
 
 #LIBS	= -L/usr/local/lib -lftd2xx
 
-OBJ = TTPCAStar.o TTPCHitPad.o TTPCLayout.o TTPCOrderedVolGroup.o TTPCPathVolume.o TTPCTRExPatAlgorithm.o TTPCTRExPatSubAlgorithm.o TTPCUnitVolume.o TTPCVolGroup.o TTPCVolGroupMan.o GasTPCDataLib.o TSimLoader.o GasTPCDataLibDict.o TTRExPattern.o TEventDisplay.o ioDict.o TTRExHVCluster.o TTPCHelixPropagator.o TTPCLikelihoodMatch.o TTPCLikelihoodMerge.o TTPCLikFitPath.o TTPCQLikelihood.o TTPCSeeding.o TTPCTracking.o TTPCUtils.o TTrueHit.o TTRExPath.o TTRExJunction.o
+OBJ = TTPCAStar.o TTPCHitPad.o TTPCLayout.o TTPCOrderedVolGroup.o TTPCPathVolume.o TTPCTRExPatAlgorithm.o TTPCTRExPatSubAlgorithm.o TTPCUnitVolume.o TTPCVolGroup.o TTPCVolGroupMan.o GasTPCDataLib.o TSimLoader.o GasTPCDataLibDict.o TTRExPattern.o TEventDisplay.o ioDict.o TTRExHVCluster.o TTPCHelixPropagator.o TTPCLikelihoodMatch.o TTPCLikelihoodMerge.o TTPCLikFitPath.o TTPCQLikelihood.o TTPCSeeding.o TTPCTracking.o TTPCUtils.o TTrueHit.o TTRExPath.o TTRExJunction.o TTRExPIDAlgorithm.o
 
 ROOT_LIBS   = $(shell root-config --libs --glibs)
 ROOT_CFLAGS = $(shell root-config --cflags)
