@@ -19,7 +19,7 @@ int  GasTPCVoxelize(const char * inputfile, Int_t x_voxelDim, Int_t y_voxelDim, 
 
 //work in progress
   //TFile f(inputfile.c_str(),"UPDATE");  //input file from screen
-  TFile f(inputfile,"UPDATE");
+  TFile f(inputfile);
   if (f.GetNkeys()<1) {
     printf("Error: Cannot open file\n");
     return 1;

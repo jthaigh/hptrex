@@ -5,8 +5,8 @@ trex::TSimLoader::TSimLoader(std::string inputFile){
   
   fFile=new TFile(inputFile.c_str(), "UPDATE");
   
-  fTree=(TTree*)fFile->Get("Tracking");
-  fTree->SetBranchStatus("event",0); //this just needs to be there until the genie libs are linked
+  //  fTree=(TTree*)fFile->Get("Tracking");
+  //fTree->SetBranchStatus("event",0); //this just needs to be there until the genie libs are linked
 
   fVoxelsTree=(TTree*)fFile->Get("VoxelsTree");
 
@@ -14,7 +14,7 @@ trex::TSimLoader::TSimLoader(std::string inputFile){
 
    
   fSimulDataBranch=0;
-  fTree->SetBranchAddress("SimulData",&fSimulDataBranch);
+  //  fTree->SetBranchAddress("SimulData",&fSimulDataBranch);
 
   //fTree->SetBranchAddress("GeantTrackingTruth", &fGeantBranch);
 
@@ -98,9 +98,9 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
 
   }
 
-  fTree->GetEntry(i);
+  //fTree->GetEntry(i);
 
-  HitCollection simHits = fSimulDataBranch->getTpcFidHits();
+  /*HitCollection simHits = fSimulDataBranch->getTpcFidHits();
   
   for(HitCollection::iterator hitIter=simHits.begin();hitIter!=simHits.end();++hitIter){
 
@@ -125,13 +125,13 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
   }
   
   std::sort(fTrueHits.begin(), fTrueHits.end());
-  
+  */
   
 }
 
 
 unsigned int trex::TSimLoader::GetNEvents(){
-  return fTree->GetEntries();
+  return fVoxelsTree->GetEntries();
 }
 
 
