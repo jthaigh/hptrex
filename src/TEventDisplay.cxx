@@ -24,7 +24,7 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
 
   gStyle->SetOptStat(0);
   int iColor=0;
-  int colors[11]={kBlue, kRed, kYellow, kGreen, kMagenta, kCyan, kOrange, kPink, kAzure, kSpring, kViolet};
+  int colors[11]={kBlue, kYellow, kGreen, kMagenta, kCyan, kOrange, kPink, kAzure, kSpring, kViolet};
     
   // set up container for hitpad level unused  
   std::vector<trex::TTPCHitPad*> usedTREx;
@@ -73,7 +73,7 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
     for(auto iPath=subPaths.begin();iPath!=subPaths.end();++iPath){
       
       std::vector<trex::TTPCHitPad*> usedThisObject;
-      int color_index = iColor%11;
+      int color_index = iColor%10;
       int color_increment = iColor%4;
       xyGraphs.push_back(new TGraph(1));
       xzGraphs.push_back(new TGraph(1));
@@ -99,7 +99,7 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
     
     for(auto iJunct=subJuncts.begin();iJunct!=subJuncts.end();++iJunct){
       
-      //int color_index = iColor%11;
+      //int color_index = iColor%10;
       //int color_increment = iColor%4;
       xyGraphs.push_back(new TGraph(1));
       xzGraphs.push_back(new TGraph(1));
@@ -170,11 +170,13 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
     
   TLorentzVector pos = (*iTrueHits)->TruePos4;
   
-  xyHitGraphs[trackId]->SetPoint(xyHitGraphs[trackId]->GetN(),0.1*pos.X(),0.1*pos.Y());
-  xzHitGraphs[trackId]->SetPoint(xzHitGraphs[trackId]->GetN(),0.1*pos.X(),0.1*pos.Z());
-  
+  //xyHitGraphs[trackId]->SetPoint(xyHitGraphs[trackId]->GetN(),0.1*pos.X(),0.1*pos.Y());
+  //xzHitGraphs[trackId]->SetPoint(xzHitGraphs[trackId]->GetN(),0.1*pos.X(),0.1*pos.Z());
   //0.1* factor turns positions from mm to cm
   
+  xyHitGraphs[trackId]->SetPoint(xyHitGraphs[trackId]->GetN(),pos.X(),pos.Y());
+  xzHitGraphs[trackId]->SetPoint(xzHitGraphs[trackId]->GetN(),pos.X(),pos.Z());
+
   }
   
   if(strangePDG.size()!=0){
