@@ -23,7 +23,9 @@ trex::TTPCLayout::TTPCLayout(){
   fEdgeLayers = 2;
 
   // set pattern recognition and path finding connection distances
-  fConnectDistX = 3;
+  //P.D. 
+  //fConnectDistX = 3;
+  fConnectDistX = 1;
   fConnectDistY = 1;
   fConnectDistZ = 1;
 
