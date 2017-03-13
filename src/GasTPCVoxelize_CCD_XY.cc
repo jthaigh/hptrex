@@ -8,11 +8,13 @@
 #include "GasTPCDataLib.hxx"
 #include "LinkDef.hh"
 
-int  GasTPCVoxelize(const char * inputfile, Int_t x_voxelDim, Int_t y_voxelDim, Int_t NFiles) //Define voxelDim in mm
+std::string base_name(std::string const & path);
+
+int  GasTPCVoxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t NFiles) //Define voxelDim in tens of microns i.e. 1e-5m
 {
   
   char inname[100];
-  char outname[100];
+  char outname[500];
   char N[100];
   
   std::cout << "The input file is " << inputfile << "\n" << std::endl;
@@ -33,20 +35,39 @@ int  GasTPCVoxelize(const char * inputfile, Int_t x_voxelDim, Int_t y_voxelDim, 
 ////////////////////////////////////////////////////////////////////////////////////////////
  const Int_t dim = 3;
 
- sprintf(outname, "voxelresults_%dmm_%dmm.root", x_voxelDim,y_voxelDim);
+
+ string input_path = std::string(inputfile);
+
+ string basefile = base_name(input_path)+"_voxels_%de-5m_%de-5m.root";
+ 
+ const char * basefile_char = basefile.c_str();
+
+ sprintf(outname, basefile_char, x_voxelDim,y_voxelDim);
  std:: cout << "New file will be called: " << outname << std::endl;
  TFile f1(outname,"RECREATE"); 
 
- // Int_t res = 1024/voxelDim;
  //P.D.
- Int_t x_res = 1000/x_voxelDim;
- Int_t y_res = 1000/y_voxelDim;
- Int_t res = 1;
+ double x_res = x_voxelDim/100; //to get resolution in mm from 10s of microns
+ double y_res = y_voxelDim/100;
 
- Double_t maxs[dim] = { 500., 500., 1};
- Double_t mins[dim] = { -500., -500., 0};
- Int_t bins[dim] = {x_res, y_res, res};
+ int x_Bins = (int)(1200/x_res);
+ int y_Bins = (int)(1200/y_res);
+ int z_Bins = 1;
 
+ double x_range = x_Bins*x_res;
+ double y_range = y_Bins*y_res;
+
+ //Int_t x_res = 1200/x_res;
+ //Int_t y_res = 1200/y_res;
+
+ Double_t maxs[dim] = { x_range/2, y_range/2, 1.};
+ Double_t mins[dim] = { -x_range/2, -y_range/2, 0.};
+ Int_t bins[dim] = {x_Bins, y_Bins, z_Bins};
+ 
+//original resolution of 2.34 mm
+//Double_t maxs[dim] = { 600.21, 600.21, 1.};
+//Double_t mins[dim] = { -600.21, -600.21, 0.};
+// Int_t bins[dim] = {513, 513, 1};
 
  THnSparseF* voxels = new THnSparseF("Voxels","", dim, bins, mins, maxs);
 
@@ -66,7 +87,7 @@ int  GasTPCVoxelize(const char * inputfile, Int_t x_voxelDim, Int_t y_voxelDim, 
   //sprintf(inname,"hReadOutReal_img%.3d", h);
   std::string files;
 
-  std::cout << "Histogram being read is: " << inname << std::endl;
+  //std::cout << "Histogram being read is: " << inname << std::endl;
 
   sprintf(N, "histo%.3d", h);
 
@@ -77,9 +98,9 @@ int  GasTPCVoxelize(const char * inputfile, Int_t x_voxelDim, Int_t y_voxelDim, 
   Double_t maxX = N->GetBin(512,512);
   Double_t maxY = N->GetBin(512,512);
 
-  std::cout << "Min X = " << minX << std::endl;
-  std::cout << "Max X = " << maxX << std::endl;
-  std::cout << "Bins = " << maxX - minX << std::endl;
+  //std::cout << "Min X = " << minX << std::endl;
+  //std::cout << "Max X = " << maxX << std::endl;
+  //std::cout << "Bins = " << maxX - minX << std::endl;
 
 
 
@@ -104,7 +125,7 @@ int  GasTPCVoxelize(const char * inputfile, Int_t x_voxelDim, Int_t y_voxelDim, 
 	
 	Double_t position[3] = {xpos, ypos, zpos};
 	
-	std::cout << "Filling hist with voxel at : " << position[0] << ", " << position[1] << ", " << position[2] << std::endl;
+	//std::cout << "Filling hist with voxel at : " << position[0] << ", " << position[1] << ", " << position[2] << std::endl;
 	voxels->Fill(position, Edep);
       }
     }
@@ -133,7 +154,7 @@ int  GasTPCVoxelize(const char * inputfile, Int_t x_voxelDim, Int_t y_voxelDim, 
  VoxelsTree->Fill();
 
  }
-
+ 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
  
@@ -198,7 +219,9 @@ int  GasTPCVoxelize(const char * inputfile, Int_t x_voxelDim, Int_t y_voxelDim, 
   
   VoxelsTree->Print();
   
-  std::cout << "VoxelTree printed succesfully\n" << std::endl;  
+  std::cout << "VoxelTree printed succesfully\n" << std::endl;
+
+  std:: cout << "OUTPUT CAN BE FOUND HERE: " << outname << std::endl;
 
 //  TFile f1("~/Documents/TRex/hptrex/voxelresults.root", "NEW");
  f1.Write();
@@ -208,3 +231,14 @@ int  GasTPCVoxelize(const char * inputfile, Int_t x_voxelDim, Int_t y_voxelDim, 
   f1.Close();  //PAULA: Attempt made to define output file and write to it
   return 0;
 }
+
+
+std::string base_name(std::string const & path)
+{
+  //string base =  path.substr(path.find_last_of("/\\") + 1);
+  
+  //return base.substr(0,base.length()-5);
+
+  return path.substr(0, path.length()-5);
+}
+
