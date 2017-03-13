@@ -67,18 +67,31 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
 
     //Extracting information from the THnSparseF
    
+
+    //Hard-coded Histogram dimensions (this is not good)
     Int_t coords[3];
     Double_t position[3];
-    Int_t bins[3] = {700, 700, 700};
-    Double_t maxs[3] = { 3500.,  3500., 3558.2+3500.};
-    Double_t mins[3] = {-3500., -3500., 3558.2-3500.};
+
+    //DUNE ND
+    //Int_t bins[3] = {700, 700, 700};
+    //Double_t maxs[3] = { 3500.,  3500., 3558.2+3500.};
+    //Double_t mins[3] = {-3500., -3500., 3558.2-3500.};
         
+    //PRD original resolution
+    //double res = 2.34;
+    //Int_t bins[3] = {513, 513, 1};
+    //Double_t maxs[3] = { 600.21,  600.21, 0.};
+    //Double_t mins[3] = {-600.21, -600.21, 1.};
+
+
+
     (*voxelPtr).Edep = fVoxelBranch->GetBinContent(linInd, coords);
     (*voxelPtr).time = 0; //setting time to 0 for now until we have a T0 from other subdetectors
 
     //Translate coordinates into positions
     for(int dim=0; dim<3; ++dim){
-      position[dim]=(mins[dim]/10) + coords[dim]; //position in cm
+      //position[dim]=(mins[dim]) + res*coords[dim]; //real position (not good for cell-ID map right now
+      position[dim]=coords[dim];
     }
 
     
