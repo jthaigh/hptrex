@@ -138,6 +138,9 @@ namespace trex{
   struct WritablePattern{
     std::vector<std::vector<trex::TTPCHitPad> > Paths;
     std::vector<std::vector<trex::TTPCHitPad> > Junctions;
+    std::vector<double> dEdx;
+    std::vector<double> TrackLength;
+    std::vector<double> ChargeSum;
   };
 
   struct WritableEvent{
@@ -149,6 +152,11 @@ namespace trex{
 	patterns.emplace_back();
 	for(auto iPath=iPat->GetPaths().begin();iPath!=iPat->GetPaths().end();++iPath){
 	  patterns.back().Paths.emplace_back();
+
+	  patterns.back().dEdx.push_back(iPath->GetdEdx());
+	  patterns.back().TrackLength.push_back(iPath->GetTrackLength());
+	  patterns.back().ChargeSum.push_back(iPath->GetChargeSum());
+
 	  for(auto iCluster=iPath->GetClusters().begin();iCluster!=iPath->GetClusters().end();++iCluster){
 	    for(auto iHit=(*iCluster)->GetClusterHits().begin();iHit!=(*iCluster)->GetClusterHits().end();++iHit)
 	      patterns.back().Paths.back().emplace_back(**iHit);

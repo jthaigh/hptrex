@@ -72,13 +72,24 @@ void trex::TTRExPIDAlgorithm::TrackLength(trex::TTRExPath& path){
   trex::TTRExHVCluster* FirstCluster = *tmpClu;
   
   TVector3 trackStart = FirstCluster->GetPosition();
+  //std::cout << "CLUSTER POSITION 1: " << trackStart.Print() << std::endl;
+
 
   std::vector<trex::TTRExHVCluster*>::reverse_iterator tmpClu2 = path.GetClusters().rbegin();
   trex::TTRExHVCluster* LastCluster = *tmpClu2;
 
   TVector3 trackEnd = LastCluster->GetPosition();
+  //std::cout <<"CLUSTER POSITION 2: " << trackEnd.Print() << std::endl;
+
 
   TVector3 track = trackEnd-trackStart;
-  double trackLength = track.Mag();
+  double mag = track.Mag();
+  double trackLength = mag*2.34;
+  
+  std::cout << "*************************************************" << std::endl;
+  std::cout << "TRACK LENGTH WAS: " << trackLength << std::endl; 
+  std::cout << "*************************************************" << std::endl;
+
+  path.SetTrackLength(trackLength);
 
 }
