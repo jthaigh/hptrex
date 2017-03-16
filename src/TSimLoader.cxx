@@ -95,9 +95,9 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
     }
 
     
-    (*voxelPtr).x_pos = position[0];
-    (*voxelPtr).y_pos = position[1];
-    (*voxelPtr).z_pos = position[2];
+    (*voxelPtr).x_pos = position[2];
+    (*voxelPtr).y_pos = position[0];
+    (*voxelPtr).z_pos = position[1];
 
     //std::cout << "Have found Voxel at position: " << coords[0] << " : " << coords[1] << " : " << coords[2] << std::endl;
     

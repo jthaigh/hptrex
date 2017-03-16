@@ -90,7 +90,7 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
 	std::vector<trex::TTPCHitPad*> hits=(*iClu)->GetClusterHits();
 	for(auto iHit=hits.begin();iHit!=hits.end();++iHit){
 	  TVector3 pos=(*iHit)->GetPosition();
-	  xyGraphs.back()->SetPoint(iPt,pos.X(),pos.Y());
+	  xyGraphs.back()->SetPoint(iPt,pos.Y(),pos.Z());
 	  xzGraphs.back()->SetPoint(iPt++,pos.X(),pos.Z());
 	  
 	}
@@ -114,7 +114,7 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
       std::vector<trex::TTPCHitPad*> hits=iJunct->GetHits();
       for(auto iHit=hits.begin();iHit!=hits.end();++iHit){
 	TVector3 pos=(*iHit)->GetPosition();
-	xyGraphs.back()->SetPoint(iPt,pos.X(),pos.Y());
+	xyGraphs.back()->SetPoint(iPt,pos.Y(),pos.Z());
 	xzGraphs.back()->SetPoint(iPt++,pos.X(),pos.Z());
       }
     }
@@ -174,7 +174,7 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
   //xzHitGraphs[trackId]->SetPoint(xzHitGraphs[trackId]->GetN(),0.1*pos.X(),0.1*pos.Z());
   //0.1* factor turns positions from mm to cm
   
-  xyHitGraphs[trackId]->SetPoint(xyHitGraphs[trackId]->GetN(),pos.X(),pos.Y());
+  xyHitGraphs[trackId]->SetPoint(xyHitGraphs[trackId]->GetN(),pos.Y(),pos.Z());
   xzHitGraphs[trackId]->SetPoint(xzHitGraphs[trackId]->GetN(),pos.X(),pos.Z());
 
   }
@@ -210,7 +210,7 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
     
     for(auto iHit=unusedHits.begin();iHit!=unusedHits.end();++iHit){
       TVector3 pos=(*iHit)->GetPosition();
-      xyGraphs.back()->SetPoint(iPt,pos.X(),pos.Y());
+      xyGraphs.back()->SetPoint(iPt,pos.Y(),pos.Z());
       xzGraphs.back()->SetPoint(iPt++,pos.X(),pos.Z());
     }
 
@@ -219,8 +219,8 @@ void trex::TEventDisplay::Process(std::vector<trex::TTPCHitPad*>& hits, std::vec
     TCanvas cxy(buf,buf);
         
     TH2F dummyxy("XY-view","XY-view",
-		 1000,layout.GetMinPos().X()-10.,layout.GetMaxPos().X()+10.,
-		 1000,layout.GetMinPos().Y()-10.,layout.GetMaxPos().Y()+10.);
+		 1000,layout.GetMinPos().Y()-10.,layout.GetMaxPos().Y()+10.,
+		 1000,layout.GetMinPos().Z()-10.,layout.GetMaxPos().Z()+10.);
     
     dummyxy.Draw();
 

@@ -27,7 +27,7 @@ trex::TTPCLayout::TTPCLayout(){
   //fConnectDistX = 3;
   fConnectDistX = 1;
   fConnectDistY = 1;
-  fConnectDistZ = 1;
+  fConnectDistZ = 5;
 
   // set charactaristic structure distances
   fStructDistX = 1;

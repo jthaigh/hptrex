@@ -433,6 +433,8 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
 
     NbNewJunctions++;
     NewPattern->GetJunctions().emplace_back();
+    NewPattern->GetPaths().reserve(1000);
+
     trex::TTRExJunction* NewJunction=&(NewPattern->GetJunctions().back());
     trex::TTRExJunction* OldJunction = fMTracker[mt].GetJunction();
 
@@ -460,7 +462,8 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
           auto it = find (AlreadyAdded.begin(), AlreadyAdded.end(), fMTracker[submt].GetMergedPath());
           if (it == AlreadyAdded.end()){
 	    NewPattern->GetPaths().emplace_back(*(fMTracker[submt].GetMergedPath()));
-            NewJunction->AddConnectedPath(fMTracker[submt].GetMergedPath());
+	    //MDH TODO Gah, this pointer will be invalidated if the paths container is reallocated
+            NewJunction->AddConnectedPath(&(NewPattern->GetPaths().back()));
             AlreadyAdded.push_back(fMTracker[submt].GetMergedPath());
           }
         }
