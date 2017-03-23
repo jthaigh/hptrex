@@ -13,13 +13,13 @@ void PIDmacro(const char * pion, const char * proton){
   TTree * Pion_ReconTree = (TTree*)PionFile->Get("TPCRecon");
   TTree * Proton_ReconTree = (TTree*)ProtonFile->Get("TPCRecon");
   
-  TH1D Pion_dEdx("Pi_dEdx", "Pi_dEdx", 100, 0, 0.00001);
-  TH1D Pion_TrackLength("Pi_TrackLength", "Pi_TrackLength", 600, 0, 1200);
-  TH1D Pion_ChargeSum("Pi_ChargeSum", "Pi_ChargeSum", 800, 0, 0.024);
+  TH1D Pion_dEdx("Pi_dEdx", "Pi_dEdx", 50, 0, 0.00002);
+  TH1D Pion_TrackLength("Pi_TrackLength", "Pi_TrackLength", 300, 0, 1200);
+  TH1D Pion_ChargeSum("Pi_ChargeSum", "Pi_ChargeSum", 200, 0, 0.024);
   
-  TH1D Proton_dEdx("P_dEdx", "P_dEdx", 100, 0, 0.00001); 
-  TH1D Proton_TrackLength("P_TrackLength", "P_TrackLength", 600, 0, 1200);
-  TH1D Proton_ChargeSum("P_ChargeSum", "P_ChargeSum", 800, 0, 0.024);
+  TH1D Proton_dEdx("P_dEdx", "P_dEdx", 50, 0, 0.00002); 
+  TH1D Proton_TrackLength("P_TrackLength", "P_TrackLength", 300, 0, 1200);
+  TH1D Proton_ChargeSum("P_ChargeSum", "P_ChargeSum", 200, 0, 0.024);
   
   int Pion_entries = Pion_ReconTree->GetEntries();
   int Proton_entries = Proton_ReconTree->GetEntries();
@@ -76,7 +76,7 @@ void PIDmacro(const char * pion, const char * proton){
   Proton_TrackLength.SetLineColor(kRed);
   Proton_ChargeSum.SetLineColor(kRed);
 
-  TFile outf("SingeTrack_pi_p_PID.root", "RECREATE");
+  TFile outf("SingleTrack_pi_p_PID.root", "RECREATE");
 
   Pion_dEdx.Write();
   Pion_TrackLength.Write();
