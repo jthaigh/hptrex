@@ -68,14 +68,10 @@ double trex::TTPCLinearMerge::CalcChi2PerDOF( trex::TTRExPath& PathA, trex::TTRE
   TGraph grMatch(1);
   unsigned int iPt=0;
 
-  static TFile f("diagGraphs","RECREATE");
-  static int iGraph=0;
-
   for(auto clIter=PathA.GetClusters().begin();clIter!=PathA.GetClusters().end();++clIter){
     for(auto hitIter=(*clIter)->GetClusterHits().begin();hitIter!=(*clIter)->GetClusterHits().end();++hitIter){
       TVector3 hitPos=(*hitIter)->GetPosition();
       grMatch.SetPoint(iPt++,hitPos.Z(),hitPos.Y());
-      //grMatch.SetPointError(iPt++,1.,1.);
     }
   }
 
@@ -83,18 +79,11 @@ double trex::TTPCLinearMerge::CalcChi2PerDOF( trex::TTRExPath& PathA, trex::TTRE
     for(auto hitIter=(*clIter)->GetClusterHits().begin();hitIter!=(*clIter)->GetClusterHits().end();++hitIter){
       TVector3 hitPos=(*hitIter)->GetPosition();
       grMatch.SetPoint(iPt++,hitPos.Z(),hitPos.Y());
-      //      grMatch.SetPointError(iPt++,1.,1.);
     }
   }
 
-  TFitResultPtr rpMatch = grMatch.Fit("pol1","S");
+  TFitResultPtr rpMatch = grMatch.Fit("pol3","S");
 
-  f.cd();
-  
-  char buf[10];
-  sprintf(buf,"%d",iGraph++);
-  grMatch.Write(buf);
-  
   return rpMatch->Chi2()/rpMatch->Ndf();
 
 }
@@ -113,6 +102,8 @@ void trex::TTPCLinearMerge::MatchThroughJunctions(trex::TTRExPattern& pattern){
   for (auto constit = pattern.GetJunctions().begin(); constit != pattern.GetJunctions().end(); constit++) {
     bool atLeastOneMatch = false;
     trex::TTRExJunction& junction = (*constit);
+    TVector3 posJunct=junction.GetPosition();
+
     std::vector< trex::TTRExPath* > Paths;
     for (auto pathIter = junction.GetConnectedPaths().begin(); pathIter != junction.GetConnectedPaths().end(); pathIter++) {
       Paths.push_back(*pathIter);
@@ -123,9 +114,30 @@ void trex::TTPCLinearMerge::MatchThroughJunctions(trex::TTRExPattern& pattern){
       auto bestPathB=junction.GetConnectedPaths().begin();
       double bestChi2=1.E13;
       bool hasMatch=false;
-      
+
       for (auto pathA = Paths.begin(); pathA != Paths.end(); pathA++) {
+	
+	TVector3 posAStart=(*pathA)->GetClusters().front()->GetPosition();
+	TVector3 posAEnd=(*pathA)->GetClusters().back()->GetPosition();
+
+	if((posAStart-posJunct).Mag()>(posAEnd-posJunct).Mag()){
+	  posAEnd=posAStart;
+	}
+
 	for (auto pathB = pathA+1; pathB != Paths.end(); pathB++) {
+	  TVector3 posBStart=(*pathB)->GetClusters().front()->GetPosition();
+	  TVector3 posBEnd=(*pathB)->GetClusters().back()->GetPosition();
+	  
+	  if((posBStart-posJunct).Mag()>(posBEnd-posJunct).Mag()){
+	    posBEnd=posBStart;
+	  }
+	  
+	  //If both track ends are above or below the junction then
+	  //sense is wrong - skip
+	  if((posAEnd-posJunct).Z()*(posBEnd-posJunct).Z()>0){
+	    continue;
+	  }
+	  
 	  double thisChi2=CalcChi2PerDOF(**pathA,**pathB);
 	  if(thisChi2<bestChi2){
 	    bestChi2=thisChi2;
@@ -136,7 +148,7 @@ void trex::TTPCLinearMerge::MatchThroughJunctions(trex::TTRExPattern& pattern){
 	}
       }
       
-      if(!hasMatch||bestChi2>1000.){
+      if((!hasMatch)||bestChi2>10.){
 	break;
       }
       fMTracker.push_back( MatchingTracker(**bestPathA, **bestPathB, junction) );
