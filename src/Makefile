@@ -23,16 +23,16 @@ libevtrecord.so: evtrec
 	cp evtrec/libevtrecord.so ./
 
 RunTRExRecon.exe: libpatrec.so libevtrecord.so RunTRExRecon.cxx
-	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -lpatrec -lMinuit -o RunTRExRecon.exe RunTRExRecon.cxx
+	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -levtrecord -lpatrec -lMinuit -o RunTRExRecon.exe RunTRExRecon.cxx
 
 RunTRExReconCCD.exe: libpatrec.so RunTRExReconCCD.cxx
-	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -lpatrec -lMinuit -o RunTRExReconCCD.exe RunTRExReconCCD.cxx
+	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -levtrecord -lpatrec -lMinuit -o RunTRExReconCCD.exe RunTRExReconCCD.cxx
 
 RunTRExReconND.exe: libpatrec.so libevtrecord.so RunTRExRecon.cxx 
-	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -lpatrec -lMinuit -o RunTRExReconND.exe RunTRExReconND.cxx
+	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -levtrecord -lpatrec -lMinuit -o RunTRExReconND.exe RunTRExReconND.cxx
 
 libpatrec.so: $(OBJ)
-	$(CC) $(COPTS) -shared -o libpatrec.so $(OBJ) libevtrecord.so
+	$(CC) $(COPTS) -shared -o libpatrec.so $(OBJ)
 
 #obj: $(OBJ)
 

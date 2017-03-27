@@ -21,7 +21,7 @@ libevtrecord.so: $(OBJ)
 	$(CC) -c $(COPTS) $(ROOT_CFLAGS) $(INCLUDE) -I. -o $@ $<
 
 EventRecordDict.cxx:
-	rootcint EventRecordDict.cxx EventRecord.h LinkDef.h
+	rootcint EventRecordDict.cxx EventRecord.h MCGenInfo.h MCParticle.h MCTrack.h MCHit.h RecoParticle.h Vector3D.h Vector4D.h LinkDef.h
 
 clean:
 	rm -f *.o *.so EventRecordDict.*
