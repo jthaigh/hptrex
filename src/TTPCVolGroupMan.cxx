@@ -45,6 +45,8 @@ std::vector< trex::TTPCVolGroup > trex::TTPCVolGroupMan::GetEdgeGroups(){
 }
 
 std::vector< trex::TTPCVolGroup > trex::TTPCVolGroupMan::GetEdgeGroups(trex::TTPCVolGroup& inGroup, bool fiddlyLeans){
+
+  bool haveX=fLayout->GetHaveX();
   int layers = fLayout->GetEdgeLayers();
   trex::TTPCConnection::Type type = trex::TTPCConnection::path;
 
@@ -80,8 +82,8 @@ std::vector< trex::TTPCVolGroup > trex::TTPCVolGroupMan::GetEdgeGroups(trex::TTP
     int z = vol->second->GetZ();
 
     // add hits to relevant group, in x only in the case of deltas 
-    if(x > (inGroup.GetXMax() - layers) ) edgeHitsXHi.AddHit(vol->second);
-    if(x < (inGroup.GetXMin() + layers) ) edgeHitsXLo.AddHit(vol->second);
+    if(haveX && (x > (inGroup.GetXMax() - layers)) ) edgeHitsXHi.AddHit(vol->second);
+    if(haveX && (x < (inGroup.GetXMin() + layers)) ) edgeHitsXLo.AddHit(vol->second);
     if(y > (inGroup.GetYMax() - layers) ) edgeHitsYHi.AddHit(vol->second);
     if(y < (inGroup.GetYMin() + layers) ) edgeHitsYLo.AddHit(vol->second);
     if(z > (inGroup.GetZMax() - layers) ) edgeHitsZHi.AddHit(vol->second);

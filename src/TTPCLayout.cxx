@@ -7,6 +7,8 @@ trex::TTPCLayout::TTPCLayout(){
   //This all needs reimplementing, and we need to think about if we really need
   //all these parameters...
 
+  fHaveX=false;
+
   fBField=1.;
 
   //MDH

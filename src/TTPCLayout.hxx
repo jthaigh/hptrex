@@ -56,6 +56,8 @@ namespace trex{
       /// Convert cell id in x, y and z to a single unique long integer, returning -1 if bad ids are supplied
       long SafeMash(int x, int y, int z);
 
+      bool GetHaveX(){ return fHaveX; }
+
       /// Find appropriate distances for a given type of connection
       void GetTypeDistances(int& distX, int& distY, int& distZ, trex::TTPCConnection::Type type);
 
@@ -64,7 +66,7 @@ namespace trex{
       /// Get distance between MM pad centres in z direction
       double GetPadPitchZ(){ return fPadPitchZ; }
 
-      /// Get size of an individual x cell
+      /// Get size of an individual x cel
       double GetXCellSize(){ return fXCellSize; }
 
       /// Get minimum number of pads constituting a useful pattern
@@ -170,6 +172,8 @@ namespace trex{
     double GetBField(){return fBField;}
 
     private:
+
+      bool fHaveX;
 
       /// Distance between MM pad centres in y direction
       double fPadPitchY;

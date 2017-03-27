@@ -16,9 +16,13 @@ ROOT_CFLAGS = $(shell root-config --cflags)
 # Compile
 #=========================================================
 
-all: RunTRExRecon.exe RunTRExReconCCD.exe
+all: libevtrecord.so RunTRExRecon.exe RunTRExReconCCD.exe
 
-RunTRExRecon.exe: libpatrec.so RunTRExRecon.cxx
+libevtrecord.so: evtrec
+	make -C evtrec
+	cp evtrec/libevtrecord.so ./
+
+RunTRExRecon.exe: libpatrec.so libevtrecord.so RunTRExRecon.cxx
 	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -lpatrec -lMinuit -o RunTRExRecon.exe RunTRExRecon.cxx
 
 RunTRExReconCCD.exe: libpatrec.so RunTRExReconCCD.cxx
@@ -39,4 +43,6 @@ ioDict.cxx:
 	rootcint ioDict.cxx  TTRExPattern.hxx TTPCHitPad.hxx ioLinkDef.hh
 
 clean:
-	rm *.o *.so *.exe GasTPCDataLibDict.* ioDict.* ioDict_rdict.pcm
+	make -C evtrec clean	
+	rm -f *.o *.so *.exe GasTPCDataLibDict.* ioDict.* ioDict_rdict.pcm
+	
