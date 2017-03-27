@@ -46,8 +46,17 @@ int main(int argc, char** argv){
   fReconTree->Branch("unusedHits", &unused);//, 64000, 1);
   fReconTree->Branch("event", &outEvent);//, 64000, 1);
 
-  TFile fPlot("plots_unmerged.root","RECREATE");
-  TFile fPlotM("plots_merged.root","RECREATE");
+  char merged_plots[100]; 
+  char unmerged_plots[100];
+
+  sprintf(merged_plots, "plots_merged_%s", newName);
+  sprintf(unmerged_plots, "plots_unmerged_%s", newName);
+
+  TFile fPlot(unmerged_plots,"RECREATE");
+  TFile fPlotM(merged_plots, "RECREATE");
+
+  //TFile fPlot("plots_unmerged.root","RECREATE");
+  //TFile fPlotM("plots_merged.root","RECREATE");
   
   for(int i=0;i!=10;++i){ //loader.GetNEvents();++i){
 
