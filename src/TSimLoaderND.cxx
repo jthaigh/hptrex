@@ -159,11 +159,11 @@ void trex::TSimLoaderND::LoadEvent(unsigned int i){
   
 }
 
-/*
+
 unsigned int trex::TSimLoaderND::GetNEvents(){
-  return fVoxelsTree->GetEntries();
+  return fTree->GetEntries();
 }
-*/
+
 
 
 
