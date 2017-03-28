@@ -28,7 +28,7 @@ RunTRExRecon.exe: libpatrec.so libevtrecord.so RunTRExRecon.cxx
 RunTRExReconCCD.exe: libpatrec.so RunTRExReconCCD.cxx
 	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -levtrecord -lpatrec -lMinuit -o RunTRExReconCCD.exe RunTRExReconCCD.cxx
 
-RunTRExReconND.exe: libpatrec.so libevtrecord.so RunTRExRecon.cxx 
+RunTRExReconND.exe: libpatrec.so libevtrecord.so RunTRExReconND.cxx 
 	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -levtrecord -lpatrec -lMinuit -o RunTRExReconND.exe RunTRExReconND.cxx
 
 libpatrec.so: $(OBJ)
