@@ -115,7 +115,7 @@ void trex::TSimLoaderND::LoadEvent(unsigned int i){
       (*voxelPtr).y_pos = xyzt.GetY();
       (*voxelPtr).z_pos = xyzt.GetZ();
       
-      //std::cout << "Have found Voxel at position: " << coords[0] << " : " << coords[1] << " : " << coords[2] << std::endl;
+      std::cout << "Have found Voxel at position: " << (*voxelPtr).x_pos << " : " << (*voxelPtr).y_pos << " : " << (*voxelPtr).z_pos << std::endl;
       
       TLorentzVector pos4((*voxelPtr).x_pos, (*voxelPtr).y_pos, (*voxelPtr).z_pos, (*voxelPtr).time);
       

@@ -7,7 +7,7 @@ trex::TTPCLayout::TTPCLayout(){
   //This all needs reimplementing, and we need to think about if we really need
   //all these parameters...
 
-  fHaveX=false;
+  fHaveX=true;
 
   fBField=1.;
 
@@ -27,9 +27,9 @@ trex::TTPCLayout::TTPCLayout(){
   // set pattern recognition and path finding connection distances
   //P.D. 
   //fConnectDistX = 3;
-  fConnectDistX = 1;
-  fConnectDistY = 1;
-  fConnectDistZ = 5;
+  fConnectDistX = 2;
+  fConnectDistY = 2;
+  fConnectDistZ = 2;
 
   // set charactaristic structure distances
   fStructDistX = 1;
