@@ -1,3 +1,4 @@
+.gitignore
 *.o
 *.so
 *.exe
@@ -5,3 +6,6 @@
 *.pcm
 *~
 *.root
+
+notused/*
+output/*
