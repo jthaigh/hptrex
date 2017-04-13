@@ -58,7 +58,9 @@ int main(int argc, char** argv){
   //TFile fPlot("plots_unmerged.root","RECREATE");
   //TFile fPlotM("plots_merged.root","RECREATE");
   
+
   for(int i=0;i!= 100; ++i){ //loader.GetNEvents();++i){
+
 
     trex::TTRExEvent * event;
     

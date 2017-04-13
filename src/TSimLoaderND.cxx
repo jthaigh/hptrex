@@ -73,6 +73,15 @@ void trex::TSimLoaderND::LoadEvent(unsigned int i){
 
     for(auto hitIt=MCHits.begin(); hitIt!=MCHits.end(); ++hitIt){
       
+      gastpc::Vector4D xyzt = (*hitIt)->GetXYZT();
+      double amplitude = (*hitIt)->GetAmplitude();
+
+      if(xyzt.GetX()<-1240||xyzt.GetX()>1240||
+	 xyzt.GetY()<-1240||xyzt.GetY()>1240||
+	 xyzt.GetZ()<550||xyzt.GetZ()>7060){
+	continue;
+      }
+
       //SDHit& hit=*hitIter; does not make sense here right now
       //double hitTime=hit.getPosition().T();
       
@@ -96,10 +105,7 @@ void trex::TSimLoaderND::LoadEvent(unsigned int i){
       //Int_t bins[3] = {513, 513, 1};
       //Double_t maxs[3] = { 600.21,  600.21, 0.};
       //Double_t mins[3] = {-600.21, -600.21, 1.};
-      
-      gastpc::Vector4D xyzt = (*hitIt)->GetXYZT();
-      double amplitude = (*hitIt)->GetAmplitude();
-      
+            
       (*voxelPtr).Edep = amplitude;
       (*voxelPtr).time = 0; //setting time to 0 for now until we have a T0 from other subdetectors
       
@@ -111,11 +117,11 @@ void trex::TSimLoaderND::LoadEvent(unsigned int i){
       }
       */
       
-      (*voxelPtr).x_pos = xyzt.GetX();
-      (*voxelPtr).y_pos = xyzt.GetY();
-      (*voxelPtr).z_pos = xyzt.GetZ();
+      (*voxelPtr).x_pos = xyzt.GetX()*0.1;
+      (*voxelPtr).y_pos = xyzt.GetY()*0.1;
+      (*voxelPtr).z_pos = xyzt.GetZ()*0.1;
       
-      std::cout << "Have found Voxel at position: " << (*voxelPtr).x_pos << " : " << (*voxelPtr).y_pos << " : " << (*voxelPtr).z_pos << std::endl;
+      //std::cout << "Have found Voxel at position: " << (*voxelPtr).x_pos << " : " << (*voxelPtr).y_pos << " : " << (*voxelPtr).z_pos << std::endl;
       
       TLorentzVector pos4((*voxelPtr).x_pos, (*voxelPtr).y_pos, (*voxelPtr).z_pos, (*voxelPtr).time);
       
