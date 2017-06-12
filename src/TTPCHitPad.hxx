@@ -5,6 +5,7 @@
 #include <vector>
 #include "TVector3.h"
 #include "TLorentzVector.h"
+#include "TTrueTrack.hxx"
 
 using namespace std;
 
@@ -34,6 +35,10 @@ public:
   double Z(){return fPosition.Z();};
 
   TVector3 GetPosition(){return fPosition;}
+  
+  //Each HitPad points at a TrueTrack object that hold track-level truth information
+  void SetTrueTrack(trex::TTrueTrack* track) {TrueTrack = track;}
+  trex::TTrueTrack* GetTrueTrack() {return TrueTrack;}
 
   char Print(){
 
@@ -52,6 +57,8 @@ private:
   double fTimeFit;
 
   TVector3 fPosition;
+
+  TTrueTrack* TrueTrack;
 };
 
 #endif

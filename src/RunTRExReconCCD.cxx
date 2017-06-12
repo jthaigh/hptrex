@@ -2,10 +2,11 @@
 #include "TTPCLinearMerge.hxx"
 #include "TEventDisplay.hxx"
 #include "TTPCHitPad.hxx"
-#include "TSimLoader.hxx"
+#include "TSimLoaderCCD.hxx"
 #include "TTrueHit.hxx"
 #include "TTRExPattern.hxx"
 #include "TTRExPIDAlgorithm.hxx"
+#include "TTrueTrack.hxx"
 
 #include <iostream>
 #include <vector>
@@ -39,8 +40,8 @@ int main(int argc, char** argv){
   std::vector<trex::TTPCHitPad> * unused=0;
   trex::WritableEvent * outEvent=0;
 
-  fReconTree->Branch("unusedHits", &unused);//, 64000, 1);
-  fReconTree->Branch("event", &outEvent);//, 64000, 1);
+  fReconTree->Branch("unusedHits", &unused);
+  fReconTree->Branch("event", &outEvent);
 
   char merged_plots[100];
   char unmerged_plots[100];
@@ -71,10 +72,12 @@ int main(int argc, char** argv){
     trex::TTPCLinearMerge mergeAlgo;
     //Initialise PID Algo here
     trex::TTRExPIDAlgorithm pidAlgo;
+    std::cout << "Now setting up event displays" << std::endl;
     trex::TEventDisplay evDisp(&fPlot,i);
     trex::TEventDisplay evDispM(&fPlotM,i);
 
     trex::TTPCLayout layout;
+
     trexAlg.Process(hitPads,usedHits,unusedTemp,trueHits,event,layout); 
     
     for(auto iHit=unusedTemp.begin();iHit!=unusedTemp.end();++iHit){
@@ -89,12 +92,14 @@ int main(int argc, char** argv){
     std::cout <<"Running PID calculator..." <<std::endl;
     //Run PID Algo here
     pidAlgo.Process(mergedEvt->GetPatterns());
-
+    std::cout << "Now filling Event Displays" << std::endl;
     evDisp.Process(hitPads,trueHits,event,layout);    
     evDispM.Process(hitPads,trueHits,mergedEvt,layout);    
-    
+    std::cout << "Now building output Event for i/o" << std::endl;
     outEvent->FillFromEvent(*mergedEvt);
-    fReconTree->Fill();
+    std::cout << "Now filling Recon Tree for output" << std::endl;
+    //fReconTree->Print();
+    //fReconTree->Fill();
     
     unused->clear();            
     delete event;

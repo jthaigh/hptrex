@@ -1,5 +1,5 @@
-#ifndef TSIMLOADER_HXX
-#define TSIMLOADER_HXX
+#ifndef TSIMLOADERCCD_HXX
+#define TSIMLOADERCCD_HXX
 
 
 //C++
@@ -98,7 +98,8 @@ namespace trex{
     std::vector<trex::TTPCHitPad*> fHits;
     std::vector<voxel*> fVoxels;
     std::vector<TTrueHit*> fTrueHits;
-    
+    int fimageNumber = -1;
+   
     SimulData* fSimulDataBranch;
     GeantTrackingTruth* fGeantBranch;
     THnSparseF* fVoxelBranch;

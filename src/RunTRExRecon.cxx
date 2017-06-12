@@ -20,7 +20,6 @@
 #include "TROOT.h"
 #include "TRint.h"
 
-
 int main(int argc, char** argv){
   
   gROOT->ProcessLine(".class trex::TTPCHitPad");

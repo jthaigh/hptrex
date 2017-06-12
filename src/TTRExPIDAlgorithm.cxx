@@ -32,11 +32,16 @@ void trex::TTRExPIDAlgorithm::dEdx(trex::TTRExPath& path){
   double charge = path.GetChargeSum();
   double length = path.GetTrackLength();
 
-  double dEdx = charge/length;
+  double dedx;
+  if(length!=0){
+    dedx = charge/length;
+  }else{dedx = charge;}
 
-  std::cout << "Calculated dE/dx as: " << dEdx << std::endl;
+  std::cout << "Calculated dE/dx as: " << dedx << std::endl;
 
-  path.SetdEdx(dEdx);
+  path.SetdEdx(dedx);
+
+  std::cout << "Path dE/dx was set" << std::endl;
 }
 
 

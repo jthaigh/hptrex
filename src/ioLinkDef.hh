@@ -21,4 +21,6 @@
 #pragma link C++ class trex::WritablePattern+;
 #pragma link C++ class std::vector<trex::WritablePattern>+;
 
+#pragma link C++ class trex::TTrueTrack+;
+
 #endif
