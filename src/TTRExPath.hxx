@@ -90,12 +90,7 @@ namespace trex{
     std::vector<trex::TTRExHVCluster*>&  GetClusters(){
       return fClusters;
     }
-    
-    //
-    //    std::vector<trex::TTRExHVCluster*>& GetHits(){
-    //  return GetClusters();
-    //}
-    
+ 
     
     //print method for debugging
     void Print() {
@@ -104,8 +99,6 @@ namespace trex{
       }
     }
     
-    
-    //MDH TODO: Implement these
     
     //Convert the end of the path into end nodes
     void SetEndClustersToNodes();

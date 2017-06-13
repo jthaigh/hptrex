@@ -924,30 +924,6 @@ void trex::TTPCOrderedVolGroup::OrderFromPosition(TVector3 pos){
 }
 
 
-//MDH
-//This is a bit messy since it looks like the output object is getting pushed back with
-//TTPCHVClusters which contain multiple hits but also derive from THit.
-//May need to revisit this
-
-/*
-std::vector<trex::TTPCHitPad*> trex::TTPCOrderedVolGroup::GetClusters(){
-  std::vector<trex::TTPCHitPad*> hits;
-
-  for(std::vector<trex::TTPCPathVolume*>::iterator id = fHits.begin(); id != fHits.end(); ++id){
-    std::vector<trex::TTPCHitPad*> chits = (*id)->GetHits();
-    for(auto hit=chits.begin();hit!=chits.end();++hit){
-      hits.push_back(*hit);
-    }
-  };
-  
-  return std::move(hits);
-}
-
-*/
-
-//PD
-// THE GETCLUSTERS() METHOD ABOVE NEEDS TO BE REWRITTEN TO GIVE A VECTOR OF CLUSTERS RATHER THAN HITPADS
-
 std::vector<trex::TTRExHVCluster*> trex::TTPCOrderedVolGroup::GetClusters(){
 
   if(!fClusters.size()){
@@ -956,7 +932,7 @@ std::vector<trex::TTRExHVCluster*> trex::TTPCOrderedVolGroup::GetClusters(){
       
       std::vector<trex::TTPCHitPad*> hits = (*id)->GetHits();
       
-      bool hasCluster = (*id)->GetHasCluster();
+      //bool hasCluster = (*id)->GetHasCluster();
       //std::cout << "This hit has clustered friends" << std::endl;
       bool IsVertical = (*id)->GetIsVertical();
       TVector3 pos = (*id)->GetPos();
