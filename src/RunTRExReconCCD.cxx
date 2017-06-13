@@ -98,8 +98,8 @@ int main(int argc, char** argv){
     std::cout << "Now building output Event for i/o" << std::endl;
     outEvent->FillFromEvent(*mergedEvt);
     std::cout << "Now filling Recon Tree for output" << std::endl;
-    //fReconTree->Print();
-    //fReconTree->Fill();
+    
+    fReconTree->Fill();
     
     unused->clear();            
     delete event;

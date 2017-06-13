@@ -18,6 +18,7 @@
 #include "TTPCHitPad.hxx"
 #include "TTrueHit.hxx"
 #include "TTRExPattern.hxx"
+#include "TTrueTrack.hxx"
 
 //Sim data
 #include "GasTPCDataLib.hxx"
@@ -98,8 +99,10 @@ namespace trex{
     std::vector<trex::TTPCHitPad*> fHits;
     std::vector<voxel*> fVoxels;
     std::vector<TTrueHit*> fTrueHits;
+
     int fimageNumber = -1;
-   
+    std::vector<trex::TTrueTrack*> fTrueTracks;
+
     SimulData* fSimulDataBranch;
     GeantTrackingTruth* fGeantBranch;
     THnSparseF* fVoxelBranch;

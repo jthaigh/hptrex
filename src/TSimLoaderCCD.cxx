@@ -33,7 +33,7 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
   TVector3* TrueXf=0;
   fVoxelsTree->SetBranchAddress("Xf", &TrueXf);
   
-  Int_t PDG=0;
+  Float_t PDG=0;
   fVoxelsTree->SetBranchAddress("PDG", &PDG);
   
   Int_t TrackID = 0;
@@ -45,7 +45,6 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
   Int_t ProOrPi = 0;
   fVoxelsTree->SetBranchAddress("ProOrPi", &ProOrPi);
 
-  TTrueTrack* trueTrack = new TTrueTrack();
 
   std::cout << "LOADING EVENT # " << i << std::endl;
 
@@ -53,12 +52,11 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
 
   std::cout << "Processing Image # " << ImageNumber << std::endl;
   
-  //trueTrack->SetEntries(PDG, TrackID, ProOrPi, ParentID, TrueXi, TrueXf);
-
+   
   //Clean up previous event but only if we are actually processing a new image - if not just add another single track to the event.
   if(ImageNumber != fimageNumber){
 
-    //Delete hits from last even
+    //Delete hits from last event
     for(std::vector<trex::TTPCHitPad*>::iterator hitPadIter=fHits.begin();hitPadIter!=fHits.end();++hitPadIter){
       delete *hitPadIter;
     }
@@ -74,15 +72,29 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
       delete *TrueHitIter;
     }
     
+    //Delete TrueTracks from last event
+    for(std::vector<trex::TTrueTrack*>::iterator truetrackIter=fTrueTracks.begin(); truetrackIter!=fTrueTracks.end(); ++truetrackIter){
+      delete *truetrackIter;
+    }
+
     
     fHits.clear();
     fVoxels.clear();
     fTrueHits.clear();
-    
+    fTrueTracks.clear();
+
     fimageNumber = ImageNumber;
     
   }
-       
+
+  fTrueTracks.push_back(new TTrueTrack());
+ 
+  Int_t TrackNumber = fTrueTracks.size();
+  std::cout << "This is Track number " << TrackNumber << " of Image number " << ImageNumber << std::endl;
+
+  //filling TrackID with TrackNumber right now since true TrackID from file doesn't seemt to give a sensible value (always 1?)
+  fTrueTracks.back()->SetEntries(PDG, TrackNumber, ProOrPi, ParentID, *TrueXi, *TrueXf);
+
   Int_t nVoxels = fVoxelBranch->GetNbins(); 
   
   std::cout << "There are " << nVoxels << " Voxels in this Event" << std::endl;
@@ -114,7 +126,7 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
       position[dim]=coords[dim];
     }
 
-    
+    //Swapping coordinates here because t2k beam direction is z and drift direction is x, whereas PRD beam direction is y and drift direction is z. 
     (*voxelPtr).x_pos = position[2];
     (*voxelPtr).y_pos = position[0];
     (*voxelPtr).z_pos = position[1];
@@ -124,13 +136,15 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
     TLorentzVector pos4((*voxelPtr).x_pos, (*voxelPtr).y_pos, (*voxelPtr).z_pos, (*voxelPtr).time);
 
     trex::TTPCHitPad* hitPadPtr=new TTPCHitPad((*voxelPtr).Edep,pos4);
-    //hitPadPtr->SetTrueTrack(trueTrack);
+    hitPadPtr->SetTrueTrack(fTrueTracks.back());
 
     fHits.push_back(hitPadPtr);
 
     Detector->Fill(pos4.X(), pos4.Y(), pos4.Z());
 
   }
+
+  std::cout << "These Hits belong to a Track with TrackID: " << fTrueTracks.back()->GetTrackID() << std::endl;
 
 
   //The following still needs to be rewritten for CCD if we need it at all
