@@ -126,7 +126,9 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   //Set how many events we want to process
   int nEvents;  
 
-  if(events < entries){
+  if(events==0){
+    nEvents=entries;
+  }else if(events < entries){
     nEvents=events;
   }else{nEvents=entries;}
 
