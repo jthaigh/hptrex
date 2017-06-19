@@ -6,11 +6,11 @@
 #include "TH2.h"
 #include "TVector3.h"
 
-#include "LinkDef.hh"
+#include "../LinkDef.hh"
 
 std::string base_name(std::string const & path);
 
-int  GasTPCVoxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t NFiles, string mode) //Define voxelDim in tens of microns i.e. 1e-5m
+int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t events, string mode) //Define voxelDim in tens of microns i.e. 1e-5m
 {
   
   char inname[100];
@@ -119,13 +119,22 @@ int  GasTPCVoxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_
   MergeTree->SetBranchAddress("ParentID", &ParentID);
   MergeTree->SetBranchAddress("ProOrPi", &ProOrPi);
  
-  int entries = MergeTree->GetEntries();
+
   
+  int entries = MergeTree->GetEntries();
+
+  //Set how many events we want to process
+  int nEvents;  
+
+  if(events < entries){
+    nEvents=events;
+  }else{nEvents=entries;}
+
   std::cout << "This Tree contains " << entries << " Events." << std::endl;
 
 
   //EventLoop
-  for(int i=0; i<entries; ++i){
+  for(int i=0; i<nEvents; ++i){
     
     std::cout << "Voxelising Event # " << i << std::endl;
 
@@ -164,7 +173,7 @@ int  GasTPCVoxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_
   /*
   //Reading out 2D images - obsolete?
   
-  for(Int_t h=0; h<NFiles; ++h){
+  for(Int_t h=0; h<events; ++h){
     
     voxels->Reset();
     
