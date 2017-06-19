@@ -12,32 +12,43 @@ namespace trex{
     //Use constructor-like setter. Values should not be modified once set. 
     TTrueTrack() {}
 
-    void SetEntries(int pdg, int id, int pOrPi, int parent, TVector3 initial, TVector3 final){
-      TrackPDG = pdg;
-      TrackID = id;
-      TrackProOrPi = pOrPi;
-      TrackParentID = parent;
-      TrackInitialPos = initial;
-      TrackFinalPos = final;
+    //Setter for values that come straight from the input file
+    void SetEntries(int pdg, int trackNum, int id, int pOrPi, int parent, TVector3 initial, TVector3 final, double mom){
+      fTrackPDG = pdg;
+      fTrackNumber = trackNum;
+      fTrackID = id;
+      fTrackProOrPi = pOrPi;
+      fTrackParentID = parent;
+      fTrackInitialPos = initial;
+      fTrackFinalPos = final;
+      fMomentum = mom;
     }
+
+
+    void SetNumberOfHits(int hitNum) {fNumberOfHits = hitNum;}
     
-    int GetTrackPDG() {return TrackPDG;}
-    int GetTrackID() {return TrackID;}
-    int GetTrackProOrPi() {return TrackProOrPi;}
-    int GetTrackParentID() {return TrackParentID;}
-    TVector3 GetTrackInitialPos() {return TrackInitialPos;}
-    TVector3 GetTrackFinalPos() {return TrackFinalPos;}
-    
-    
+    int GetTrackPDG(){return fTrackPDG;}
+    int GetTrackNumber(){return fTrackNumber;}
+    int GetTrackID(){return fTrackID;}
+    int GetTrackProOrPi(){return fTrackProOrPi;}
+    int GetTrackParentID(){return fTrackParentID;}
+    TVector3 GetTrackInitialPos(){return fTrackInitialPos;}
+    TVector3 GetTrackFinalPos(){return fTrackFinalPos;}
+    double GetMomentum(){return fMomentum;}
+    int GetNumberOfHits(){return fNumberOfHits;}
+
   private:
     
-    int TrackPDG;
-    int TrackID;
-    int TrackProOrPi;
-    int TrackParentID;
-    TVector3 TrackInitialPos;
-    TVector3 TrackFinalPos;
-    
+    int fTrackPDG;
+    int fTrackNumber;
+    int fTrackID;
+    int fTrackProOrPi;
+    int fTrackParentID;
+    TVector3 fTrackInitialPos;
+    TVector3 fTrackFinalPos;
+    double fMomentum;
+    int fNumberOfHits;
+   
   };
   
 }

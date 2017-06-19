@@ -55,7 +55,7 @@ int main(int argc, char** argv){
   //TFile fPlot("plots_unmerged.root","RECREATE");
   //TFile fPlotM("plots_merged.root","RECREATE");
   
-  for(int i=0;i!=100;++i){ //loader.GetNEvents();++i){
+  for(int i=0;i<loader.GetNEvents();++i){
 
     trex::TTRExEvent * event;
     
@@ -65,6 +65,8 @@ int main(int argc, char** argv){
     std::vector<trex::TTPCHitPad*> usedHits;
     std::vector<TTrueHit*>& trueHits = loader.GetTrueHits();
     std::vector<trex::TTPCHitPad*> unusedTemp;
+
+    int TrueMultiplicity=loader.GetTrueMultiplicity();
 
     event = new trex::TTRExEvent();
         
@@ -80,6 +82,8 @@ int main(int argc, char** argv){
 
     trexAlg.Process(hitPads,usedHits,unusedTemp,trueHits,event,layout); 
     
+
+    
     for(auto iHit=unusedTemp.begin();iHit!=unusedTemp.end();++iHit){
       unused->emplace_back(**iHit);
     }
@@ -89,16 +93,21 @@ int main(int argc, char** argv){
     trex::TTRExEvent* mergedEvt=new trex::TTRExEvent;
     std::cout<<"Running merging..."<<std::endl;
     mergeAlgo.Process(event->GetPatterns(),mergedEvt->GetPatterns());
+    
     std::cout <<"Running PID calculator..." <<std::endl;
+
     //Run PID Algo here
     pidAlgo.Process(mergedEvt->GetPatterns());
+    
     std::cout << "Now filling Event Displays" << std::endl;
     evDisp.Process(hitPads,trueHits,event,layout);    
     evDispM.Process(hitPads,trueHits,mergedEvt,layout);    
+    
     std::cout << "Now building output Event for i/o" << std::endl;
     outEvent->FillFromEvent(*mergedEvt);
+    outEvent->SetTrueMultiplicity(TrueMultiplicity);
+
     std::cout << "Now filling Recon Tree for output" << std::endl;
-    
     fReconTree->Fill();
     
     unused->clear();            

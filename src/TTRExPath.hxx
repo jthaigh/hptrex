@@ -6,6 +6,7 @@
 #include "TTPCHitPad.hxx"
 #include "TTRExHVCluster.hxx"
 #include "TTPCHelixPropagator.hxx"
+#include "TTrueTrack.hxx"
 
 namespace trex{
   
@@ -182,6 +183,9 @@ namespace trex{
     
     void SetHasLikelihoodFit(bool hasLikelihoodFit){fHasLikelihoodFit=hasLikelihoodFit;}
     
+    void SetPID(int pid){fPID = pid;}
+    int GetPID(){return fPID;}
+
     void SetdEdx(double dEdx){fdEdx=dEdx;}
     double GetdEdx(){return fdEdx;}
     
@@ -191,6 +195,41 @@ namespace trex{
     void SetTrackLength(double length){fTrackLength=length;}
     double GetTrackLength(){return fTrackLength;}
     
+    void SetTrueTrackLength (double truelength){fTrueTrackLength = truelength;}
+    double GetTrueTrackLength(){return fTrueTrackLength;}
+
+    void SetTrackCompleteness (double completeness){fTrackCompleteness = completeness;}
+    double GetTrackCompleteness() {return fTrackCompleteness;}
+
+    void SetTrackCleanliness (double cleanliness) {fTrackCleanliness = cleanliness;}
+    double GetTrackCleanliness(){return fTrackCleanliness;}
+
+    void FillFromTruthTrack(TTrueTrack *track){
+      fPDG=track->GetTrackPDG();
+      fInitialPosition=track->GetTrackInitialPos();
+      fFinalPosition=track->GetTrackFinalPos();
+      fMomentum=track->GetMomentum();
+      fTrackNumber=track->GetTrackNumber();
+      fTrackID=track->GetTrackID();
+      fParentID=track->GetTrackParentID();
+      fProOrPi=track->GetTrackProOrPi();
+      fTrueNumberOfHits=track->GetNumberOfHits();
+    }
+
+    int GetPDG(){return fPDG;}    
+    TVector3 GetInitialPosition(){return fInitialPosition;}
+    TVector3 GetFinalPosition(){return fFinalPosition;}\
+    double GetMomentum(){return fMomentum;}
+    int GetTrackNumber(){return fTrackNumber;}
+    int GetTrackID(){return fTrackID;}
+    int GetParentID(){return fParentID;}
+    int GetProOrPi(){return fProOrPi;}
+    int GetTrueNumberOfHits(){return fTrueNumberOfHits;}
+    
+    void SetNumberOfTrueHitsFound(int hits){fNumberOfTrueHitsFound = hits;}
+    int GetNumberOfTrueHitsFound(){return fNumberOfTrueHitsFound;}
+
+
   private:
     
     unsigned int fId = 0;
@@ -234,6 +273,22 @@ namespace trex{
     double fTrackLength;
     double fChargeSum;
     
+    //PID and Truth Variables
+    double fTrueTrackLength;
+    double fTrackCompleteness;
+    double fTrackCleanliness;
+    int fNumberOfTrueHitsFound;
+    
+    //Fill these from the primary Truth Track
+    int fPDG;
+    TVector3 fInitialPosition;
+    TVector3 fFinalPosition;
+    double fMomentum;
+    int fTrackNumber;
+    int fTrackID; 
+    int fParentID;
+    int fProOrPi;
+    int fTrueNumberOfHits;
   };
 }
 

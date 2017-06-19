@@ -92,13 +92,18 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
   Int_t TrackNumber = fTrueTracks.size();
   std::cout << "This is Track number " << TrackNumber << " of Image number " << ImageNumber << std::endl;
 
-  //filling TrackID with TrackNumber right now since true TrackID from file doesn't seemt to give a sensible value (always 1?)
-  fTrueTracks.back()->SetEntries(PDG, TrackNumber, ProOrPi, ParentID, *TrueXi, *TrueXf);
+  fTrueMultiplicity = TrackNumber;
+  
+  fTrueTracks.back()->SetEntries(PDG,TrackNumber,TrackID, ProOrPi, ParentID, *TrueXi, *TrueXf, Momentum);
 
   Int_t nVoxels = fVoxelBranch->GetNbins(); 
   
   std::cout << "There are " << nVoxels << " Voxels in this Event" << std::endl;
 
+  if(TrackID==1){
+    fTrueTracks.back()->SetNumberOfHits(nVoxels);}
+  else{std::cout << "THIS IS A TRACK WITH HIGHER TRACK ID!!!" << std::endl;}
+ 
   for(int linInd=0; linInd<nVoxels; ++linInd){
           
     fVoxels.push_back(new voxel);

@@ -174,11 +174,11 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
     trex::TTPCTRExPatSubAlgorithm& alg = *algIt;
     alg.ProduceContainers();
 
-    std::cout << "DEBUGGING: THIS IS WHERE STUFF GOES BAD" << std::endl;
+  
     patterns.emplace_back();
-    std::cout << "ARE WE REACHING THIS?" << std::endl;
+  
     alg.ProducePattern(patterns.back());
-    std::cout << "PATTERNS HAVE BEEN PRODUCED" << std::endl;
+    std::cout << "PATTERN HAS BEEN PRODUCED" << std::endl;
   };
 
   //std::vector<TGraph> xyGraphs;
@@ -195,6 +195,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
   // set up container for hitpad level unused  
   std::vector<trex::TTPCHitPad*> usedTREx;
   
+
   for(auto patIt = patterns.begin(); patIt != patterns.end(); ++patIt){
     trex::TTRExPattern& pat = *patIt;
     std::vector<trex::TTRExPath>& subPaths= pat.GetPaths();
@@ -215,7 +216,7 @@ void trex::TTPCTRExPatAlgorithm::Process(std::vector<trex::TTPCHitPad*>& hits, s
 	    usedTREx.push_back(*iHit);
 	  }
 	  else{
-	    std::cout<<"Hit shared between objects (cluster)!"<<std::endl; 
+	    //std::cout<<"Hit shared between objects (cluster)!"<<std::endl; 
 	  }	  
 	}	
       }

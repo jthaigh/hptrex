@@ -92,14 +92,14 @@ namespace trex{
 
        
 	std::cout << "This Pattern holds " << pathSize << " Paths and " << junctSize << " Junctions" << std::endl;
-
+	
       }
-
+      
       void Print() {
 	
 	int pathSize = fPaths.size();
 	int junctSize = fJunctions.size();
-
+	
 	std::cout << "This Pattern has the following content: " << std::endl;
 	
 	for(int i=0; i<pathSize; ++i){
@@ -113,7 +113,7 @@ namespace trex{
           for(auto iHit=jHits.begin(); iHit!=jHits.end(); ++iHit){
             (**iHit).Print();
           }
-	  }
+	}
 	
       }
 
@@ -141,38 +141,97 @@ namespace trex{
     std::vector<double> dEdx;
     std::vector<double> TrackLength;
     std::vector<double> ChargeSum;
+    std::vector<int> PID;
+    std::vector<double> TrueTrackLength;
+    std::vector<double> TrackCompleteness;
+    std::vector<double> TrackCleanliness;
+    std::vector<int> NumberOfTrueHitsFound;
+    std::vector<int> PDG;
+    std::vector<TVector3> InitialPosition;
+    std::vector<TVector3> FinalPosition;
+    std::vector<double> Momentum;
+    std::vector<int> TrackNumber;
+    std::vector<int> TrackID;
+    std::vector<int> ParentID;
+    std::vector<int> ProOrPi;
+    std::vector<int> TrueNumberOfHits;
   };
 
   struct WritableEvent{
     std::vector<WritablePattern> patterns;
+    
+    //Add event level truth information here
+    //Event Multiplicity
+    int RecoMultiplicity;
+    //True Event multiplicity
+    int TrueMultiplicity;
+    
 
     void FillFromEvent(trex::TTRExEvent& evt){
       patterns.clear();
+     
       for(auto iPat=evt.GetPatterns().begin();iPat!=evt.GetPatterns().end();++iPat){
+	
 	patterns.emplace_back();
-	for(auto iPath=iPat->GetPaths().begin();iPath!=iPat->GetPaths().end();++iPath){
-	  patterns.back().Paths.emplace_back();
 
+	std::cout << "This pattern contains "<< iPat->GetPaths().size() << " Paths" << std::endl;
+	
+	RecoMultiplicity=iPat->GetPaths().size();
+	
+	for(auto iPath=iPat->GetPaths().begin();iPath!=iPat->GetPaths().end();++iPath){
+	  
+	  patterns.back().Paths.emplace_back();
+	  
 	  patterns.back().dEdx.push_back(iPath->GetdEdx());
 	  patterns.back().TrackLength.push_back(iPath->GetTrackLength());
 	  patterns.back().ChargeSum.push_back(iPath->GetChargeSum());
-
+	  patterns.back().PID.push_back(iPath->GetPID());
+	  patterns.back().TrueTrackLength.push_back(iPath->GetTrueTrackLength());
+	  patterns.back().TrackCompleteness.push_back(iPath->GetTrackCompleteness());
+	  patterns.back().TrackCleanliness.push_back(iPath->GetTrackCleanliness());
+	  patterns.back().NumberOfTrueHitsFound.push_back(iPath->GetNumberOfTrueHitsFound());
+	  patterns.back().PDG.push_back(iPath->GetPDG());
+	  patterns.back().InitialPosition.push_back(iPath->GetInitialPosition());
+	  patterns.back().FinalPosition.push_back(iPath->GetFinalPosition());
+	  patterns.back().Momentum.push_back(iPath->GetMomentum());
+	  patterns.back().TrackNumber.push_back(iPath->GetTrackNumber());
+	  patterns.back().TrackID.push_back(iPath->GetTrackID());
+	  patterns.back().ParentID.push_back(iPath->GetParentID());
+	  patterns.back().ProOrPi.push_back(iPath->GetProOrPi());
+	  patterns.back().TrueNumberOfHits.push_back(iPath->GetTrueNumberOfHits());
+	  
+	  //Add more PID and Truth Variables here
+	  
+	  
 	  for(auto iCluster=iPath->GetClusters().begin();iCluster!=iPath->GetClusters().end();++iCluster){
-	    for(auto iHit=(*iCluster)->GetClusterHits().begin();iHit!=(*iCluster)->GetClusterHits().end();++iHit)
+	    
+	    for(auto iHit=(*iCluster)->GetClusterHits().begin();iHit!=(*iCluster)->GetClusterHits().end();++iHit){
 	      patterns.back().Paths.back().emplace_back(**iHit);
-	  }
+	    }
+	  } 
 	}
+	std::cout << "check3" << std::endl;
+	  
 	for(auto iJunct=iPat->GetJunctions().begin();iJunct!=iPat->GetJunctions().end();++iJunct){
+	    
 	  patterns.back().Junctions.emplace_back();
-	  for(auto iHit=iJunct->GetHits().begin();iHit!=iJunct->GetHits().end();++iHit)
+	  
+	  for(auto iHit=iJunct->GetHits().begin();iHit!=iJunct->GetHits().end();++iHit){
 	    patterns.back().Junctions.back().emplace_back(**iHit);
+	  }	    
 	}
+	
       }
     }
-  };	
-	
-}
 
+    void SetTrueMultiplicity(int multi){
+      TrueMultiplicity=multi;
+    }
+
+  };	
+  
+}
+    
       
       
 #endif
