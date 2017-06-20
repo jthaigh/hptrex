@@ -76,16 +76,23 @@ void trex::TSimLoaderND::LoadEvent(unsigned int i){
     gastpc::MCParticle* theParticle=theTrack->GetMCParticle();
     gastpc::Vector4D initPos=theParticle->GetInitialXYZT();
     gastpc::Vector4D finalPos=theParticle->GetFinalXYZT();
+    gastpc::Vector3D initMom=theParticle->GetInitialMomentum(); 
     int mcID=theParticle->GetMCID();
+    double initMom_mag=TMath::Sqrt(initMom.GetX()*initMom.GetX()+
+			    initMom.GetY()*initMom.GetY()+
+			    initMom.GetZ()*initMom.GetZ());
+    
 
     fTrueTracks.emplace_back();
     fTrueTracks.back()=new trex::TTrueTrack;
     fTrueTracks.back()->SetEntries(theParticle->GetPDGCode(),
 				   mcID,
+				   mcID,
 				   0,
 				   (theParticle->GetParent()?theParticle->GetParent()->GetMCID():-1),
 				   TVector3(initPos.GetX(),initPos.GetY(),initPos.GetZ()),
-				   TVector3(finalPos.GetX(),finalPos.GetY(),finalPos.GetZ()));
+				   TVector3(finalPos.GetX(),finalPos.GetY(),finalPos.GetZ()),
+				   initMom_mag);
 
 
     const std::vector<gastpc::MCHit*>& MCHits = (*trackIt)->GetMCHits();
