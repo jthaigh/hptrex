@@ -37,8 +37,10 @@ public:
   TVector3 GetPosition(){return fPosition;}
   
   //Each HitPad points at a TrueTrack object that hold track-level truth information
-  void SetTrueTrack(trex::TTrueTrack* track) {TrueTrack = track;}
+  void SetTrueTrack(trex::TTrueTrack* track) {TrueTrack = track;fTrueTrackID=track->GetTrackID();}
   trex::TTrueTrack* GetTrueTrack() {return TrueTrack;}
+
+  int GetTrueTrackID() { return fTrueTrackID;}
 
   char Print(){
 
@@ -56,7 +58,8 @@ private:
   /// Fitted times for the peaks, as produced by the analytic gaussian fit (UNFIT if not fit)
   double fTimeFit;
   TVector3 fPosition;
-  TTrueTrack* TrueTrack;
+  TTrueTrack* TrueTrack; //!
+  int fTrueTrackID;
   
 };
 

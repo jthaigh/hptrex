@@ -39,16 +39,20 @@ void trex::TSimLoaderND::LoadEvent(unsigned int i){
   for(std::vector<voxel*>::iterator voxelIter=fVoxels.begin(); voxelIter!=fVoxels.end();++voxelIter){
     delete *voxelIter;
   }
-  
+
+  //Delete TrueTracks from last event
+  for(auto TrueTrackIter=fTrueTracks.begin(); TrueTrackIter!=fTrueTracks.end();++TrueTrackIter){
+    delete *TrueTrackIter;
+  }  
   
   //Delete TrueHits from last event
   for(std::vector<TTrueHit*>::iterator TrueHitIter=fTrueHits.begin(); TrueHitIter!=fTrueHits.end();++TrueHitIter){
     delete *TrueHitIter;
   }
   
-  
   fHits.clear();
   fVoxels.clear();
+  fTrueTracks.clear();
   fTrueHits.clear();
 
   //fVoxelsTree->GetEntry(i);
@@ -56,8 +60,6 @@ void trex::TSimLoaderND::LoadEvent(unsigned int i){
 
   const std::vector<gastpc::MCParticle*>& MCParticles = fEventRecordBranch->GetMCParticles();
   const std::vector<gastpc::MCTrack*>& MCTracks = fEventRecordBranch->GetMCTracks();
-
-
 
   //HitCollection simHits = fSimulDataBranch->getTpcFidHits();
     
@@ -67,6 +69,25 @@ void trex::TSimLoaderND::LoadEvent(unsigned int i){
   
   for(auto trackIt=MCTracks.begin(); trackIt!=MCTracks.end(); ++trackIt){
     
+    const gastpc::MCTrack* theTrack=*trackIt;
+
+    if(theTrack->GetLabel()!=std::string("TPC")) continue;
+
+    gastpc::MCParticle* theParticle=theTrack->GetMCParticle();
+    gastpc::Vector4D initPos=theParticle->GetInitialXYZT();
+    gastpc::Vector4D finalPos=theParticle->GetFinalXYZT();
+    int mcID=theParticle->GetMCID();
+
+    fTrueTracks.emplace_back();
+    fTrueTracks.back()=new trex::TTrueTrack;
+    fTrueTracks.back()->SetEntries(theParticle->GetPDGCode(),
+				   mcID,
+				   0,
+				   (theParticle->GetParent()?theParticle->GetParent()->GetMCID():-1),
+				   TVector3(initPos.GetX(),initPos.GetY(),initPos.GetZ()),
+				   TVector3(finalPos.GetX(),finalPos.GetY(),finalPos.GetZ()));
+
+
     const std::vector<gastpc::MCHit*>& MCHits = (*trackIt)->GetMCHits();
 
     for(auto hitIt=MCHits.begin(); hitIt!=MCHits.end(); ++hitIt){
@@ -118,6 +139,7 @@ void trex::TSimLoaderND::LoadEvent(unsigned int i){
       TLorentzVector pos4((*voxelPtr).x_pos, (*voxelPtr).y_pos, (*voxelPtr).z_pos, (*voxelPtr).time);
       
       trex::TTPCHitPad* hitPadPtr=new TTPCHitPad((*voxelPtr).Edep,pos4);
+      hitPadPtr->SetTrueTrack(fTrueTracks.back());
       
       fHits.push_back(hitPadPtr);
       

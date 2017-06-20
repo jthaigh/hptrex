@@ -66,6 +66,7 @@ namespace trex{
     inline std::vector<trex::TTPCHitPad*>& GetHits(){return fHits;}
     
     inline std::vector<TTrueHit*>& GetTrueHits(){return fTrueHits;}
+    inline std::vector<TTrueTrack*>& GetTrueTracks(){return fTrueTracks;}
     
     unsigned int GetNVoxels();
     
@@ -110,6 +111,7 @@ namespace trex{
     std::vector<trex::TTPCHitPad*> fHits;
     std::vector<voxel*> fVoxels;
     std::vector<TTrueHit*> fTrueHits;
+    std::vector<trex::TTrueTrack*> fTrueTracks;
     
     gastpc::EventRecord* fEventRecordBranch;
     //GeantTrackingTruth* fGeantBranch;
