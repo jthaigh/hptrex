@@ -162,13 +162,14 @@ namespace trex{
     
     //Add event level truth information here
     //Event Multiplicity
-    int RecoMultiplicity;
+    int RecoMultiplicity=0;
     //True Event multiplicity
-    int TrueMultiplicity;
+    int TrueMultiplicity=0;
     
 
     void FillFromEvent(trex::TTRExEvent& evt){
       patterns.clear();
+      RecoMultiplicity=0;
      
       for(auto iPat=evt.GetPatterns().begin();iPat!=evt.GetPatterns().end();++iPat){
 	
@@ -176,7 +177,7 @@ namespace trex{
 
 	std::cout << "This pattern contains "<< iPat->GetPaths().size() << " Paths" << std::endl;
 	
-	RecoMultiplicity=iPat->GetPaths().size();
+	RecoMultiplicity+=iPat->GetPaths().size();
 	
 	for(auto iPath=iPat->GetPaths().begin();iPath!=iPat->GetPaths().end();++iPath){
 	  
