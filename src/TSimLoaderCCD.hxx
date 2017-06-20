@@ -58,6 +58,9 @@ namespace trex{
     
     unsigned int GetNVoxels();
     
+    int GetTrueMultiplicity(){return fTrueMultiplicity;}
+
+    
     struct voxel {
       double x_pos;
       double y_pos;
@@ -102,6 +105,8 @@ namespace trex{
 
     int fimageNumber = -1;
     std::vector<trex::TTrueTrack*> fTrueTracks;
+    int fTrueMultiplicity;
+
 
     SimulData* fSimulDataBranch;
     GeantTrackingTruth* fGeantBranch;

@@ -58,6 +58,7 @@ private:
   /// Fitted times for the peaks, as produced by the analytic gaussian fit (UNFIT if not fit)
   double fTimeFit;
   TVector3 fPosition;
+<<<<<<< HEAD
   TTrueTrack* TrueTrack; //!
   int fTrueTrackID;
   
