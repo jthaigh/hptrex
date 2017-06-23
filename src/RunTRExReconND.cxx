@@ -38,13 +38,17 @@ int main(int argc, char** argv){
 
   TFile * fOut = new TFile(name, "RECREATE"); 
   TTree * fReconTree = new TTree("TPCRecon", "TPCRecon");
+  TTree * fTruthTree = new TTree("Truth", "Truth");
   fReconTree->SetDirectory(fOut);
+  fTruthTree->SetDirectory(fOut);
   
   std::vector<trex::TTPCHitPad> * unused=0;
   trex::WritableEvent * outEvent=0;
+  std::vector<trex::TTrueTrack> * outMCTracks=new std::vector<trex::TTrueTrack>;
 
   fReconTree->Branch("unusedHits", &unused);//, 64000, 1);
   fReconTree->Branch("event", &outEvent);//, 64000, 1);
+  fTruthTree->Branch("tracks", &outMCTracks);//, 64000, 1);
 
   char merged_plots[100]; 
   char unmerged_plots[100];
@@ -70,6 +74,15 @@ int main(int argc, char** argv){
     std::vector<trex::TTPCHitPad*> usedHits;
     std::vector<TTrueHit*>& trueHits = loader.GetTrueHits();
     std::vector<trex::TTPCHitPad*> unusedTemp;
+    
+    outMCTracks->clear();
+    std::vector<trex::TTrueTrack*>& evtTracks= loader.GetTrueTracks();
+
+    for(auto iTrk=evtTracks.begin();iTrk!=evtTracks.end();++iTrk){
+      outMCTracks->emplace_back(**iTrk);
+      std::cout<<"Writing out an MC track"<<std::endl;
+    }
+    
 
     event = new trex::TTRExEvent();
         
@@ -113,6 +126,7 @@ int main(int argc, char** argv){
     
     outEvent->FillFromEvent(*mergedEvt);
     fReconTree->Fill();
+    fTruthTree->Fill();
     
     unused->clear();            
     delete event;

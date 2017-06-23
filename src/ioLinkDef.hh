@@ -23,4 +23,5 @@
 
 #pragma link C++ class trex::TTrueTrack+;
 #pragma link C++ class trex::TTrueTrack*+;
+#pragma link C++ class std::vector<trex::TTrueTrack>+;
 #endif

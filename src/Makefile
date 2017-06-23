@@ -16,7 +16,7 @@ ROOT_CFLAGS = $(shell root-config --cflags)
 # Compile
 #=========================================================
 
-all: libevtrecord.so RunTRExReconCCD.exe RunTRExReconND.exe
+all: libevtrecord.so RunTRExReconCCD.exe RunTRExReconND.exe PrintReconData.exe
 
 libevtrecord.so: evtrec
 	make -C evtrec
@@ -26,10 +26,14 @@ libevtrecord.so: evtrec
 #	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -levtrecord -lpatrec -lMinuit -o RunTRExRecon.exe RunTRExRecon.cxx 
 
 RunTRExReconCCD.exe: libpatrec.so RunTRExReconCCD.cxx
-	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -levtrecord -lpatrec -lMinuit -o RunTRExReconCCD.exe RunTRExReconCCD.cxx
+	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -levtrecord -lpatrec -lMinuit -lstdc++ -o RunTRExReconCCD.exe RunTRExReconCCD.cxx
 
 RunTRExReconND.exe: libpatrec.so libevtrecord.so RunTRExReconND.cxx 
-	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -levtrecord -lpatrec -lMinuit -o RunTRExReconND.exe RunTRExReconND.cxx
+	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -levtrecord -lpatrec -lMinuit -lstdc++ -o RunTRExReconND.exe RunTRExReconND.cxx
+
+PrintReconData.exe: libpatrec.so libevtrecord.so PrintReconData.cxx 
+	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -l evtrecord -lpatrec -lMinuit -lstdc++ -o PrintReconData.exe PrintReconData.cxx
+
 
 libpatrec.so: $(OBJ)
 	$(CC) $(COPTS) -shared -o libpatrec.so $(OBJ)
