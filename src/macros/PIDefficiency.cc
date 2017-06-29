@@ -4,17 +4,29 @@
 #include "../TTPCHitPad.hxx" 
 #include "TH1.h"  
 #include "TH2.h"
+#include "TCanvas.h"
 #include "TChain.h"
 #include "TFileInfo.h"
+#include "math.h"
+#include "TStyle.h"
+
 
 void PIDmacro(){
 
   TChain * ReconTree = new TChain("TPCRecon");
-  //ReconTree->Add("TRExRecon_plot_p5_vs_pi10_1_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("");
-  //ReconTree->Add("");
-  //ReconTree->Add("");
-  //ReconTree->Add("");
+  //ReconTree->Add("../TRExRecon_plot_p5_vs_pi10_10_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("../TRExRecon_plot_p5_vs_pi10_1_voxelsIdeal_234e-5m_234e-5m.root");
+  ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_10_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_1_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_2_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_3_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_4_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_5_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_6_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_7_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_8_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_9_voxelsIdeal_234e-5m_234e-5m.root");
+
 
   std::cout << "We are reaching this 1" << std::endl;
 
@@ -27,9 +39,24 @@ void PIDmacro(){
   
   TH1D* CleanlinessVsM[21];
   TH1D* CompletenessVsM[21];
-  for(int i=0; i<21; ++i){
-    CleanlinessVsM[i] = new TH1D("Cleanliness" , "Cleanliness", 100, 0, 1);   
-    CompletenessVsM[i] = new TH1D("Completeness", "Completeness", 100, 0, 1);
+  TH2D* TrackEfficiencyScan[21];
+
+  int compbins=10;
+  int cleanbins=10;
+  double step=0.05;
+
+
+  for(int i=0; i<21; ++i){    
+    char nameClean[20];
+    char nameComp[20];
+    sprintf(nameClean,"Cleanliness_Mult%d", i);
+    sprintf(nameComp, "Completeness_Mult%d", i);
+    CleanlinessVsM[i] = new TH1D(nameClean , "", 100, 0, 1);   
+    CompletenessVsM[i] = new TH1D(nameComp, "", 100, 0, 1);
+    
+    char nameScan[50];
+    sprintf(nameScan, "CleanlinessVsCompletenessCuts_Mult%d", i);
+    TrackEfficiencyScan[i]=new TH2D(nameScan,"", cleanbins, 0.5, 1.00, compbins, 0.5, 1.00);  
   }
   
   TH1D Completeness("Completeness", "Completeness", 100, 0, 1);
@@ -38,9 +65,10 @@ void PIDmacro(){
   TH1D MeanCompleteness("MeanCompleteness", "MeanCompleteness", 20, 0, 20);
   
   TH1D TrackEfficiency("TrackEfficiency", "TrackEfficiency", 20, 0, 20);
+
   TH1D ProtonEfficiency("ProtonEfficiency", "ProtonEfficicency",20, 0, 20); 
   TH1D ProtonPurity("ProtonPurity", "ProtonPurity", 20,0,20);
-  
+
   TH2D Multiplicities("Multiplicities", "Multiplicities", 20, 0, 20, 20, 0, 20); 
 
   int entries = ReconTree->GetEntries();
@@ -48,41 +76,43 @@ void PIDmacro(){
   trex::WritableEvent * event=0;
 
   double pion_veto = 3.5e-6;
+  double SingleCleanCut = 0.0;
+  double SingleCompCut = 0.5;
 
   ReconTree->SetBranchAddress("event", &event);
    
-
-  std::cout << "check1" << std::endl;
-
   //loop over events
   
-  int goodProtons[21];
-  int badProtons[21];
-  int missedProtons[21];
+  int goodProtons[21]={};
+  int badProtons[21]={};
+  int missedProtons[21]={};
+  
+  int totalNumberOfPaths[21]={};
+  int totalNumberOfGoodTracks[21][10][10]={};
 
-  int totalNumberOfPaths[21];
-  int totalNumberOfGoodTracks[21];
-
+  int totalTracksPassingSingleCut[21]={};
+  
   for(int i=0; i<entries; ++i) {
     
     ReconTree->GetEntry(i);
 
-    std::cout << "check2" << std::endl;
-
+   
     int recoMulti = event->RecoMultiplicity;
     int trueMulti = event->TrueMultiplicity;
     
+    std::cout << "The TRUE MULTIPLICITY was: " << trueMulti << std::endl;
+    std::cout << "The RECO MULTIPLICITY was: " << recoMulti << std::endl;
+
     if (trueMulti >20){
       continue;
     }
 
     Multiplicities.Fill(trueMulti, recoMulti);
-       
+     
+    //Loop over patterns
     std::vector<trex::WritablePattern> pats = event->patterns;
     for(int j=0; j<pats.size(); ++j){
       
-
-      std::cout << "check3" << std::endl;
 
       std::vector<double> dEdx_vec = pats[j].dEdx;
       std::vector<double> TrackLength_vec = pats[j].TrackLength;
@@ -93,10 +123,9 @@ void PIDmacro(){
       std::vector<int> ProOrPi_vec = pats[j].ProOrPi;
       std::vector<int> PID_vec = pats[j].PID;
 
+      //Loop over paths
       for(int k=0; k<dEdx_vec.size(); ++k){
 	
-	std::cout << "check4" << std::endl;
-
 	totalNumberOfPaths[trueMulti]+=1;
 	
 	dEdx.Fill(dEdx_vec[k]);
@@ -105,64 +134,164 @@ void PIDmacro(){
 	Cleanliness.Fill(Cleanliness_vec[k]);
 	Completeness.Fill(Completeness_vec[k]);
 	
-	if (Cleanliness_vec[k]>0.9 && Completeness_vec[k] > 0.8){
-	  totalNumberOfGoodTracks[trueMulti]+=1;
+
+	for(int cleanbin=0; cleanbin<cleanbins; ++cleanbin){
+	  
+	  for(int compbin=0; compbin<compbins; ++compbin){
+	    
+	    double compcut = 0.5+compbin*step;
+	    double cleancut = 0.5+cleanbin*step;
+	    
+	    if (Cleanliness_vec[k] > cleancut && Completeness_vec[k] > compcut){
+	      totalNumberOfGoodTracks[trueMulti][cleanbin][compbin]+=1;
+	    }
+	  }
 	}
 	
 	CleanlinessVsM[trueMulti]->Fill(Cleanliness_vec[k]);
-	CompletenessVsM[trueMulti]->Fill(Completeness_vec[k]); 
+	CompletenessVsM[trueMulti]->Fill(Completeness_vec[k]);
+
+	//apply single cut here
+	if(Cleanliness_vec[k] > SingleCleanCut && Completeness_vec[k] > SingleCompCut){
+
+	  //CleanlinessVsM[trueMulti]->Fill(Cleanliness_vec[k]);
+	  //CompletenessVsM[trueMulti]->Fill(Completeness_vec[k]); 
+	  
+	  if(ProOrPi_vec[k]==0 && PID_vec[k]==-1){
+	    goodProtons[trueMulti]+=1;
+	  }else if(ProOrPi_vec[k]==1 && PID_vec[k]==-1){
+	    badProtons[trueMulti]+=1;
+	  }else if(ProOrPi_vec[k]==0 && PID_vec[k]==1){
+	    missedProtons[trueMulti]+=1;
+	  }
+	  
+	  //fill more histograms
 	
-	if(ProOrPi_vec[k]==0 && PID_vec[k]==-1){
-	  goodProtons[trueMulti]+=1;
-	}else if(ProOrPi_vec[k]==1 && PID_vec[k]==-1){
-	  badProtons[trueMulti]+=1;
-	}else if(ProOrPi_vec[k]==0 && PID_vec[k]==1){
-	  missedProtons[trueMulti]+=1;
+	  totalTracksPassingSingleCut[trueMulti]+=1;
+  
 	}
-	
-	std::cout << "check4.1" << std::endl;
-	//fill more histograms
-	
       }      
-
-      std::cout << "check4.2" << std::endl;
     }
-
-    std::cout << "check4.3" << std::endl;
   } 
   
-
-  std::cout << "check5" << std::endl;
-
+  
   for(int i=1; i<21; ++i) {
-    
-    std::cout << "check6" << std::endl;
-    
+            
     MeanCleanliness.SetBinContent(i,CleanlinessVsM[i]->GetMean());
     MeanCleanliness.SetBinError(i,CleanlinessVsM[i]->GetRMS());
     MeanCompleteness.SetBinContent(i, CompletenessVsM[i]->GetMean());
     MeanCompleteness.SetBinError(i, CompletenessVsM[i]->GetRMS());
-    TrackEfficiency.SetBinContent(i, (double)totalNumberOfGoodTracks[i]/(double)totalNumberOfPaths[i]);
+
+    //Fill the 2D scan for every multiplicity
+    for(int cleanbin=1; cleanbin<11; ++cleanbin){
+      for(int compbin=1; compbin<11; ++compbin){
+
+	double goodTracks = (double)totalNumberOfGoodTracks[i][cleanbin-1][compbin-1];	
+	double trackEfficiency = round(goodTracks/(double)totalNumberOfPaths[i]*100)/100;
+	
+	TrackEfficiencyScan[i]->SetBinContent(cleanbin, compbin, trackEfficiency);
+	
+      }
+    }
+       
+    double SingleCutEfficiency = round((double)totalTracksPassingSingleCut[i]/(double)totalNumberOfPaths[i]*100)/100;
+   
+    TrackEfficiency.SetBinContent(i,SingleCutEfficiency);
     
     int numberOfTrueProtons = goodProtons[i]+missedProtons[i];
     int numberOfRecoProtons = goodProtons[i]+badProtons[i];
+
+
+    std::cout << "Have found " << goodProtons[i] << " good Protons, " << missedProtons[i] << " missed Protons and " << badProtons[i] << " bad Protons." << std::endl; 
+
+    double proEff = (double)goodProtons[i]/(double)numberOfTrueProtons;
+    double proPur = (double)goodProtons[i]/(double)numberOfRecoProtons;
     
-    ProtonEfficiency.SetBinContent(i,(double)goodProtons[i]/(double)numberOfTrueProtons);
-    ProtonPurity.SetBinContent(i, (double)goodProtons[i]/(double)numberOfRecoProtons);
-
-    std::cout << "check7" << std::endl;
-
+    ProtonEfficiency.SetBinContent(i,proEff);
+    ProtonPurity.SetBinContent(i,proPur);    
+    
+    std::cout << "Proton Efficiency and Purity was: " << proEff << " and " << proPur << std::endl;
   }
-  
+
   
   dEdx.SetLineColor(kBlue);
   TrackLength.SetLineColor(kBlue);
   ChargeSum.SetLineColor(kRed);
   
-  std::cout << "check8" << std::endl;
-
   TFile outf("PID.root", "RECREATE");
+
+
+
+  for(int i=1; i<21; ++i) {
+    TCanvas *C = new TCanvas("C","",750,750);
+    C->cd();
+    gStyle->SetOptStat("");
+    TrackEfficiencyScan[i]->GetXaxis()->SetTitle("Cleanliness Cut");
+    TrackEfficiencyScan[i]->GetYaxis()->SetTitle("Completeness Cut");
+    TrackEfficiencyScan[i]->GetYaxis()->SetTitleOffset(1.5);
+    TrackEfficiencyScan[i]->GetZaxis()->SetRange(0,1);
+    TrackEfficiencyScan[i]->SetOption("COL2 TEXT");
+    TrackEfficiencyScan[i]->Write();
+    //TrackEfficiencyScan[i]->Draw();
+    //char canvas[15];
+    //sprintf(canvas, "Scan%d.png", i);
+    //C->Print(canvas);
+    delete C;
+  }
+
   
+  TH2D AverageTrackEfficiency("AverageTrackEff", "", cleanbins, 0.5, 1.00, compbins, 0.5, 1.00);
+
+  for(int m=3; m<17; ++m){
+    AverageTrackEfficiency.Add(TrackEfficiencyScan[m]);    
+  }
+
+
+  
+  AverageTrackEfficiency.Scale(1.00/14.00);  
+  TCanvas *C = new TCanvas("C","",750,750);
+  C->cd();
+  gStyle->SetOptStat("");
+  gStyle->SetPaintTextFormat("4.2f");
+  AverageTrackEfficiency.GetXaxis()->SetTitle("Cleanliness Cut");
+  AverageTrackEfficiency.GetYaxis()->SetTitle("Completeness Cut");
+  AverageTrackEfficiency.GetYaxis()->SetTitleOffset(1.5);
+  AverageTrackEfficiency.GetZaxis()->SetRange(0,1);
+  AverageTrackEfficiency.SetOption("COL2 TEXT");
+  AverageTrackEfficiency.Write();
+  AverageTrackEfficiency.Draw();
+  C->Print("AverageTrackEfficiency.png");
+
+  TrackEfficiency.GetYaxis()->SetRangeUser(0,1);
+  TrackEfficiency.SetMarkerStyle(kFullTriangleDown);
+  TrackEfficiency.Draw("P");
+  C->Print("TrackEfficiencyMinimalCut.png");
+
+  ProtonEfficiency.GetYaxis()->SetRangeUser(0,1);
+  ProtonEfficiency.SetMarkerStyle(kFullTriangleDown);
+  ProtonEfficiency.SetMarkerColor(kRed);
+  ProtonEfficiency.Draw("P");
+  C->Print("ProtonEfficiency.png");
+
+  ProtonPurity.GetYaxis()->SetRangeUser(0,1);
+  ProtonPurity.SetMarkerStyle(kFullTriangleDown);
+  ProtonPurity.SetMarkerColor(kRed); 
+  ProtonPurity.Draw("P");
+  C->Print("ProtonPurity.png");
+
+  MeanCleanliness.GetYaxis()->SetRangeUser(0,1);
+  MeanCleanliness.SetMarkerStyle(kFullTriangleDown);
+  MeanCleanliness.Draw("P");
+  C->Print("MeanCleanliness.png");
+  
+  MeanCompleteness.GetYaxis()->SetRangeUser(0,1);
+  MeanCompleteness.SetMarkerStyle(kFullTriangleDown);
+  MeanCompleteness.Draw("P");
+  C->Print("MeanCompleteness.png");
+
+  Multiplicities.Draw("COL2");
+  C->Print("Multiplicities.png");
+
   dEdx.Write();
   TrackLength.Write();
   ChargeSum.Write();
