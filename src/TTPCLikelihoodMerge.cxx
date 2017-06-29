@@ -314,10 +314,9 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
   outputVector.emplace_back();
   trex::TTRExPattern* NewPattern = &(outputVector.back());
   //TTPCT0 T0(ND::tpcCalibration().GetDefaultT0());
-
-
+  
   std::vector< trex::TTRExPath* > MergedPaths;
-
+  std::map< trex::TTRExPath*,unsigned int > pathIndexMap;
 
   // 1) Create the new merged paths by creating a chain of paths that need to be merged.
   int Chain = 0;
@@ -403,6 +402,7 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
   // 2) Recreate/copy the unmerged paths
   // Use map to keep match between old and new paths
   std::map< trex::TTRExPath*,trex::TTRExPath* > PathCopy;
+  NewPattern->GetPaths().reserve(1000);
   for (int pidx = 0; pidx < fNbPatternChained; pidx++){
     for (auto constit = fPatternChain[pidx]->GetPaths().begin(); constit != fPatternChain[pidx]->GetPaths().end(); constit++) {
       trex::TTRExPath* tmpPath = &*constit;
@@ -418,6 +418,7 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
 	//        newPath->SetId(ND::tpcCalibration().GetPathId());
         //newPath->ClearJunctionIds();
         PathCopy[tmpPath] = newPath;
+	pathIndexMap[newPath]=NewPattern->GetPaths().size()-1;
       }
     }
   }
@@ -433,7 +434,7 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
 
     NbNewJunctions++;
     NewPattern->GetJunctions().emplace_back();
-    NewPattern->GetPaths().reserve(1000);
+    NewPattern->GetMap().emplace_back();
 
     trex::TTRExJunction* NewJunction=&(NewPattern->GetJunctions().back());
     trex::TTRExJunction* OldJunction = fMTracker[mt].GetJunction();
@@ -450,6 +451,7 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
       std::vector< trex::TTRExPath* >::iterator it = find (MergedPaths.begin(), MergedPaths.end(), tmpPath);
       if (it == MergedPaths.end()){
         NewJunction->AddConnectedPath(PathCopy[tmpPath]);
+	NewPattern->GetMap().back().push_back(pathIndexMap[PathCopy[tmpPath]]);	
       }
     }
 
@@ -461,12 +463,15 @@ void trex::TTPCLikelihoodMerge::MergeAll(std::vector<trex::TTRExPattern>& output
         if (fMTracker[submt].HasThisPath(**constit)){
           auto it = find (AlreadyAdded.begin(), AlreadyAdded.end(), fMTracker[submt].GetMergedPath());
           if (it == AlreadyAdded.end()){
-	    NewPattern->GetPaths().emplace_back(*(fMTracker[submt].GetMergedPath()));
-	    //MDH TODO Gah, this pointer will be invalidated if the paths container is reallocated
-            NewJunction->AddConnectedPath(&(NewPattern->GetPaths().back()));
-            AlreadyAdded.push_back(fMTracker[submt].GetMergedPath());
-          }
-        }
+	    if(PathCopy.count(fMTracker[submt].GetMergedPath())==0){
+	      NewPattern->GetPaths().emplace_back(*(fMTracker[submt].GetMergedPath()));
+	      PathCopy[fMTracker[submt].GetMergedPath()]=&(NewPattern->GetPaths().back());
+	      pathIndexMap[&(NewPattern->GetPaths().back())]=NewPattern->GetPaths().size()-1;
+	    }
+	    NewJunction->AddConnectedPath(PathCopy[fMTracker[submt].GetMergedPath()]);
+	    AlreadyAdded.push_back(fMTracker[submt].GetMergedPath());
+	  }
+	}
       }
     }
   }
