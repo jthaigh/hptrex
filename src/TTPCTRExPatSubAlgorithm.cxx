@@ -224,6 +224,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
   std::vector< std::vector<unsigned int> > junctionsToPathsMap;
   std::vector<trex::TTRExPath>& paths=output.GetPaths();
   std::vector<trex::TTRExJunction>& juncts=output.GetJunctions();
+  std::vector< std::vector<unsigned int> >& junctPathIntMap=output.GetMap();
 
   std::vector< trex::TTPCVolGroup* > junctionGroups;
 
@@ -304,6 +305,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
   for(int i=0; i<junctionsToPathsMap.size(); ++i){
     if(junctionsToPathsMap[i].size()<2) continue;
     juncts.emplace_back(junctionGroups[i]->GetHits());
+    junctPathIntMap.emplace_back();
     unsigned int jId=junctionGroups[i]->GetID();
     juncts.back().SetId(jId);
     for(int j=0;j<junctionsToPathsMap[i].size();++j){
@@ -314,6 +316,7 @@ void trex::TTPCTRExPatSubAlgorithm::ProducePattern(TTRExPattern& output){//trex:
       paths[pathIndex].SetId((int)uniqueIdPath);
       }
       ConnectJunctionAndPath(juncts.back(), paths[pathIndex]);
+      junctPathIntMap.back().push_back(pathIndex);
     }
     junctIndex += 1;
   }

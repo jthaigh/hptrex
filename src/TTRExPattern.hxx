@@ -44,12 +44,12 @@ namespace trex{
       
     public:
       
-      TTRExPattern() : fPaths(0),fJunctions(0),fPathsToJunctionMap(0), fIsUsable(true){};
+      TTRExPattern() : fPaths(0),fJunctions(0),fJunctionsToPathsMap(0), fIsUsable(true){};
       
       TTRExPattern(std::vector<trex::TTRExPath>& paths, std::vector<trex::TTRExJunction>& junctions, std::vector< std::vector<unsigned int> > map){
 	  fPaths = paths;
 	  fJunctions = junctions;
-	  fPathsToJunctionMap = map;
+	  fJunctionsToPathsMap = map;
 	};
 
 
@@ -61,8 +61,8 @@ namespace trex{
 	return fJunctions;
       }
 
-      std::vector< std::vector<unsigned int> > GetMap(){
-	return fPathsToJunctionMap;
+      std::vector< std::vector<unsigned int> >& GetMap(){
+	return fJunctionsToPathsMap;
       }
 
 
@@ -75,13 +75,13 @@ namespace trex{
       }
 
       void SetMap(std::vector< std::vector<unsigned int> > map){
-	fPathsToJunctionMap = map;
+	fJunctionsToPathsMap = map;
       }
 
       void Clear() {
 	fPaths.clear();
 	fJunctions.clear();
-	fPathsToJunctionMap.clear();
+	fJunctionsToPathsMap.clear();
       }
       
 
@@ -130,7 +130,7 @@ namespace trex{
       unsigned int fId;
       std::vector<trex::TTRExPath> fPaths;
       std::vector<trex::TTRExJunction> fJunctions;
-      std::vector< std::vector<unsigned int> > fPathsToJunctionMap;
+      std::vector< std::vector<unsigned int> > fJunctionsToPathsMap;
       bool fIsUsable;
 
     };
@@ -138,6 +138,7 @@ namespace trex{
   struct WritablePattern{
     std::vector<std::vector<trex::TTPCHitPad> > Paths;
     std::vector<std::vector<trex::TTPCHitPad> > Junctions;
+    std::vector<std::vector<unsigned int> > JunctionsToPathsMap;
     std::vector<double> dEdx;
     std::vector<double> TrackLength;
     std::vector<double> ChargeSum;
@@ -176,7 +177,7 @@ namespace trex{
 	patterns.emplace_back();
 
 	std::cout << "This pattern contains "<< iPat->GetPaths().size() << " Paths" << std::endl;
-	
+	patterns.back().JunctionsToPathsMap=iPat->GetMap();
 	RecoMultiplicity+=iPat->GetPaths().size();
 	
 	for(auto iPath=iPat->GetPaths().begin();iPath!=iPat->GetPaths().end();++iPath){
@@ -200,7 +201,6 @@ namespace trex{
 	  patterns.back().ParentID.push_back(iPath->GetParentID());
 	  patterns.back().ProOrPi.push_back(iPath->GetProOrPi());
 	  patterns.back().TrueNumberOfHits.push_back(iPath->GetTrueNumberOfHits());
-	  
 	  //Add more PID and Truth Variables here
 	  
 	  
