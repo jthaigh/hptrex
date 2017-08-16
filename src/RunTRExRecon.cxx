@@ -42,8 +42,8 @@ int main(int argc, char** argv){
   std::vector<trex::TTPCHitPad> * unused=0;
   trex::WritableEvent * outEvent=0;
 
-  fReconTree->Branch("unusedHits", &unused);//, 64000, 1);
-  fReconTree->Branch("event", &outEvent);//, 64000, 1);
+  fReconTree->Branch("unusedHits", &unused);
+  fReconTree->Branch("event", &outEvent);
 
   char merged_plots[100]; 
   char unmerged_plots[100];
@@ -54,13 +54,12 @@ int main(int argc, char** argv){
   TFile fPlot(unmerged_plots,"RECREATE");
   TFile fPlotM(merged_plots, "RECREATE");
 
-  //TFile fPlot("plots_unmerged.root","RECREATE");
-  //TFile fPlotM("plots_merged.root","RECREATE");
-  
+    
   for(int i=0;i!=10;++i){ //loader.GetNEvents();++i){
 
     trex::TTRExEvent * event;
     
+    //Get Hit information from the loader
     loader.LoadEvent(i);
     
     std::vector<trex::TTPCHitPad*>& hitPads=loader.GetHits();
@@ -69,18 +68,21 @@ int main(int argc, char** argv){
     std::vector<trex::TTPCHitPad*> unusedTemp;
 
     event = new trex::TTRExEvent();
-        
+
+
+    //Initialise all Algorithms to be run 
     trex::TTPCTRExPatAlgorithm trexAlg;
     trex::TTPCSeeding seedingAlgo;
     trex::TTPCTracking trackingAlgo;
     trex::TTPCLikelihoodMatch matchAlgo;
     trex::TTPCLikelihoodMerge mergeAlgo;
-    //Initialise PID Algo here
     trex::TTRExPIDAlgorithm pidAlgo;
     trex::TEventDisplay evDisp(&fPlot,i);
     trex::TEventDisplay evDispM(&fPlotM,i);
 
     trex::TTPCLayout layout;
+
+    //Run the pattern recognition
     trexAlg.Process(hitPads,usedHits,unusedTemp,trueHits,event,layout); 
     
     for(auto iHit=unusedTemp.begin();iHit!=unusedTemp.end();++iHit){
@@ -89,6 +91,7 @@ int main(int argc, char** argv){
 
     std::cout<<"Pattern recognition produced "<<event->GetPatterns().size()<<" patterns"<<std::endl;
 
+    //Run Seeding and Tracking
     for (auto pattern = event->GetPatterns().begin(); pattern != event->GetPatterns().end(); pattern++) {
       std::cout<<"Running seeding on a pattern"<<std::endl;
       seedingAlgo.Process(*pattern);
@@ -96,18 +99,22 @@ int main(int argc, char** argv){
       trackingAlgo.Process(*pattern);
     }
 
+    //Run Matching and Merging
     trex::TTRExEvent* mergedEvt=new trex::TTRExEvent;
     std::cout<<"Running matching..."<<std::endl;
     matchAlgo.Process(event->GetPatterns());
     std::cout<<"Running merging..."<<std::endl;
     mergeAlgo.Process(event->GetPatterns(),mergedEvt->GetPatterns());
     std::cout <<"Running PID calculator..." <<std::endl;
-    //Run PID Algo here
+    
+    //Run PID 
     pidAlgo.Process(mergedEvt->GetPatterns());
 
+    //Produce Event Displays
     evDisp.Process(hitPads,trueHits,event,layout);    
     evDispM.Process(hitPads,trueHits,mergedEvt,layout);    
     
+    //Create writable output 
     outEvent->FillFromEvent(*mergedEvt);
     fReconTree->Fill();
     
@@ -117,6 +124,7 @@ int main(int argc, char** argv){
     
   }
   
+  //Write to File
   fOut->Write();
   fOut->Close();
   fPlot.Write();
