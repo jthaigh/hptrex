@@ -8,9 +8,6 @@ trex::TSimLoader::TSimLoader(std::string inputFile){
 
   fVoxelsTree=(TTree*)fFile->Get("VoxelsTree");
 
-  //Do we need this here if the Tree gets initialised in RunTREx?
-  //fReconTree=new TTree("TPCRecon", "TPCRecon");  
-
   fVoxelBranch=0;
   fVoxelsTree->SetBranchAddress("voxels", &fVoxelBranch);
 
@@ -127,7 +124,7 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
     //Translate coordinates into positions
     //This requires a bit more thought. For now position = coordinates works. 
     for(int dim=0; dim<3; ++dim){
-      //position[dim]=(mins[dim]) + res*coords[dim]; //real position (not good for cell-ID map right now
+      //position[dim]=(mins[dim]) + res*coords[dim]; //real position (not good for cell-ID map right now)
       position[dim]=coords[dim];
     }
 
@@ -149,39 +146,8 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
 
   }
 
-  std::cout << "These Hits belong to a Track with TrackID: " << fTrueTracks.back()->GetTrackID() << std::endl;
-
-
-  //The following still needs to be rewritten for CCD if we need it at all
-  //fTree->GetEntry(i);
-
-  /*HitCollection simHits = fSimulDataBranch->getTpcFidHits();
-  
-  for(HitCollection::iterator hitIter=simHits.begin();hitIter!=simHits.end();++hitIter){
-
-    //std::cout << "Entering the HitCollection LOOP!" << std::endl;
-    
-  SDHit& hit=*hitIter;
-  double TrueEdep=hit.getEdep();
-  TLorentzVector TruePos4=hit.getPosition();
-  int TrueTrackID = hit.getTrackID();
-  //std::cout << "TRACK ID: " << TrueTrackID << std::endl;
-  int pdg = hit.getPDG();
-  int charge = hit.getCharge();
-    
-  fTrueHits.push_back(new TTrueHit());
-  TTrueHit * TrueHitPtr = fTrueHits.back();
-  (*TrueHitPtr).TrueEdep = TrueEdep;
-  (*TrueHitPtr).TruePos4 = TruePos4;
-  (*TrueHitPtr).pdg = pdg;
-  (*TrueHitPtr).TrueTrackID = TrueTrackID;
-  (*TrueHitPtr).charge = charge;
-  //delete TrueHitPtr;
-  }
-  
-  std::sort(fTrueHits.begin(), fTrueHits.end());
-  */
-  
+  //std::cout << "These Hits belong to a Track with TrackID: " << fTrueTracks.back()->GetTrackID() << std::endl;
+ 
 }
 
 
