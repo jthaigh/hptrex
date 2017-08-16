@@ -10,7 +10,9 @@
 
 std::string base_name(std::string const & path);
 
-int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t events, string mode) //Define voxelDim in tens of microns i.e. 1e-5m
+
+
+int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t events, string mode) //Define voxelDim in tens of microns i.e. 1e-5m. events is number of events to be processed. mode is one of "Ideal" or "Real". 
 {
   
   char inname[100];
@@ -48,19 +50,16 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   
   double x_range = x_Bins*x_res;
   double y_range = y_Bins*y_res;
-
-  //Int_t x_res = 1200/x_res;
-  //Int_t y_res = 1200/y_res;
   
+  //use this for user defined resolution from input
   //Double_t maxs[dim] = { x_range/2, y_range/2, 1.};
   //Double_t mins[dim] = { -x_range/2, -y_range/2, 0.};
   //Int_t bins[dim] = {x_Bins, y_Bins, z_Bins};
   
-  //use original resolution of 2.34 mm
+  //use this for original resolution of 2.34 mm
   Double_t maxs[dim] = { 600.21, 600.21, 1.};
   Double_t mins[dim] = { -600.21, -600.21, 0.};
   Int_t bins[dim] = {513, 513, 1};
-
   
   //setting up new Voxels Tree as TREx input
   TTree* VoxelsTree = new TTree("VoxelsTree", "VoxelsTree");
