@@ -16,7 +16,7 @@ ROOT_CFLAGS = $(shell root-config --cflags)
 # Compile
 #=========================================================
 
-all: libevtrecord.so RunTRExReconCCD.exe RunTRExReconND.exe PrintReconData.exe
+all: libevtrecord.so RunTRExReconCCD.exe RunTRExReconND.exe PrintReconDataND.exe
 
 libevtrecord.so: evtrec
 	make -C evtrec
@@ -31,8 +31,8 @@ RunTRExReconCCD.exe: libpatrec.so RunTRExReconCCD.cxx
 RunTRExReconND.exe: libpatrec.so libevtrecord.so RunTRExReconND.cxx 
 	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -levtrecord -lpatrec -lMinuit -lstdc++ -o RunTRExReconND.exe RunTRExReconND.cxx
 
-PrintReconData.exe: libpatrec.so libevtrecord.so PrintReconData.cxx 
-	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -l evtrecord -lpatrec -lMinuit -lstdc++ -o PrintReconData.exe PrintReconData.cxx
+PrintReconDataND.exe: libpatrec.so libevtrecord.so PrintReconDataND.cxx 
+	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -l evtrecord -lpatrec -lMinuit -lstdc++ -o PrintReconDataND.exe PrintReconDataND.cxx
 
 
 libpatrec.so: $(OBJ)
