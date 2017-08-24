@@ -16,17 +16,23 @@ void PIDmacro(){
   TChain * ReconTree = new TChain("TPCRecon");
   //ReconTree->Add("../TRExRecon_plot_p5_vs_pi10_10_voxelsIdeal_234e-5m_234e-5m.root");
   //ReconTree->Add("../TRExRecon_plot_p5_vs_pi10_1_voxelsIdeal_234e-5m_234e-5m.root");
-  ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_10_voxelsIdeal_234e-5m_234e-5m.root");
-  ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_1_voxelsIdeal_234e-5m_234e-5m.root");
-  ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_2_voxelsIdeal_234e-5m_234e-5m.root");
-  ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_3_voxelsIdeal_234e-5m_234e-5m.root");
-  ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_4_voxelsIdeal_234e-5m_234e-5m.root");
-  ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_5_voxelsIdeal_234e-5m_234e-5m.root");
-  ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_6_voxelsIdeal_234e-5m_234e-5m.root");
-  ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_7_voxelsIdeal_234e-5m_234e-5m.root");
-  ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_8_voxelsIdeal_234e-5m_234e-5m.root");
-  ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_9_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_10_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_1_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_2_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_3_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_4_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_5_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_6_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_7_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_8_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_9_voxelsIdeal_234e-5m_234e-5m.root");
 
+  ReconTree->Add("~/DUNE/data/testBeam/August_17_merged/TRExRecon_plot_p6.6_vs_pi17.0_1_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/August_17_merged/TRExRecon_plot_p6.6_vs_pi17.0_2_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/August_17_merged/TRExRecon_plot_p6.6_vs_pi17.0_3_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/August_17_merged/TRExRecon_plot_p6.6_vs_pi17.0_4_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/August_17_merged/TRExRecon_plot_p6.6_vs_pi17.0_5_voxelsIdeal_234e-5m_234e-5m.root");
+  //ReconTree->Add("~/DUNE/data/testBeam/August_17_merged/TRExRecon_plot_p6.6_vs_pi17.0_6_voxelsIdeal_234e-5m_234e-5m.root");
 
   std::cout << "We are reaching this 1" << std::endl;
 
@@ -71,6 +77,10 @@ void PIDmacro(){
   TH1D ProtonPurity("ProtonPurity", "ProtonPurity", 20,0,20);
 
   TH2D Multiplicities("Multiplicities", "Multiplicities", 20, 0, 20, 20, 0, 20); 
+
+  TH1D PDGs("PDG", "PDG", 3, 0, 3);
+  TH1D GoodPDGs("GoodPDGs", "GoodPDGs", 3, 0, 3);
+  TH1D BadPDGs("BadPDGs", "BadPDGs", 3, 0, 3);
 
   int entries = ReconTree->GetEntries();
   
@@ -126,6 +136,7 @@ void PIDmacro(){
       std::vector<double> Completeness_vec = pats[j].TrackCompleteness;
       std::vector<int> ProOrPi_vec = pats[j].ProOrPi;
       std::vector<int> PID_vec = pats[j].PID;
+      std::vector<int> PDG_vec = pats[j].PDG;
 
       //Loop over paths
       for(int k=0; k<dEdx_vec.size(); ++k){
@@ -171,6 +182,14 @@ void PIDmacro(){
 	
 	  totalTracksPassingSingleCut[trueMulti]+=1;
   
+	  //Check PDG here
+	  
+	  if(PDG_vec[k]==2212){
+	    std::cout << "PROTON!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+	  }else if(PDG_vec[k]==211){
+	    std::cout << "PION!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+	  }else{std::cout << PDG_vec[k] << std::endl;}
+
 	}
       }      
     }
