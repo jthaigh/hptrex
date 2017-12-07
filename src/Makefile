@@ -2,8 +2,9 @@
 # Makefile
 #=========================================================
 
-#CC	= g++
-COPTS	= -Wall -g -fPIC -DLINUX -O2 -std=c++11 -Wl,-rpath,$(shell brew --prefix)/lib
+CC	= g++
+COPTS	= -Wall -g -fPIC -DLINUX -O2 -std=c++11
+# -Wl,-rpath,$(shell brew --prefix)/lib
 
 #LIBS	= -L/usr/local/lib -lftd2xx
 
@@ -52,4 +53,3 @@ ioDict.cxx:
 clean:
 	make -C evtrec clean	
 	rm -f *.pcm *.o *.so *.exe GasTPCDataLibDict.* ioDict.* ioDict_rdict.pcm
-	

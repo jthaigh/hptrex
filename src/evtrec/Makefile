@@ -2,8 +2,9 @@
 # Makefile
 #=========================================================
 
-#CC	= g++
-COPTS	= -Wall -g -fPIC -DLINUX -O2 -std=c++11 -Wl,-rpath,$(shell brew --prefix)/lib
+CC	= g++
+COPTS	= -Wall -g -fPIC -DLINUX -O2 -std=c++11
+# -Wl,-rpath,$(shell brew --prefix)/lib
 
 OBJ = EventRecord.o MCGenInfo.o MCHit.o MCParticle.o MCTrack.o RecoParticle.o RootFileReader.o RootFileWriter.o Vector3D.o Vector4D.o EventRecordDict.o
 
