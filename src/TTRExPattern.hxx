@@ -153,7 +153,7 @@ namespace trex{
     std::vector<int> TrackNumber;
     std::vector<int> TrackID;
     std::vector<int> ParentID;
-    std::vector<int> ProOrPi;
+   // std::vector<int> ProOrPi;
     std::vector<int> TrueNumberOfHits;
   };
 
@@ -198,7 +198,7 @@ namespace trex{
 	  patterns.back().TrackNumber.push_back(iPath->GetTrackNumber());
 	  patterns.back().TrackID.push_back(iPath->GetTrackID());
 	  patterns.back().ParentID.push_back(iPath->GetParentID());
-	  patterns.back().ProOrPi.push_back(iPath->GetProOrPi());
+	//  patterns.back().ProOrPi.push_back(iPath->GetProOrPi());
 	  patterns.back().TrueNumberOfHits.push_back(iPath->GetTrueNumberOfHits());
 	  
 	  //Add more PID and Truth Variables here

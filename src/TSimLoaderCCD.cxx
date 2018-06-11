@@ -14,15 +14,15 @@ trex::TSimLoader::TSimLoader(std::string inputFile){
   fVoxelBranch=0;
   fVoxelsTree->SetBranchAddress("voxels", &fVoxelBranch);
 
-  Detector = new TH3D("Detector", "Detector", 300, -600.21, 600.21, 350, -600.21, 600.21, 1, 0, 1);
+  Detector = new TH3D("Detector", "Detector", 513, -710., 710., 513, -710., 710., 1, 0, 1);
   Detector->SetDirectory(0);
 }
 
 
 void trex::TSimLoader::LoadEvent(unsigned int i){
 
-  Int_t ImageNumber=0;
-  fVoxelsTree->SetBranchAddress("ImageNumber", &ImageNumber);
+  Int_t EventNumber=0;
+  fVoxelsTree->SetBranchAddress("EventNumber", &EventNumber);
 
   Double_t Momentum=0;
   fVoxelsTree->SetBranchAddress("Momentum", &Momentum);
@@ -33,8 +33,8 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
   TVector3* TrueXf=0;
   fVoxelsTree->SetBranchAddress("Xf", &TrueXf);
   
-  Float_t PDG=0;
-  fVoxelsTree->SetBranchAddress("PDG", &PDG);
+  Int_t PDG=0;
+  fVoxelsTree->SetBranchAddress("pdg", &PDG);
   
   Int_t TrackID = 0;
   fVoxelsTree->SetBranchAddress("TrackID", &TrackID);
@@ -42,19 +42,19 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
   Int_t ParentID = 0;
   fVoxelsTree->SetBranchAddress("ParentID", &ParentID);
   
-  Int_t ProOrPi = 0;
-  fVoxelsTree->SetBranchAddress("ProOrPi", &ProOrPi);
+ // Int_t ProOrPi = 0;
+ // fVoxelsTree->SetBranchAddress("ProOrPi", &ProOrPi);
 
 
-  std::cout << "LOADING EVENT # " << i << std::endl;
+  std::cout << "LOADING SPILL # " << i << std::endl;
 
   fVoxelsTree->GetEntry(i);
 
-  std::cout << "Processing Image # " << ImageNumber << std::endl;
+  std::cout << "Processing Image # " << EventNumber << std::endl;
   
    
   //Clean up previous event but only if we are actually processing a new image - if not just add another single track to the event.
-  if(ImageNumber != fimageNumber){
+  if(EventNumber != fimageNumber){
 
     //Delete hits from last event
     for(std::vector<trex::TTPCHitPad*>::iterator hitPadIter=fHits.begin();hitPadIter!=fHits.end();++hitPadIter){
@@ -83,18 +83,18 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
     fTrueHits.clear();
     fTrueTracks.clear();
 
-    fimageNumber = ImageNumber;
+    fimageNumber = EventNumber;
     
   }
 
   fTrueTracks.push_back(new TTrueTrack());
  
   Int_t TrackNumber = fTrueTracks.size();
-  std::cout << "This is Track number " << TrackNumber << " of Image number " << ImageNumber << std::endl;
+  std::cout << "This is Track number " << TrackNumber << " of Image number " << EventNumber << std::endl;
 
   fTrueMultiplicity = TrackNumber;
   
-  fTrueTracks.back()->SetEntries(PDG,TrackNumber,TrackID, ProOrPi, ParentID, *TrueXi, *TrueXf, Momentum);
+  fTrueTracks.back()->SetEntries(PDG,TrackNumber,TrackID,/* ProOrPi,*/ ParentID, *TrueXi, *TrueXf, Momentum);
 
   Int_t nVoxels = fVoxelBranch->GetNbins(); 
   

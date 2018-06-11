@@ -212,7 +212,7 @@ namespace trex{
       fTrackNumber=track->GetTrackNumber();
       fTrackID=track->GetTrackID();
       fParentID=track->GetTrackParentID();
-      fProOrPi=track->GetTrackProOrPi();
+ //     fProOrPi=track->GetTrackProOrPi();
       fTrueNumberOfHits=track->GetNumberOfHits();
     }
 
@@ -223,7 +223,7 @@ namespace trex{
     int GetTrackNumber(){return fTrackNumber;}
     int GetTrackID(){return fTrackID;}
     int GetParentID(){return fParentID;}
-    int GetProOrPi(){return fProOrPi;}
+  //  int GetProOrPi(){return fProOrPi;}
     int GetTrueNumberOfHits(){return fTrueNumberOfHits;}
     
     void SetNumberOfTrueHitsFound(int hits){fNumberOfTrueHitsFound = hits;}
@@ -287,7 +287,7 @@ namespace trex{
     int fTrackNumber;
     int fTrackID; 
     int fParentID;
-    int fProOrPi;
+    //int fProOrPi;
     int fTrueNumberOfHits;
   };
 }

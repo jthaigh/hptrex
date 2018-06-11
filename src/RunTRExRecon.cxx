@@ -45,8 +45,8 @@ int main(int argc, char** argv){
   fReconTree->Branch("unusedHits", &unused);//, 64000, 1);
   fReconTree->Branch("event", &outEvent);//, 64000, 1);
 
-  char merged_plots[100]; 
-  char unmerged_plots[100];
+  char merged_plots[200]; 
+  char unmerged_plots[200];
 
   sprintf(merged_plots, "plots_merged_%s", newName);
   sprintf(unmerged_plots, "plots_unmerged_%s", newName);

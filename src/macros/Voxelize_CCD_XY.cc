@@ -5,14 +5,16 @@
 #include "TTree.h"
 #include "TH2.h"
 #include "TVector3.h"
-
+#include "TROOT.h"
 #include "../LinkDef.hh"
+#include "TObjArray.h"
+
 
 std::string base_name(std::string const & path);
 
-int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t events, string mode) //Define voxelDim in tens of microns i.e. 1e-5m
+int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t events, string mode)  //Define voxelDim in tens of microns i.e. 1e-5m
 {
-  
+
   char inname[100];
   char outname[500];
   char N[100];
@@ -42,8 +44,8 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   double x_res = x_voxelDim/100; //to get resolution in mm from 10s of microns
   double y_res = y_voxelDim/100;
   
-  int x_Bins = (int)(1200/x_res);
-  int y_Bins = (int)(1200/y_res);
+  int x_Bins = (int)(1420/x_res);
+  int y_Bins = (int)(1420/y_res);
   int z_Bins = 1;
   
   double x_range = x_Bins*x_res;
@@ -57,8 +59,11 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   //Int_t bins[dim] = {x_Bins, y_Bins, z_Bins};
   
   //use original resolution of 2.34 mm
-  Double_t maxs[dim] = { 600.21, 600.21, 1.};
-  Double_t mins[dim] = { -600.21, -600.21, 0.};
+  //Double_t maxs[dim] = { 600.21, 600.21, 1.};
+  //Double_t mins[dim] = { -600.21, -600.21, 0.};
+  
+  Double_t maxs[dim] = { 710, 710, 1.};
+  Double_t mins[dim] = { -710, -710, 0.};
   Int_t bins[dim] = {513, 513, 1};
 
   
@@ -68,59 +73,67 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   VoxelsTree->Branch("voxels", "THnSparseF", &voxels);  
 
   //DEFINE TRACK LEVEL TRUTH INFORMATION VARIABLES HERE!
-  Int_t ImageNumber;
-  VoxelsTree->Branch("ImageNumber", &ImageNumber, "ImageNumber/I");
-  Double_t Momentum;
-  VoxelsTree->Branch("Momentum", &Momentum, "Momentum/D");
+  Int_t EventNumber;
+  VoxelsTree->Branch("EventNumber", &EventNumber, "EventNumber/I");
+  Double_t MOMENTUM;
+  VoxelsTree->Branch("Momentum", &MOMENTUM, "Momentum/D");
   TVector3 TrueXi; 
   VoxelsTree->Branch("Xi", "TVector3", &TrueXi);
   TVector3 TrueXf;
   VoxelsTree->Branch("Xf", "TVector3", &TrueXf);
+//  Int_t PDG;
+//  VoxelsTree->Branch("PDG", &PDG, "PDG.I");
+  Int_t TRACKID;
+  VoxelsTree->Branch("TrackID", &TRACKID, "TrackI/I");
+  Int_t PARENTID;
+  VoxelsTree->Branch("ParentID", &PARENTID, "ParentID/I");
   Int_t PDG;
-  VoxelsTree->Branch("PDG", &PDG, "PDG.I");
-  Int_t TrackID;
-  VoxelsTree->Branch("TrackID", &TrackID, "TrackI/I");
-  Int_t ParentID;
-  VoxelsTree->Branch("ParentID", &ParentID, "ParentID/I");
-  Int_t ProOrPi;
-  VoxelsTree->Branch("ProOrPi", &ProOrPi, "ProOrPi/I");
+  VoxelsTree->Branch("pdg", &PDG, "pdg/I");
+  									// Possible add NParticles to this tree?
 
 
   //LOOP FOR READING OUT TTREE RATHER THAN IMAGES
   
   TTree* MergeTree = (TTree*)f.Get("MergeTree");
-  TH2D* SingleHist = new TH2D();   
+ // TH2D* SingleHist = new TH2D();   					//Object arrays or TH2D? 
+  TObjArray* SingleHist;
+  SingleHist = new TObjArray(); //Create the TH2D array                                                                                                      
+  SingleHist->SetOwner(kTRUE);
+
 
   //Set all Branch Addresses
   if(mode == "Ideal"){
-    MergeTree->SetBranchAddress("hIdeal", &SingleHist);}
+    MergeTree->SetBranchAddress("ImageArrayIdeal", &SingleHist);}
   else if(mode == "Real"){
-    MergeTree->SetBranchAddress("hReal", &SingleHist);}
+    MergeTree->SetBranchAddress("ImageArrayReal", &SingleHist);}
   else{std::cout << "PLEASE SET A VALID INPUT MODE - EITHER 'Ideal' OR 'Real'" << std::endl;
     return 1;}
 
-
-  MergeTree->SetBranchAddress("ImageNumber", &ImageNumber);
+  MergeTree->SetBranchAddress("EventNumber", &EventNumber);
+  Double_t Momentum[200];
   MergeTree->SetBranchAddress("P", &Momentum);
-  Double_t Xi;
+  Double_t Xi[200];
   MergeTree->SetBranchAddress("Xi", &Xi);
-  Double_t Yi;
+  Double_t Yi[200];
   MergeTree->SetBranchAddress("Yi", &Yi);
-  Double_t Zi;
+  Double_t Zi[200];
   MergeTree->SetBranchAddress("Zi", &Zi);
-  Double_t Xf;
+  Double_t Xf[200];
   MergeTree->SetBranchAddress("Xf", &Xf);
-  Double_t Yf;
+  Double_t Yf[200];
   MergeTree->SetBranchAddress("Yf", &Yf);
-  Double_t Zf;
+  Double_t Zf[200];
   MergeTree->SetBranchAddress("Zf", &Zf);
-  MergeTree->SetBranchAddress("pdg", &PDG);
+  Int_t pdg[200];
+  MergeTree->SetBranchAddress("pdg", &pdg);
+  Int_t TrackID[200];
   MergeTree->SetBranchAddress("TrackID", &TrackID);
+  Int_t ParentID[200];
   MergeTree->SetBranchAddress("ParentID", &ParentID);
-  MergeTree->SetBranchAddress("ProOrPi", &ProOrPi);
- 
+  Int_t NParticles;
+  MergeTree->SetBranchAddress("NParticles",&NParticles);
 
-  
+
   int entries = MergeTree->GetEntries();
 
   //Set how many events we want to process
@@ -132,44 +145,60 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
     nEvents=events;
   }else{nEvents=entries;}
 
-  std::cout << "This Tree contains " << entries << " Events." << std::endl;
+  std::cout << "This Tree contains " << entries << " Spills." << std::endl;
+
+
+  TH2D* testHist = new TH2D();
 
 
   //EventLoop
   for(int i=0; i<nEvents; ++i){
+
+    //voxels->Reset();
+
+    std::cout << "Voxelising Spill # " << i << std::endl;
     
-    std::cout << "Voxelising Event # " << i << std::endl;
+    MergeTree->Print();
 
     MergeTree->GetEntry(i);
+
+    std::cout << "NParticles = " << NParticles << std::endl;
     
-    voxels->Reset();
+    for(int j=0; j<NParticles; ++j){
 
-       
-    //Reading out Hits
-    for (int x=0; x<501; ++x){
-      for(int y=0; y<501; ++y){
+    	std::cout << "Particle number = " << j << " of " << NParticles << std::endl;
+
+    	voxels->Reset();
+
+    	//Reading out Hits
+    	for (int x=0; x<513; ++x){
+      		for(int y=0; y<513; ++y){
 	
-	Double_t Edep = SingleHist->GetBinContent(x,y);
-	Double_t xpos = SingleHist->GetXaxis()->GetBinCenter(x);
-	Double_t ypos = SingleHist->GetYaxis()->GetBinCenter(y);
-	Double_t zpos = 1;
-
-	Double_t position[3] = {xpos, ypos, zpos};
+			testHist = (TH2D*)SingleHist->At(j); 					//->GetBinContent(x,y);
+			Double_t xpos = testHist->GetXaxis()->GetBinCenter(x);
+			Double_t ypos = testHist->GetYaxis()->GetBinCenter(y);
+			Double_t zpos = 1;
+			Double_t Edep = testHist->GetBinContent(x,y);
+			Double_t position[3] = {xpos, ypos, zpos};
+	
+			if(Edep!=0){
+	  		voxels->Fill(position, Edep);	
+			}
+      		}
+    	} 
         
-	
-	if(Edep!=0){
-	  voxels->Fill(position, Edep);	
-	}
-      }
-    } 
-     
-    TrueXi.SetXYZ(Xi, Yi, Zi);
-    TrueXf.SetXYZ(Xf, Yf, Zf);
- 
-    VoxelsTree->Fill();
-
+	//Fill Voxel Tree
+    	TrueXi.SetXYZ(Xi[j], Yi[j], Zi[j]);    
+    	TrueXf.SetXYZ(Xf[j], Yf[j], Zf[j]);
+    	PDG = pdg[j];
+	TRACKID = TrackID[j];
+	PARENTID = ParentID[j];
+	MOMENTUM = Momentum[j];
+	VoxelsTree->Fill();
+    
+    }
+    //VoxelsTree->Fill();
   }
-  
   
 
   /*

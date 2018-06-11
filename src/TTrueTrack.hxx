@@ -13,11 +13,11 @@ namespace trex{
     TTrueTrack() {}
 
     //Setter for values that come straight from the input file
-    void SetEntries(int pdg, int trackNum, int id, int pOrPi, int parent, TVector3 initial, TVector3 final, double mom){
+    void SetEntries(int pdg, int trackNum, int id,/* int pOrPi,*/ int parent, TVector3 initial, TVector3 final, double mom){
       fTrackPDG = pdg;
       fTrackNumber = trackNum;
       fTrackID = id;
-      fTrackProOrPi = pOrPi;
+     // fTrackProOrPi = pOrPi;
       fTrackParentID = parent;
       fTrackInitialPos = initial;
       fTrackFinalPos = final;
@@ -30,7 +30,7 @@ namespace trex{
     int GetTrackPDG(){return fTrackPDG;}
     int GetTrackNumber(){return fTrackNumber;}
     int GetTrackID(){return fTrackID;}
-    int GetTrackProOrPi(){return fTrackProOrPi;}
+   // int GetTrackProOrPi(){return fTrackProOrPi;}
     int GetTrackParentID(){return fTrackParentID;}
     TVector3 GetTrackInitialPos(){return fTrackInitialPos;}
     TVector3 GetTrackFinalPos(){return fTrackFinalPos;}
@@ -42,7 +42,7 @@ namespace trex{
     int fTrackPDG;
     int fTrackNumber;
     int fTrackID;
-    int fTrackProOrPi;
+ //   int fTrackProOrPi;
     int fTrackParentID;
     TVector3 fTrackInitialPos;
     TVector3 fTrackFinalPos;
