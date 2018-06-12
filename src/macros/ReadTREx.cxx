@@ -1,7 +1,7 @@
 #include "TFile.h"
 #include "TTree.h"
-#include "TTRExPattern.hxx"
-#include "TTPCHitPad.hxx"
+#include "../TTRExPattern.hxx"
+#include "../TTPCHitPad.hxx"
 #include "TH1.h"
 
 

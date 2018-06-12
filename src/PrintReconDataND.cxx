@@ -29,9 +29,20 @@ int main(int argc, char * argv[]) {
     std::cout << "Size of pattern vector: " << patSize << std::endl;
     
     for(int i=0; i<patSize; ++i){
-      std::cout<<"**"<<pats[i].Paths.size()<<std::endl;
+      std::cout<<"**Pattern with "<<pats[i].Paths.size()<<" paths"<<std::endl;
       for(auto iPath=pats[i].Paths.begin();iPath!=pats[i].Paths.end();++iPath){
-	std::cout<<"****"<<(*iPath)[0].GetTrueTrackID()<<std::endl;
+	std::cout<<"****Path linked to true particle "<<(*iPath)[0].GetTrueTrackID()<<std::endl;
+      }
+      if(pats[i].JunctionsToPathsMap.size()!=pats[i].Junctions.size()){
+	std::cout<<"Error, junction-path map has different number of entries to junction vector!"<<std::endl;
+	exit(1);
+      }
+      for(auto iJunct=pats[i].JunctionsToPathsMap.begin();iJunct!=pats[i].JunctionsToPathsMap.end();++iJunct){
+	std::cout<<"****Junction connected to paths ";
+	for(auto iConnect=iJunct->begin();iConnect!=iJunct->end();++iConnect){
+	  std::cout<<*iConnect<<" ";
+	}
+	std::cout<<std::endl;
       }
     }
   }   

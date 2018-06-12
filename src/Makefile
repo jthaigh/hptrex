@@ -2,8 +2,9 @@
 # Makefile
 #=========================================================
 
-#CC	= g++
-COPTS	= -Wall -g -fPIC -DLINUX -O2 -std=c++11 -Wl,-rpath,$(shell brew --prefix)/lib
+CC	= g++
+COPTS	= -Wall -g -fPIC -DLINUX -O2 -std=c++11
+# -Wl,-rpath,$(shell brew --prefix)/lib
 
 #LIBS	= -L/usr/local/lib -lftd2xx
 
@@ -16,7 +17,7 @@ ROOT_CFLAGS = $(shell root-config --cflags)
 # Compile
 #=========================================================
 
-all: libevtrecord.so RunTRExReconCCD.exe RunTRExReconND.exe PrintReconData.exe
+all: libevtrecord.so RunTRExReconCCD.exe RunTRExReconND.exe PrintReconDataND.exe
 
 libevtrecord.so: evtrec
 	make -C evtrec
@@ -31,8 +32,8 @@ RunTRExReconCCD.exe: libpatrec.so RunTRExReconCCD.cxx
 RunTRExReconND.exe: libpatrec.so libevtrecord.so RunTRExReconND.cxx 
 	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -levtrecord -lpatrec -lMinuit -lstdc++ -o RunTRExReconND.exe RunTRExReconND.cxx
 
-PrintReconData.exe: libpatrec.so libevtrecord.so PrintReconData.cxx 
-	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -l evtrecord -lpatrec -lMinuit -lstdc++ -o PrintReconData.exe PrintReconData.cxx
+PrintReconDataND.exe: libpatrec.so libevtrecord.so PrintReconDataND.cxx 
+	$(CC) $(COPTS) $(ROOT_CFLAGS) $(ROOT_LIBS) $(INCLUDE) -I. -L. -l evtrecord -lpatrec -lMinuit -lstdc++ -o PrintReconDataND.exe PrintReconDataND.cxx
 
 
 libpatrec.so: $(OBJ)
@@ -52,4 +53,3 @@ ioDict.cxx:
 clean:
 	make -C evtrec clean	
 	rm -f *.pcm *.o *.so *.exe GasTPCDataLibDict.* ioDict.* ioDict_rdict.pcm
-	
