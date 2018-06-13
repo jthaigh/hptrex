@@ -12,13 +12,8 @@
 
 std::string base_name(std::string const & path);
 
-<<<<<<< HEAD
-int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t events, string mode)  //Define voxelDim in tens of microns i.e. 1e-5m
-=======
-
-
 int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t events, string mode) //Define voxelDim in tens of microns i.e. 1e-5m. events is number of events to be processed. mode is one of "Ideal" or "Real". 
->>>>>>> 6f00b7874a1b0801b88832bb262700781aae568e
+
 {
 
   char inname[100];
@@ -62,18 +57,14 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   //Double_t mins[dim] = { -x_range/2, -y_range/2, 0.};
   //Int_t bins[dim] = {x_Bins, y_Bins, z_Bins};
   
-<<<<<<< HEAD
+
   //use original resolution of 2.34 mm
   //Double_t maxs[dim] = { 600.21, 600.21, 1.};
   //Double_t mins[dim] = { -600.21, -600.21, 0.};
   
   Double_t maxs[dim] = { 710, 710, 1.};
   Double_t mins[dim] = { -710, -710, 0.};
-=======
-  //use this for original resolution of 2.34 mm
-  Double_t maxs[dim] = { 600.21, 600.21, 1.};
-  Double_t mins[dim] = { -600.21, -600.21, 0.};
->>>>>>> 6f00b7874a1b0801b88832bb262700781aae568e
+
   Int_t bins[dim] = {513, 513, 1};
   
   //setting up new Voxels Tree as TREx input
