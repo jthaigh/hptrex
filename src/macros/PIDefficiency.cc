@@ -14,8 +14,7 @@
 void PIDmacro(){
 
   TChain * ReconTree = new TChain("TPCRecon");
-<<<<<<< HEAD
-   
+ 
   
 
 /*  
@@ -33,27 +32,6 @@ void PIDmacro(){
   //ReconTree->Add("~/TREx/hptrex/src/Data/tobyData/MergedFiles280318/Processed/277_554/TRExRecon_unProAvg_6.7_unPiAvg_21.7_ElPro_0.0_InePro_1.0_merge_voxelsIdeal_277e-5m_554e-5m.root");
   //ReconTree->Add("~/TREx/hptrex/src/Data/tobyData/MergedFiles280318/Processed/277_554/TRExRecon_unProAvg_6.7_unPiAvg_21.7_ElPro_1.0_InePro_0.0_merge_voxelsIdeal_277e-5m_554e-5m.root");
   ReconTree->Add("~/TREx/hptrex/src/Data/tobyData/MergedFiles280318/Processed/277_554/TRExRecon_unProAvg_7.7_unPiAvg_21.7_ElPro_0.0_InePro_0.0_merge_voxelsIdeal_277e-5m_554e-5m.root");
-=======
-  //ReconTree->Add("../TRExRecon_plot_p5_vs_pi10_10_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("../TRExRecon_plot_p5_vs_pi10_1_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_10_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_1_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_2_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_3_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_4_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_5_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_6_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_7_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_8_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/May16MergeTruth/highM_Processed/TRExRecon_plot_p5_vs_pi10_9_voxelsIdeal_234e-5m_234e-5m.root");
-
-  ReconTree->Add("~/DUNE/data/testBeam/August_17_merged/TRExRecon_plot_p6.6_vs_pi17.0_1_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/August_17_merged/TRExRecon_plot_p6.6_vs_pi17.0_2_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/August_17_merged/TRExRecon_plot_p6.6_vs_pi17.0_3_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/August_17_merged/TRExRecon_plot_p6.6_vs_pi17.0_4_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/August_17_merged/TRExRecon_plot_p6.6_vs_pi17.0_5_voxelsIdeal_234e-5m_234e-5m.root");
-  //ReconTree->Add("~/DUNE/data/testBeam/August_17_merged/TRExRecon_plot_p6.6_vs_pi17.0_6_voxelsIdeal_234e-5m_234e-5m.root");
->>>>>>> 6f00b7874a1b0801b88832bb262700781aae568e
 
   std::cout << "We are reaching this 1" << std::endl;
 
@@ -191,14 +169,9 @@ void PIDmacro(){
 	//apply single cut here
 	if(Cleanliness_vec[k] > SingleCleanCut && Completeness_vec[k] > SingleCompCut){
 
-<<<<<<< HEAD
 	  //CleanlinessVsM[trueMulti]->Fill(Cleanliness_vec[k]);
 	  //CompletenessVsM[trueMulti]->Fill(Completeness_vec[k]); 
 	  if(PDG_vec[k]==2212 && PID_vec[k]==-1){
-=======
-	  	  
-	  if(ProOrPi_vec[k]==0 && PID_vec[k]==-1){
->>>>>>> 6f00b7874a1b0801b88832bb262700781aae568e
 	    goodProtons[trueMulti]+=1;
 	  }else if(PDG_vec[k]==211 && PID_vec[k]==-1){
 	    badProtons[trueMulti]+=1;

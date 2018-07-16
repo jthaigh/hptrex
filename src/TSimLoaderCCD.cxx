@@ -31,10 +31,7 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
   fVoxelsTree->SetBranchAddress("Xf", &TrueXf);
   
   Int_t PDG=0;
-
   fVoxelsTree->SetBranchAddress("pdg", &PDG);
-
-  fVoxelsTree->SetBranchAddress("PDG", &PDG);
   
   Int_t TrackID = 0;
   fVoxelsTree->SetBranchAddress("TrackID", &TrackID);

@@ -12,8 +12,6 @@
 
 std::string base_name(std::string const & path);
 
-
-
 int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t events, string mode, double threshold=0.) //Define voxelDim in tens of microns i.e. 1e-5m. events is number of events to be processed. mode is one of "Ideal" or "Real". 
 
 {
@@ -65,6 +63,7 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   
   Double_t maxs[dim] = { 710, 710, 1.};
   Double_t mins[dim] = { -710, -710, 0.};
+
   Int_t bins[dim] = {513, 513, 1};
   
   //setting up new Voxels Tree as TREx input
