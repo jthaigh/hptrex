@@ -31,10 +31,10 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   
   //Create a sensibly named output file
   string input_path = std::string(inputfile);
-  string basefile = base_name(input_path)+"_voxels%s_%de-5m_%de-5m.root";
+  string basefile = base_name(input_path)+"_voxels%s_%de-5m_%de-5m_%g.root";
   const char * basefile_char = basefile.c_str();
   const char * input_mode = mode.c_str();
-  sprintf(outname, basefile_char, input_mode, x_voxelDim,y_voxelDim);
+  sprintf(outname, basefile_char, input_mode, x_voxelDim,y_voxelDim,threshold);
   
   std:: cout << "New file will be called: " << outname << std::endl;
   TFile f1(outname,"RECREATE"); 
@@ -64,47 +64,51 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   Double_t maxs[dim] = { 710, 710, 1.};
   Double_t mins[dim] = { -710, -710, 0.};
 
-  Int_t bins[dim] = {513, 513, 1};
+  Int_t bins[dim] = {1529, 1529, 1};
   
   //setting up new Voxels Tree as TREx input
   TTree* VoxelsTree = new TTree("VoxelsTree", "VoxelsTree");
   THnSparseF* voxels = new THnSparseF("Voxels","", dim, bins, mins, maxs);
   VoxelsTree->Branch("voxels", "THnSparseF", &voxels);  
+  TTree* TruthTree = new TTree("TruthTree","TruthTree");
 
   //DEFINE TRACK LEVEL TRUTH INFORMATION VARIABLES HERE!
   Int_t EventNumber;
   VoxelsTree->Branch("EventNumber", &EventNumber, "EventNumber/I");
   Double_t MOMENTUM;
-  VoxelsTree->Branch("Momentum", &MOMENTUM, "Momentum/D");
+  TruthTree->Branch("Momentum", &MOMENTUM, "Momentum/D");
   TVector3 TrueXi; 
-  VoxelsTree->Branch("Xi", "TVector3", &TrueXi);
+  TruthTree->Branch("Xi", "TVector3", &TrueXi);
   TVector3 TrueXf;
-  VoxelsTree->Branch("Xf", "TVector3", &TrueXf);
+  TruthTree->Branch("Xf", "TVector3", &TrueXf);
 //  Int_t PDG;
-//  VoxelsTree->Branch("PDG", &PDG, "PDG.I");
+//  TruthTree->Branch("PDG", &PDG, "PDG.I");
   Int_t TRACKID;
-  VoxelsTree->Branch("TrackID", &TRACKID, "TrackI/I");
+  TruthTree->Branch("TrackID", &TRACKID, "TrackI/I");
   Int_t PARENTID;
-  VoxelsTree->Branch("ParentID", &PARENTID, "ParentID/I");
+  TruthTree->Branch("ParentID", &PARENTID, "ParentID/I");
   Int_t PDG;
-  VoxelsTree->Branch("pdg", &PDG, "pdg/I");
-  									// Possible add NParticles to this tree?
+  TruthTree->Branch("pdg", &PDG, "pdg/I");
+  Int_t NPARTICLES;
+  TruthTree->Branch("NParticles", &NPARTICLES, "NParticles/I");
+	  
+	  // Possible add NParticles to this tree?
 
 
   //LOOP FOR READING OUT TTREE RATHER THAN IMAGES
   
   TTree* MergeTree = (TTree*)f.Get("MergeTree");
- // TH2D* SingleHist = new TH2D();   					//Object arrays or TH2D? 
-  TObjArray* SingleHist;
-  SingleHist = new TObjArray(); //Create the TH2D array                                                                                                      
-  SingleHist->SetOwner(kTRUE);
-
+ 
+  TH2D* SingleHist = new TH2D();   					//Object arrays or TH2D? 
+  //TObjArray* SingleHist;
+  //SingleHist = new TObjArray(); //Create the TH2D array 
+  //SingleHist->SetOwner(kTRUE);
 
   //Set all Branch Addresses
   if(mode == "Ideal"){
-    MergeTree->SetBranchAddress("ImageArrayIdeal", &SingleHist);}
+    MergeTree->SetBranchAddress("EventImageIdeal", &SingleHist);}
   else if(mode == "Real"){
-    MergeTree->SetBranchAddress("ImageArrayReal", &SingleHist);}
+    MergeTree->SetBranchAddress("EventImageReal", &SingleHist);}
   else{std::cout << "PLEASE SET A VALID INPUT MODE - EITHER 'Ideal' OR 'Real'" << std::endl;
     return 1;}
 
@@ -151,13 +155,13 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
 
 
   //EventLoop
-  for(int i=0; i<nEvents; ++i){
+  for(int i=0; i<10/*nEvents*/; ++i){
 
-    //voxels->Reset();
+    voxels->Reset();
 
     std::cout << "Voxelising Spill # " << i << std::endl;
     
-    MergeTree->Print();
+    //MergeTree->Print();
 
     MergeTree->GetEntry(i);
 
@@ -167,41 +171,7 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
 
     	std::cout << "Particle number = " << j << " of " << NParticles << std::endl;
 
-    	voxels->Reset();
-
-    	//Reading out Hits
-	/*    	for (int x=0; x<513; ++x){
-      		for(int y=0; y<513; ++y){
-	
-		  std::cout<<"1"<<std::endl;
-			testHist = (TH2D*)SingleHist->At(j); 					//->GetBinContent(x,y);
-			Double_t xpos = testHist->GetXaxis()->GetBinCenter(x);
-			Double_t ypos = testHist->GetYaxis()->GetBinCenter(y);
-			Double_t zpos = 1;
-			std::cout<<"2"<<std::endl;
-			Double_t Edep = testHist->GetBinContent(x,y);
-			Double_t position[3] = {xpos, ypos, zpos};
-	
-			if(Edep>threshold){
-	  		voxels->Fill(position, Edep);	
-			}
-      		}
-		}*/
-
-	Int_t coord[2];
-	THnSparse* sparseHist=(THnSparse*)SingleHist->At(j);
-	Long64_t nBins=sparseHist->GetNbins();
-	TAxis* xAxis=sparseHist->GetAxis(0);
-	TAxis* yAxis=sparseHist->GetAxis(1);
-
-	for(int iBin=0;iBin<nBins;++iBin){
-	  double Edep = sparseHist->GetBinContent(iBin,coord);
-	  
-	  if(Edep>threshold){
-	    Double_t position[3] = {xAxis->GetBinCenter(coord[0]),yAxis->GetBinCenter(coord[1])};
-	    voxels->Fill(position, Edep);
-	  }
-	}
+    	//voxels->Reset();
 
 	//Fill Voxel Tree
     	TrueXi.SetXYZ(Xi[j], Yi[j], Zi[j]);    
@@ -210,10 +180,45 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
 	TRACKID = TrackID[j];
 	PARENTID = ParentID[j];
 	MOMENTUM = Momentum[j];
-	VoxelsTree->Fill();
+	NPARTICLES = NParticles;
+	TruthTree->Fill();
     
     }
-    //VoxelsTree->Fill();
+
+    	//Reading out Hits
+    	for (int x=0; x<1529; ++x){
+      		for(int y=0; y<1529; ++y){
+	
+			testHist = (TH2D*)SingleHist; 					//->GetBinContent(x,y);
+			Double_t xpos = testHist->GetXaxis()->GetBinCenter(x);
+			Double_t ypos = testHist->GetYaxis()->GetBinCenter(y);
+			Double_t zpos = 1;
+			Double_t Edep = testHist->GetBinContent(x,y);
+			Double_t position[3] = {xpos, ypos, zpos};
+	
+			if(Edep>threshold){
+	 			voxels->Fill(position, Edep);	
+			}
+      		}
+	}
+
+	//Int_t coord[2];
+	//THnSparse* sparseHist=(THnSparse*) SingleHist->At(i);
+	//std::cout << "Declared THnSparse sparseHist" << std::endl;
+	//Long64_t nBins=sparseHist->GetNbins();				//null passed here
+	//TAxis* xAxis=sparseHist->GetAxis(0);
+	//TAxis* yAxis=sparseHist->GetAxis(1);
+	
+	/*std::cout << "Entering for loop" << std::endl;
+	for(int iBin=0;iBin<nBins;++iBin){
+	  double Edep = sparseHist->GetBinContent(iBin,coord);
+	  
+	  if(Edep>threshold){
+	    Double_t position[3] = {xAxis->GetBinCenter(coord[0]),yAxis->GetBinCenter(coord[1])};
+	    voxels->Fill(position, Edep);
+	  }
+	}*/
+    VoxelsTree->Fill();
   }
   
 
@@ -263,6 +268,10 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
 
   std::cout << "All Events written to Voxel Tree" << std::endl;
   
+  TruthTree->Print();
+
+  std::cout << "TruthTree printed successfully " << std::endl;
+
   VoxelsTree->Print();
   
   std::cout << "VoxelTree printed succesfully" << std::endl;

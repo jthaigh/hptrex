@@ -11,8 +11,11 @@ trex::TSimLoader::TSimLoader(std::string inputFile){
   fVoxelBranch=0;
   fVoxelsTree->SetBranchAddress("voxels", &fVoxelBranch);
 
-  Detector = new TH3D("Detector", "Detector", 513, -710., 710., 513, -710., 710., 1, 0, 1);
+  Detector = new TH3D("Detector", "Detector", 1529, -710., 710., 1529, -710., 710., 1, 0, 1);
   Detector->SetDirectory(0);
+
+  fTruthTree=(TTree*)fFile->Get("TruthTree");
+
 }
 
 
@@ -22,26 +25,28 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
   fVoxelsTree->SetBranchAddress("EventNumber", &EventNumber);
 
   Double_t Momentum=0;
-  fVoxelsTree->SetBranchAddress("Momentum", &Momentum);
+  fTruthTree->SetBranchAddress("Momentum", &Momentum);
 
   TVector3* TrueXi=0;
-  fVoxelsTree->SetBranchAddress("Xi", &TrueXi);
+  fTruthTree->SetBranchAddress("Xi", &TrueXi);
 
   TVector3* TrueXf=0;
-  fVoxelsTree->SetBranchAddress("Xf", &TrueXf);
+  fTruthTree->SetBranchAddress("Xf", &TrueXf);
   
   Int_t PDG=0;
-  fVoxelsTree->SetBranchAddress("pdg", &PDG);
+  fTruthTree->SetBranchAddress("pdg", &PDG);
   
   Int_t TrackID = 0;
-  fVoxelsTree->SetBranchAddress("TrackID", &TrackID);
+  fTruthTree->SetBranchAddress("TrackID", &TrackID);
   
   Int_t ParentID = 0;
-  fVoxelsTree->SetBranchAddress("ParentID", &ParentID);
+  fTruthTree->SetBranchAddress("ParentID", &ParentID);
   
  // Int_t ProOrPi = 0;
- // fVoxelsTree->SetBranchAddress("ProOrPi", &ProOrPi);
+ // fTruthTree->SetBranchAddress("ProOrPi", &ProOrPi);
 
+  Int_t NParticles = 0;
+  fTruthTree->SetBranchAddress("NParticles", & NParticles);
 
   std::cout << "LOADING SPILL # " << i << std::endl;
 
@@ -91,7 +96,7 @@ void trex::TSimLoader::LoadEvent(unsigned int i){
 
   fTrueMultiplicity = TrackNumber;
   
-  fTrueTracks.back()->SetEntries(PDG,TrackNumber,TrackID,/* ProOrPi,*/ ParentID, *TrueXi, *TrueXf, Momentum);
+  fTrueTracks.back()->SetEntries(PDG,TrackNumber,TrackID,/* ProOrPi,*/ ParentID, *TrueXi, *TrueXf, Momentum, NParticles);
 
   Int_t nVoxels = fVoxelBranch->GetNbins(); 
   

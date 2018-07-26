@@ -214,6 +214,7 @@ namespace trex{
       fParentID=track->GetTrackParentID();
  //     fProOrPi=track->GetTrackProOrPi();
       fTrueNumberOfHits=track->GetNumberOfHits();
+      fNParticles=track->GetNParticles();
     }
 
     int GetPDG(){return fPDG;}    
@@ -225,7 +226,8 @@ namespace trex{
     int GetParentID(){return fParentID;}
   //  int GetProOrPi(){return fProOrPi;}
     int GetTrueNumberOfHits(){return fTrueNumberOfHits;}
-    
+    int GetNParticles(){return fNParticles;}
+
     void SetNumberOfTrueHitsFound(int hits){fNumberOfTrueHitsFound = hits;}
     int GetNumberOfTrueHitsFound(){return fNumberOfTrueHitsFound;}
 
@@ -289,6 +291,7 @@ namespace trex{
     int fParentID;
     //int fProOrPi;
     int fTrueNumberOfHits;
+    int fNParticles;
   };
 }
 

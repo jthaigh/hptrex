@@ -92,7 +92,7 @@ void trex::TSimLoaderND::LoadEvent(unsigned int i){
 				   (theParticle->GetParent()?theParticle->GetParent()->GetMCID():-1),
 				   TVector3(initPos.GetX(),initPos.GetY(),initPos.GetZ()),
 				   TVector3(finalPos.GetX(),finalPos.GetY(),finalPos.GetZ()),
-				   initMom_mag);
+				   initMom_mag,0);
 
 
     const std::vector<gastpc::MCHit*>& MCHits = (*trackIt)->GetMCHits();

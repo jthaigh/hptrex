@@ -156,6 +156,7 @@ namespace trex{
     std::vector<int> ParentID;
    // std::vector<int> ProOrPi;
     std::vector<int> TrueNumberOfHits;
+    std::vector<int> NParticles;
   };
 
   struct WritableEvent{
@@ -201,6 +202,7 @@ namespace trex{
 	  patterns.back().ParentID.push_back(iPath->GetParentID());
 	//  patterns.back().ProOrPi.push_back(iPath->GetProOrPi());
 	  patterns.back().TrueNumberOfHits.push_back(iPath->GetTrueNumberOfHits());
+	  patterns.back().NParticles.push_back(iPath->GetNParticles());
 	  //Add more PID and Truth Variables here
 	  
 	  

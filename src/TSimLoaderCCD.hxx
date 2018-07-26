@@ -96,6 +96,7 @@ namespace trex{
     TFile* fReconOutFile;
     TTree* fTree;
     TTree* fVoxelsTree;
+    TTree* fTruthTree;
     //TTree* fReconTree;
     TH3D * Detector;
     
