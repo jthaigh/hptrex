@@ -58,7 +58,7 @@ namespace trex{
     
     unsigned int GetNVoxels();
     
-    int GetTrueMultiplicity(){return fTrueMultiplicity;}
+    int GetTrueMultiplicity(){return fBP_NParticles;}
 
     
     struct voxel {
@@ -82,36 +82,37 @@ namespace trex{
     TFile* GetFile() {
       return fFile;
     }
-
-    //TTree* GetReconTree(){
-    //return fReconTree;
-    //}
-
-    TFile* fFile;
-
      
   private:
     
-    //TFile* fFile;
-    TFile* fReconOutFile;
-    TTree* fTree;
     TTree* fVoxelsTree;
     TTree* fTruthTree;
-    //TTree* fReconTree;
     TH3D * Detector;
-    
+    TFile* fFile;
+
     std::vector<trex::TTPCHitPad*> fHits;
     std::vector<voxel*> fVoxels;
     std::vector<TTrueHit*> fTrueHits;
 
-    int fimageNumber = -1;
+    //int fimageNumber = -1;
     std::vector<trex::TTrueTrack*> fTrueTracks;
-    int fTrueMultiplicity;
 
+    //Variables to point to branches in input trees
+    THnSparseF* fBP_voxels;
+    THnSparseS* fBP_truthmatch_voxels;
 
-    SimulData* fSimulDataBranch;
-    GeantTrackingTruth* fGeantBranch;
-    THnSparseF* fVoxelBranch;
+    Double_t fBP_Momentum[200];
+    Double_t fBP_Xi[200];
+    Double_t fBP_Yi[200];
+    Double_t fBP_Zi[200];
+    Double_t fBP_Xf[200];
+    Double_t fBP_Yf[200];
+    Double_t fBP_Zf[200];
+    Int_t fBP_pdg[200];
+    Int_t fBP_TrackID[200];
+    Int_t fBP_ParentID[200];
+    Int_t fBP_NParticles;
+
     
   };
 }

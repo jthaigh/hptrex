@@ -138,41 +138,43 @@ void trex::TTRExPIDAlgorithm::TrackCleanliness(trex::TTRExPath& path){
      
       TotalNumberOfPathHits+=1;
 
-      int TrackNumber = Hit.GetTrueTrack()->GetTrackNumber();
-
+      trex::TTrueTrack* trueTrack = Hit.GetTrueTrack();
+      if(!trueTrack) continue;
+      int TrackNumber = trueTrack->GetTrackNumber();
       bool found=false;
 
       if(TrackNumbers.size()==0){
 	TrackNumbers.push_back(TrackNumber);
 	TrackFractions.push_back(1);
-	TrueTracks.push_back(Hit.GetTrueTrack());
+	TrueTracks.push_back(trueTrack);
       }
       else{
 	for(int i=0; i<TrackNumbers.size(); ++i){
-	  
 	  if (TrackNumber==TrackNumbers[i]){
 	    TrackFractions[i]+=1;
 	    found=true;
 	  }
 	}
-	
 	if(!found){
 	  
 	  std::cout << "TrackNumber was not found, create new entry" << std::endl; 
-	  
 	  TrackNumbers.push_back(TrackNumber);
 	  TrackFractions.push_back(1);
 	  TrueTracks.push_back(Hit.GetTrueTrack());
-	  
 	}
       }
     }
   }
-  
+  if(!TrackFractions.size()){
+    path.SetNumberOfTrueHitsFound(0);
+    path.SetTrackCompleteness(0);
+    path.SetTrackCleanliness(0);
+    return;
+  }
+
   int largestFraction=0;
   int mainTrackIndex=0;
  
-
   for(int j=0; j<TrackFractions.size(); ++j){
     
     if(largestFraction < TrackFractions[j]){      
@@ -181,7 +183,7 @@ void trex::TTRExPIDAlgorithm::TrackCleanliness(trex::TTRExPath& path){
       mainTrackIndex = j;
     }
   }
-  
+
   path.FillFromTruthTrack(TrueTracks[mainTrackIndex]);
   path.SetNumberOfTrueHitsFound(largestFraction);
   
@@ -201,10 +203,6 @@ void trex::TTRExPIDAlgorithm::TrackCleanliness(trex::TTRExPath& path){
   path.SetTrackCompleteness(completeness);
   path.SetTrackCleanliness(cleanliness);
 
-  TrackNumbers.clear();
-  TrackFractions.clear();
-  TrueTracks.clear();
-  
 }
 
 

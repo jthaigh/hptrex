@@ -19,7 +19,7 @@ namespace trex {
 class trex::TTPCHitPad {
 public:
 
-  TTPCHitPad() :fChargeFit(0),fTimeFit(0),fPosition(0,0,0) {};
+  TTPCHitPad() :fChargeFit(0),fTimeFit(0),fPosition(0,0,0), TrueTrack(0), fTrueTrackID(-1) {};
 
   ~TTPCHitPad(){}
 

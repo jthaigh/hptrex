@@ -11,7 +11,7 @@
 #include "TStyle.h"
 
 
-void PIDmacro(){
+void PIDmacro(const char* inputFile){
 
   TChain * ReconTree = new TChain("TPCRecon");
  
@@ -31,9 +31,8 @@ void PIDmacro(){
   //ReconTree->Add("~/TREx/hptrex/src/Data/tobyData/MergedFiles280318/Processed/277_554/TRExRecon_unProAvg_5.7_unPiAvg_21.7_ElPro_1.0_InePro_1.0_merge_voxelsIdeal_277e-5m_554e-5m.root");
   //ReconTree->Add("~/TREx/hptrex/src/Data/tobyData/MergedFiles280318/Processed/277_554/TRExRecon_unProAvg_6.7_unPiAvg_21.7_ElPro_0.0_InePro_1.0_merge_voxelsIdeal_277e-5m_554e-5m.root");
   //ReconTree->Add("~/TREx/hptrex/src/Data/tobyData/MergedFiles280318/Processed/277_554/TRExRecon_unProAvg_6.7_unPiAvg_21.7_ElPro_1.0_InePro_0.0_merge_voxelsIdeal_277e-5m_554e-5m.root");
-  ReconTree->Add("~/TREx/hptrex/src/Data/tobyData/MergedFiles280318/Processed/277_554/TRExRecon_unProAvg_7.7_unPiAvg_21.7_ElPro_0.0_InePro_0.0_merge_voxelsIdeal_277e-5m_554e-5m.root");
-
-  std::cout << "We are reaching this 1" << std::endl;
+  //  ReconTree->Add("~/TREx/hptrex/src/Data/tobyData/MergedFiles280318/Processed/277_554/TRExRecon_unProAvg_7.7_unPiAvg_21.7_ElPro_0.0_InePro_0.0_merge_voxelsIdeal_277e-5m_554e-5m.root");
+  ReconTree->Add(inputFile);
 
   //declare histograms
   TH1D dEdx("dEdx", "dEdx", 50, 0, 0.00002);
@@ -135,7 +134,7 @@ void PIDmacro(){
       std::vector<double> Completeness_vec = pats[j].TrackCompleteness;
       std::vector<int> PDG_vec = pats[j].PDG;
       std::vector<int> PID_vec = pats[j].PID;
-      std::vector<int> PDG_vec = pats[j].PDG;
+      //std::vector<int> PDG_vec = pats[j].PDG;
 
       //Loop over paths
       for(int k=0; k<dEdx_vec.size(); ++k){
@@ -273,16 +272,17 @@ void PIDmacro(){
     delete C;
   }
 
-  
   TH2D AverageTrackEfficiency("AverageTrackEff", "", cleanbins, 0.5, 1.00, compbins, 0.5, 1.00);
 
   for(int m=3; m<17; ++m){
     AverageTrackEfficiency.Add(TrackEfficiencyScan[m]);    
   }
 
-
-  
   AverageTrackEfficiency.Scale(1.00/14.00);  
+
+  //JTH: Have disabled writing the histograms to separate .png files for now as it was
+  //causing a crash. Everything should still be in the root file.
+
   TCanvas *C = new TCanvas("C","",750,750);
   C->cd();
   gStyle->SetOptStat("");
@@ -294,42 +294,42 @@ void PIDmacro(){
   AverageTrackEfficiency.SetOption("COL2 TEXT");
   AverageTrackEfficiency.Write();
   AverageTrackEfficiency.Draw();
-  C->Print("AverageTrackEfficiency.png");
+  //C->Print("AverageTrackEfficiency.png");
   
   TrackPurity.GetYaxis()->SetRangeUser(0,1);
   TrackPurity.SetMarkerStyle(kFullTriangleDown);
   TrackPurity.Draw("P");
-  C->Print("TrackPurityMinimalCut.png");
+  //C->Print("TrackPurityMinimalCut.png");
 
   TrackEfficiency.GetYaxis()->SetRangeUser(0,1);
   TrackEfficiency.SetMarkerStyle(kFullTriangleDown);
   TrackEfficiency.Draw("P");
-  C->Print("TrackEfficiencyMinimalCut.png");
+  //C->Print("TrackEfficiencyMinimalCut.png");
 
   ProtonEfficiency.GetYaxis()->SetRangeUser(0,1);
   ProtonEfficiency.SetMarkerStyle(kFullTriangleDown);
   ProtonEfficiency.SetMarkerColor(kRed);
   ProtonEfficiency.Draw("P");
-  C->Print("ProtonEfficiency.png");
+  //C->Print("ProtonEfficiency.png");
 
   ProtonPurity.GetYaxis()->SetRangeUser(0,1);
   ProtonPurity.SetMarkerStyle(kFullTriangleDown);
   ProtonPurity.SetMarkerColor(kRed); 
   ProtonPurity.Draw("P");
-  C->Print("ProtonPurity.png");
+  //C->Print("ProtonPurity.png");
 
   MeanCleanliness.GetYaxis()->SetRangeUser(0,1);
   MeanCleanliness.SetMarkerStyle(kFullTriangleDown);
   MeanCleanliness.Draw("P");
-  C->Print("MeanCleanliness.png");
+  //C->Print("MeanCleanliness.png");
   
   MeanCompleteness.GetYaxis()->SetRangeUser(0,1);
   MeanCompleteness.SetMarkerStyle(kFullTriangleDown);
   MeanCompleteness.Draw("P");
-  C->Print("MeanCompleteness.png");
+  //C->Print("MeanCompleteness.png");
 
   Multiplicities.Draw("COL2");
-  C->Print("Multiplicities.png");
+  //C->Print("Multiplicities.png");
 
   dEdx.Write();
   TrackLength.Write();

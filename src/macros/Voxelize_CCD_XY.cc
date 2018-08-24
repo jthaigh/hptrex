@@ -16,6 +16,10 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
 
 {
 
+  //////////////////////////////////////////////
+  //Twiddling with filenames and opening files//
+  //////////////////////////////////////////////
+
   char inname[100];
   char outname[500];
   char N[100];
@@ -27,8 +31,7 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
     printf("Error: Cannot open file\n");
     return 1;
   }  
-  
-  
+    
   //Create a sensibly named output file
   string input_path = std::string(inputfile);
   string basefile = base_name(input_path)+"_voxels%s_%de-5m_%de-5m_%g.root";
@@ -38,10 +41,23 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   
   std:: cout << "New file will be called: " << outname << std::endl;
   TFile f1(outname,"RECREATE"); 
+
+
   
-  //Setup voxel histogram dimensions with resolution defined by user
+  //////////////////////////////////////////////
+  //Define voxel binning - currently hardcoded//
+  //////////////////////////////////////////////
+
   const Int_t dim = 3;
   
+  Double_t maxs[dim] = { 710, 710, 1.};
+  Double_t mins[dim] = { -710, -710, 0.};
+
+  Int_t bins[dim] = {1529, 1529, 1};
+
+  /*
+  //JTH: This isn't currently used since binning was changed to hardcoding despite
+  //parameters being present in macro sig. Misleading, should be addressed ASAP.
   double x_res = x_voxelDim/100; //to get resolution in mm from 10s of microns
   double y_res = y_voxelDim/100;
   
@@ -51,7 +67,8 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   
   double x_range = x_Bins*x_res;
   double y_range = y_Bins*y_res;
-  
+  */
+
   //use this for user defined resolution from input
   //Double_t maxs[dim] = { x_range/2, y_range/2, 1.};
   //Double_t mins[dim] = { -x_range/2, -y_range/2, 0.};
@@ -60,216 +77,217 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   //use original resolution of 2.34 mm
   //Double_t maxs[dim] = { 600.21, 600.21, 1.};
   //Double_t mins[dim] = { -600.21, -600.21, 0.};
-  
-  Double_t maxs[dim] = { 710, 710, 1.};
-  Double_t mins[dim] = { -710, -710, 0.};
 
-  Int_t bins[dim] = {1529, 1529, 1};
+
+
+  /////////////////////////////////////////////////////////////
+  //Creation of output VoxelsTree to store converted image   //
+  //JTH - Added an extra histogram truthmatch_voxels to store//
+  //the information on which track caused the voxel deposit  //
+  /////////////////////////////////////////////////////////////
   
   //setting up new Voxels Tree as TREx input
   TTree* VoxelsTree = new TTree("VoxelsTree", "VoxelsTree");
+
   THnSparseF* voxels = new THnSparseF("Voxels","", dim, bins, mins, maxs);
   VoxelsTree->Branch("voxels", "THnSparseF", &voxels);  
-  TTree* TruthTree = new TTree("TruthTree","TruthTree");
 
-  //DEFINE TRACK LEVEL TRUTH INFORMATION VARIABLES HERE!
+  THnSparseS* truthmatch_voxels = new THnSparseS("truthmatch_Voxels","", dim, bins, mins, maxs);
+  VoxelsTree->Branch("truthmatch_voxels", "THnSparseS", &truthmatch_voxels);  
+
   Int_t EventNumber;
   VoxelsTree->Branch("EventNumber", &EventNumber, "EventNumber/I");
-  Double_t MOMENTUM;
+
+
+
+  ////////////////////////////////////////////////////////////////
+  //Creation of output TruthTree to store track-level truth info//
+  //from input file.                                            //
+  ////////////////////////////////////////////////////////////////
+
+  //JTH TODO: Much better to have 1 entry in the TruthTree per event rather
+  //than one per track, and store particle-level quantities in arrays/vectors.
+  //However this requires changing main TREx TSimLoader code so will defer for now.
+
+  TTree* TruthTree = new TTree("TruthTree","TruthTree");
+
+  /*  Double_t MOMENTUM;
   TruthTree->Branch("Momentum", &MOMENTUM, "Momentum/D");
+
   TVector3 TrueXi; 
   TruthTree->Branch("Xi", "TVector3", &TrueXi);
+
   TVector3 TrueXf;
   TruthTree->Branch("Xf", "TVector3", &TrueXf);
-//  Int_t PDG;
-//  TruthTree->Branch("PDG", &PDG, "PDG.I");
+
   Int_t TRACKID;
   TruthTree->Branch("TrackID", &TRACKID, "TrackI/I");
+
   Int_t PARENTID;
   TruthTree->Branch("ParentID", &PARENTID, "ParentID/I");
+
   Int_t PDG;
   TruthTree->Branch("pdg", &PDG, "pdg/I");
+
   Int_t NPARTICLES;
   TruthTree->Branch("NParticles", &NPARTICLES, "NParticles/I");
-	  
-	  // Possible add NParticles to this tree?
+  */
 
+  ////////////////////////////////////////////////////////////////////////
+  //Get event-level image/truth tree from input file and assign branches//
+  //to variables.                                                       //
+  ////////////////////////////////////////////////////////////////////////
 
-  //LOOP FOR READING OUT TTREE RATHER THAN IMAGES
-  
   TTree* MergeTree = (TTree*)f.Get("MergeTree");
  
-  TH2D* SingleHist = new TH2D();   					//Object arrays or TH2D? 
-  //TObjArray* SingleHist;
-  //SingleHist = new TObjArray(); //Create the TH2D array 
+
+  //Histograms of composite event-level images (including noise in Real case).
+  TH2D* MergeHist = 0;// = new TH2D();
+
+  //Histograms of individual tracks.
+  TObjArray* SingleHist = 0;
+
+  //JTH: Not needed?
+  //  SingleHist = new TObjArray(); //Create the TH2D array 
   //SingleHist->SetOwner(kTRUE);
 
-  //Set all Branch Addresses
   if(mode == "Ideal"){
-    MergeTree->SetBranchAddress("EventImageIdeal", &SingleHist);}
+    MergeTree->SetBranchAddress("EventImageIdeal", &MergeHist);
+    MergeTree->SetBranchAddress("ImageArrayIdeal", &SingleHist);
+  }
   else if(mode == "Real"){
-    MergeTree->SetBranchAddress("EventImageReal", &SingleHist);}
+    MergeTree->SetBranchAddress("EventImageReal", &MergeHist);
+    MergeTree->SetBranchAddress("ImageArrayReal", &SingleHist);
+  }
   else{std::cout << "PLEASE SET A VALID INPUT MODE - EITHER 'Ideal' OR 'Real'" << std::endl;
     return 1;}
 
   MergeTree->SetBranchAddress("EventNumber", &EventNumber);
   Double_t Momentum[200];
-  MergeTree->SetBranchAddress("P", &Momentum);
+  MergeTree->SetBranchAddress("P", Momentum);
   Double_t Xi[200];
-  MergeTree->SetBranchAddress("Xi", &Xi);
+  MergeTree->SetBranchAddress("Xi", Xi);
   Double_t Yi[200];
-  MergeTree->SetBranchAddress("Yi", &Yi);
+  MergeTree->SetBranchAddress("Yi", Yi);
   Double_t Zi[200];
-  MergeTree->SetBranchAddress("Zi", &Zi);
+  MergeTree->SetBranchAddress("Zi", Zi);
   Double_t Xf[200];
-  MergeTree->SetBranchAddress("Xf", &Xf);
+  MergeTree->SetBranchAddress("Xf", Xf);
   Double_t Yf[200];
-  MergeTree->SetBranchAddress("Yf", &Yf);
+  MergeTree->SetBranchAddress("Yf", Yf);
   Double_t Zf[200];
-  MergeTree->SetBranchAddress("Zf", &Zf);
+  MergeTree->SetBranchAddress("Zf", Zf);
   Int_t pdg[200];
-  MergeTree->SetBranchAddress("pdg", &pdg);
+  MergeTree->SetBranchAddress("pdg", pdg);
   Int_t TrackID[200];
-  MergeTree->SetBranchAddress("TrackID", &TrackID);
+  MergeTree->SetBranchAddress("TrackID", TrackID);
   Int_t ParentID[200];
-  MergeTree->SetBranchAddress("ParentID", &ParentID);
+  MergeTree->SetBranchAddress("ParentID", ParentID);
   Int_t NParticles;
   MergeTree->SetBranchAddress("NParticles",&NParticles);
 
+  //Make branches in truth tree to pass through truth info
+  //from input file.
+  TruthTree->Branch("NParticles", &NParticles, "NParticles/I");
+  TruthTree->Branch("Momentum", &Momentum, "Momentum[NParticles]/D");
+  TruthTree->Branch("Xi", Xi, "Xi[NParticles]/D");
+  TruthTree->Branch("Yi", Yi, "Yi[NParticles]/D");
+  TruthTree->Branch("Zi", Zi, "Zi[NParticles]/D");
+  TruthTree->Branch("Xf", Xf, "Xf[NParticles]/D");
+  TruthTree->Branch("Yf", Yf, "Yf[NParticles]/D");
+  TruthTree->Branch("Zf", Zf, "Zf[NParticles]/D");
+  TruthTree->Branch("TrackID", TrackID, "TrackID[NParticles]/I");
+  TruthTree->Branch("ParentID", ParentID, "ParentID[NParticles]/I");
+  TruthTree->Branch("pdg", pdg, "pdg[NParticles]/I");
+  
+  //####################################//
+  //Main event loop                     //
+  //####################################//
 
   int entries = MergeTree->GetEntries();
-
-  //Set how many events we want to process
-  int nEvents;  
-
-  if(events==0){
-    nEvents=entries;
-  }else if(events < entries){
-    nEvents=events;
-  }else{nEvents=entries;}
-
   std::cout << "This Tree contains " << entries << " Spills." << std::endl;
+  for(int i=0; i<entries&&i<events; ++i){
 
-
-  TH2D* testHist = new TH2D();
-
-
-  //EventLoop
-  for(int i=0; i<10/*nEvents*/; ++i){
-
-    voxels->Reset();
-
-    std::cout << "Voxelising Spill # " << i << std::endl;
-    
-    //MergeTree->Print();
+    ///////////////////////////////////
+    //Book-keeping and console output//
+    ///////////////////////////////////
 
     MergeTree->GetEntry(i);
 
+    std::cout << "Voxelising Spill # " << i << std::endl;
     std::cout << "NParticles = " << NParticles << std::endl;
+
+    voxels->Reset();
+    truthmatch_voxels->Reset();
+
+    TruthTree->Fill();
+
+    ///////////////////////////////////////////////
+    //Pass through per-particle truth information//
+    //and fill the truth-matching histogram      //
+    ///////////////////////////////////////////////
+    //JTH: If multiple input bins correspond to a single voxel then this book-keeping logic
+    //will not function properly since I am mapping the bins in the input THnSparse
+    //straight onto the output histogram. Would require a modification to the code.
+
+    //Temporary histogram to store the value of the biggest single-particle
+    //contribution to a voxel.
+    TH2D truthmatch_biggest_contributor("","", bins[0], mins[0], maxs[0],bins[1], mins[1], maxs[1]);
+    truthmatch_biggest_contributor.SetDirectory(0);
     
     for(int j=0; j<NParticles; ++j){
-
-    	std::cout << "Particle number = " << j << " of " << NParticles << std::endl;
-
-    	//voxels->Reset();
-
-	//Fill Voxel Tree
-    	TrueXi.SetXYZ(Xi[j], Yi[j], Zi[j]);    
-    	TrueXf.SetXYZ(Xf[j], Yf[j], Zf[j]);
-    	PDG = pdg[j];
-	TRACKID = TrackID[j];
-	PARENTID = ParentID[j];
-	MOMENTUM = Momentum[j];
-	NPARTICLES = NParticles;
-	TruthTree->Fill();
-    
+      std::cout << "Particle number = " << j << " of " << NParticles << std::endl;
+      
+      //Per-particle truth variables
+      /*      TrueXi.SetXYZ(Xi[j], Yi[j], Zi[j]);    
+      TrueXf.SetXYZ(Xf[j], Yf[j], Zf[j]);
+      PDG = pdg[j];
+      TRACKID = TrackID[j];
+      PARENTID = ParentID[j];
+      MOMENTUM = Momentum[j];
+      NPARTICLES = NParticles;
+      */
+ 
+      Int_t coord[3];
+      coord[2]=0;
+      THnSparse* sparseHist=(THnSparse*) SingleHist->At(j);
+      Long64_t nBins=sparseHist->GetNbins();
+      int countFills=0;
+      for(int iBin=0;iBin<nBins;++iBin){
+	double Edep = sparseHist->GetBinContent(iBin,coord);
+	if(truthmatch_biggest_contributor.GetBinContent(coord[0],coord[1])<Edep){
+	  truthmatch_biggest_contributor.SetBinContent(coord[0],coord[1],Edep);
+	  truthmatch_voxels->SetBinContent(coord,j+1);
+	  ++countFills;
+	}
+      }
+      std::cout<<"Particle had "<<nBins<<" non-zero bins in image of which we used "<<countFills<<std::endl;
     }
 
-    	//Reading out Hits
-    	for (int x=0; x<1529; ++x){
-      		for(int y=0; y<1529; ++y){
+    //Reading out Hits
+    for (int x=0; x<1529; ++x){
+      for(int y=0; y<1529; ++y){
+	//	Double_t xpos = MergeHist->GetXaxis()->GetBinCenter(x);
+	//Double_t ypos = MergeHist->GetYaxis()->GetBinCenter(y);
+	//Double_t zpos = 0.5;
+	Double_t Edep = MergeHist->GetBinContent(x,y);
+	//Double_t position[3] = {xpos, ypos, zpos};
 	
-			testHist = (TH2D*)SingleHist; 					//->GetBinContent(x,y);
-			Double_t xpos = testHist->GetXaxis()->GetBinCenter(x);
-			Double_t ypos = testHist->GetYaxis()->GetBinCenter(y);
-			Double_t zpos = 1;
-			Double_t Edep = testHist->GetBinContent(x,y);
-			Double_t position[3] = {xpos, ypos, zpos};
-	
-			if(Edep>threshold){
-	 			voxels->Fill(position, Edep);	
-			}
-      		}
-	}
-
-	//Int_t coord[2];
-	//THnSparse* sparseHist=(THnSparse*) SingleHist->At(i);
-	//std::cout << "Declared THnSparse sparseHist" << std::endl;
-	//Long64_t nBins=sparseHist->GetNbins();				//null passed here
-	//TAxis* xAxis=sparseHist->GetAxis(0);
-	//TAxis* yAxis=sparseHist->GetAxis(1);
-	
-	/*std::cout << "Entering for loop" << std::endl;
-	for(int iBin=0;iBin<nBins;++iBin){
-	  double Edep = sparseHist->GetBinContent(iBin,coord);
-	  
-	  if(Edep>threshold){
-	    Double_t position[3] = {xAxis->GetBinCenter(coord[0]),yAxis->GetBinCenter(coord[1])};
-	    voxels->Fill(position, Edep);
-	  }
-	}*/
-    VoxelsTree->Fill();
-  }
-  
-
-  /*
-  //Reading out 2D images - obsolete?
-  
-  for(Int_t h=0; h<events; ++h){
-    
-    voxels->Reset();
-    
-    //Use user-defined input mode - possible values "Ideal" or "Real" 
-    sprintf(inname,"hReadOut%s_img%.3d", input_mode, h);
-
-    std::string files;
-    
-    //std::cout << "Histogram being read is: " << inname << std::endl;
-    
-    sprintf(N, "histo%.3d", h);
-    
-    TH2D *N=(TH2D*)f.Get(inname);
-    
-    Double_t minY = N->GetBin(0,0);
-    Double_t minX = N->GetBin(0,0);
-    Double_t maxX = N->GetBin(512,512);
-    Double_t maxY = N->GetBin(512,512);    
-    
-    for(int i=1; i<501; ++i){
-      
-      for(int j=1; j<501; ++j){
-	
-	Double_t Edep = N->GetBinContent(i,j);
-	
-	if(Edep!=0){
-	  
-	  Double_t xpos = i*2+mins[0];
-	  Double_t ypos = j*2+mins[1];
-	  Double_t zpos = 1;
-	  
-	  Double_t position[3] = {xpos, ypos, zpos};
-	  
-	  //std::cout << "Filling hist with voxel at : " << position[0] << ", " << position[1] << ", " << position[2] << std::endl;
-	  voxels->Fill(position, Edep);
+	if(Edep>threshold){
+	  Int_t position[3] = {x,y,0};
+	  voxels->SetBinContent(position, Edep);	
 	}
       }
     }
-  }*/
-
+    
+    VoxelsTree->Fill();
+  }
+  
+  
   std::cout << "All Events written to Voxel Tree" << std::endl;
   
   TruthTree->Print();
-
+  
   std::cout << "TruthTree printed successfully " << std::endl;
 
   VoxelsTree->Print();
@@ -288,11 +306,11 @@ int  Voxelize(const char * inputfile, int x_voxelDim, int y_voxelDim, Int_t even
   
   std::string base_name(std::string const & path)
   {
-    //string base =  path.substr(path.find_last_of("/\\") + 1);
+    string base =  path.substr(path.find_last_of("/\\") + 1);
     
-    //return base.substr(0,base.length()-5);
+    return base.substr(0,base.length()-5);
     
-    return path.substr(0, path.length()-5);
+    //return path.substr(0, path.length()-5);
   }
   
   
